@@ -15,16 +15,18 @@ Yang belum ada: **semua halaman tampilan** dan deploy.
 
 ## Pembagian sisa pekerjaan
 
-Karena backend selesai lebih cepat, Dev A ikut mengerjakan halaman yang paling banyak berurusan dengan data (dashboard dan admin). Dev B fokus pada halaman untuk orang tua, yang paling menentukan penilaian.
+Karena backend selesai lebih cepat, Dev A ikut mengerjakan halaman yang paling banyak berurusan dengan data (dashboard dan admin). Dev B fokus pada halaman untuk orang tua, yang paling menentukan penilaian. Aturan dan alur kerja setiap branch ada di [PANDUAN-BRANCH.md](PANDUAN-BRANCH.md).
 
 | Branch | Pemilik | Isi |
 |---|---|---|
-| `feat/b-kerangka` | B | Layout, header, footer, Beranda, gaya dasar (dari prototipe miafrontdev.vercel.app) |
-| `feat/b-alur-cek` | B | `/cek` (formulir 3 langkah dengan peta) dan `/hasil/[token]` |
-| `feat/b-konten` | B | `/panduan` dan `/tanya-jawab` |
-| `feat/a-deploy` | A | Homeserver (API + database) dan Vercel (halaman), lihat bagian Deploy |
-| `feat/a-dashboard-ui` | A | `/dashboard` |
-| `feat/a-admin-ui` | A | `/admin/masuk`, `/admin`, `/admin/impor`, `/admin/sekolah`, `/admin/aturan` |
+| `backend/statistik-seed` | A | Statistik agregat 2026 masuk seed, agar aplikasi bisa jalan tanpa CSV mentah |
+| `backend/perbaikan-data` | A | Koordinat sekolah yang kosong dan biaya sekolah swasta |
+| `backend/deploy` | A | Homeserver (API + database) dan Vercel (halaman), lihat bagian Deploy |
+| `frontend/kerangka` | B | Layout, header, footer, Beranda, gaya dasar (dari prototipe miafrontdev.vercel.app) |
+| `frontend/alur-cek` | B | `/cek` (formulir 3 langkah dengan peta) dan `/hasil/[token]` |
+| `frontend/konten` | B | `/panduan` dan `/tanya-jawab` |
+| `frontend/dashboard` | A | `/dashboard` |
+| `frontend/admin` | A | `/admin/masuk`, `/admin`, `/admin/impor`, `/admin/sekolah`, `/admin/aturan` |
 | `fix/…` | siapa saja | Perbaikan bug |
 
 ## Halaman dan API yang dipakai
@@ -79,9 +81,9 @@ Masukan dari uji coba prototipe yang harus diterapkan:
 
 | Hari | Dev A | Dev B |
 |---|---|---|
-| Kamis 29 (sisa) | Deploy homeserver dan Vercel pertama | Siapkan proyek, mulai `feat/b-kerangka` |
-| Jumat 30 | `feat/a-dashboard-ui` | `feat/b-alur-cek` (cek dan hasil) |
-| Sabtu 31 | `feat/a-admin-ui`, lengkapi koordinat sekolah yang kosong; malam: uji ujung ke ujung di HP | `feat/b-konten`, rapikan tampilan HP; malam: uji bersama |
+| Kamis 29 (sisa) | Deploy homeserver dan Vercel pertama | Siapkan proyek, mulai `frontend/kerangka` |
+| Jumat 30 | `frontend/dashboard` | `frontend/alur-cek` (cek dan hasil) |
+| Sabtu 31 | `frontend/admin`, lengkapi koordinat sekolah yang kosong; malam: uji ujung ke ujung di HP | `frontend/konten`, rapikan tampilan HP; malam: uji bersama |
 | Minggu 1 | Pagi: kode dibekukan, hanya perbaikan bug. Siang: berkas lomba dan pengumpulan | sama |
 
 Kalau waktu habis, yang dipotong berurutan: `/admin/aturan`, sinyal minat di dashboard, kursi kosong, `/admin/impor` (impor tetap bisa lewat `npm run data:impor`).
@@ -104,7 +106,7 @@ cd SiPesek
 npm install
 cp .env.example .env      # isi BACKEND_URL dengan alamat homeserver dari Dev A; DATABASE_URL biarkan
 npm run dev               # http://localhost:3000, data diambil dari homeserver
-git checkout -b feat/b-kerangka
+git checkout frontend/kerangka
 ```
 
 Catatan: hasil cek yang dibuat saat mencoba ikut tercatat di sinyal minat dashboard. Dev A membersihkannya sebelum demo.

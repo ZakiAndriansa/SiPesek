@@ -56,7 +56,7 @@ Bentuk request dan response ada di `src/lib/kontrak.ts`.
 
 ## Pembagian tugas dan alur branch
 
-Lihat [PEMBAGIAN-TUGAS.md](PEMBAGIAN-TUGAS.md): siapa mengerjakan apa, daftar branch, jadwal sampai 1 November, dan cara menyiapkan proyek tanpa Docker.
+Lihat [PEMBAGIAN-TUGAS.md](PEMBAGIAN-TUGAS.md) untuk siapa mengerjakan apa, jadwal sampai 1 November, dan cara menyiapkan proyek tanpa Docker. Daftar branch backend dan frontend beserta alur kerjanya ada di [PANDUAN-BRANCH.md](PANDUAN-BRANCH.md).
 
 ## Privasi
 
