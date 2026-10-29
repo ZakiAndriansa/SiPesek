@@ -51,9 +51,9 @@ CSV klasemen SPMB berisi nama dan NISN anak, jadi **tidak ada di repo**. Minta f
 
 Bentuk request dan response ada di `src/lib/kontrak.ts`.
 
-## Alur branch
+## Pembagian tugas dan alur branch
 
-`main` selalu bisa di-deploy. Kerjakan di branch pendek (`feat/a-…` untuk Dev A, `feat/b-…` untuk Dev B), lalu gabung lewat PR minimal dua kali sehari.
+Lihat [PEMBAGIAN-TUGAS.md](PEMBAGIAN-TUGAS.md): siapa mengerjakan apa, daftar branch, jadwal sampai 1 November, dan cara menyiapkan proyek tanpa Docker.
 
 ## Privasi
 
