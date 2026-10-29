@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: petakursi
+      POSTGRES_PASSWORD: petakursi
+      POSTGRES_DB: petakursi
+    ports:
+      - "5432:5432"
+    volumes:
+      - petakursi-db:/var/lib/postgresql/data
+
+volumes:
+  petakursi-db:

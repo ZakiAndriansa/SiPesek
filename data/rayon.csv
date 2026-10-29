@@ -1,0 +1,58 @@
+rayon_kode,rayon_nama,kecamatan,jenis
+DEPOK-A,Rayon A Cinere,Cinere,UTAMA
+DEPOK-A,Rayon A Cinere,Limo,IRISAN
+DEPOK-B,Rayon B Limo,Limo,UTAMA
+DEPOK-B,Rayon B Limo,Cinere,IRISAN
+DEPOK-B,Rayon B Limo,Sawangan,IRISAN
+DEPOK-B,Rayon B Limo,Pancoran Mas,IRISAN
+DEPOK-B,Rayon B Limo,Beji,IRISAN
+DEPOK-C,Rayon C Sawangan,Sawangan,UTAMA
+DEPOK-C,Rayon C Sawangan,Bojongsari,IRISAN
+DEPOK-C,Rayon C Sawangan,Limo,IRISAN
+DEPOK-C,Rayon C Sawangan,Pancoran Mas,IRISAN
+DEPOK-C,Rayon C Sawangan,Cipayung,IRISAN
+DEPOK-D,Rayon D Bojongsari,Bojongsari,UTAMA
+DEPOK-D,Rayon D Bojongsari,Sawangan,IRISAN
+DEPOK-D,Rayon D Bojongsari,Parung,IRISAN
+DEPOK-D,Rayon D Bojongsari,Gunung Sindur,IRISAN
+DEPOK-D,Rayon D Bojongsari,Tajurhalang,IRISAN
+DEPOK-E,Rayon E Cipayung,Cipayung,UTAMA
+DEPOK-E,Rayon E Cipayung,Sawangan,IRISAN
+DEPOK-E,Rayon E Cipayung,Cilodong,IRISAN
+DEPOK-E,Rayon E Cipayung,Sukmajaya,IRISAN
+DEPOK-E,Rayon E Cipayung,Pancoran Mas,IRISAN
+DEPOK-E,Rayon E Cipayung,Bojong Gede,IRISAN
+DEPOK-F,Rayon F Pancoran Mas,Pancoran Mas,UTAMA
+DEPOK-F,Rayon F Pancoran Mas,Limo,IRISAN
+DEPOK-F,Rayon F Pancoran Mas,Sawangan,IRISAN
+DEPOK-F,Rayon F Pancoran Mas,Cipayung,IRISAN
+DEPOK-F,Rayon F Pancoran Mas,Sukmajaya,IRISAN
+DEPOK-F,Rayon F Pancoran Mas,Beji,IRISAN
+DEPOK-G,Rayon G Beji,Beji,UTAMA
+DEPOK-G,Rayon G Beji,Limo,IRISAN
+DEPOK-G,Rayon G Beji,Pancoran Mas,IRISAN
+DEPOK-G,Rayon G Beji,Sukmajaya,IRISAN
+DEPOK-G,Rayon G Beji,Cimanggis,IRISAN
+DEPOK-H,Rayon H Sukmajaya,Sukmajaya,UTAMA
+DEPOK-H,Rayon H Sukmajaya,Beji,IRISAN
+DEPOK-H,Rayon H Sukmajaya,Pancoran Mas,IRISAN
+DEPOK-H,Rayon H Sukmajaya,Cipayung,IRISAN
+DEPOK-H,Rayon H Sukmajaya,Cilodong,IRISAN
+DEPOK-H,Rayon H Sukmajaya,Tapos,IRISAN
+DEPOK-H,Rayon H Sukmajaya,Cimanggis,IRISAN
+DEPOK-I,Rayon I Cilodong,Cilodong,UTAMA
+DEPOK-I,Rayon I Cilodong,Cipayung,IRISAN
+DEPOK-I,Rayon I Cilodong,Sukmajaya,IRISAN
+DEPOK-I,Rayon I Cilodong,Tapos,IRISAN
+DEPOK-I,Rayon I Cilodong,Cibinong,IRISAN
+DEPOK-J,Rayon J Tapos,Tapos,UTAMA
+DEPOK-J,Rayon J Tapos,Cilodong,IRISAN
+DEPOK-J,Rayon J Tapos,Sukmajaya,IRISAN
+DEPOK-J,Rayon J Tapos,Cimanggis,IRISAN
+DEPOK-J,Rayon J Tapos,Gunung Putri,IRISAN
+DEPOK-J,Rayon J Tapos,Jatisampurna,IRISAN
+DEPOK-K,Rayon K Cimanggis,Cimanggis,UTAMA
+DEPOK-K,Rayon K Cimanggis,Beji,IRISAN
+DEPOK-K,Rayon K Cimanggis,Sukmajaya,IRISAN
+DEPOK-K,Rayon K Cimanggis,Tapos,IRISAN
+DEPOK-K,Rayon K Cimanggis,Jatisampurna,IRISAN

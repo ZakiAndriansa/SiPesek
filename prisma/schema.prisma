@@ -1,0 +1,217 @@
+// Rancangan database PetaKursi Depok.
+// Prinsip privasi: tidak ada nama, NISN, nomor HP, atau koordinat rumah yang disimpan.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Jenjang {
+  SMA
+  SMK
+}
+
+enum StatusSekolah {
+  NEGERI
+  SWASTA
+}
+
+enum KategoriSekolah {
+  REGULER
+  UNGGULAN_PROVINSI
+}
+
+enum Metrik {
+  JARAK_METER
+  SKOR
+}
+
+enum Label {
+  PELUANG_BESAR
+  MASIH_MUNGKIN
+  PELUANG_KECIL
+  TIDAK_DIHITUNG
+}
+
+enum JenisWilayahRayon {
+  UTAMA
+  IRISAN
+}
+
+model Sekolah {
+  id           Int             @id @default(autoincrement())
+  npsn         String          @unique
+  kodeDiData   String?         @unique // NPSN seperti tertulis di CSV SPMB, mis. "USB-SMKN5DEPOK"
+  nama         String
+  jenjang      Jenjang
+  status       StatusSekolah
+  kategori     KategoriSekolah @default(REGULER)
+  alamat       String
+  kelurahan    String?
+  kecamatan    String
+  lat          Float? // null = koordinat belum ada (mis. SMKN 5)
+  lng          Float?
+  akreditasi   String?
+  sumberUrl    String // halaman Data Referensi asal alamat dan koordinat
+  diambilPada  DateTime
+  biayaRingkas String? // hanya jika ada sumber
+  biayaResmi   Boolean? // true = situs sekolah, false = media
+  biayaUrl     String?
+  rayonKode    String?
+  rayon        Rayon?          @relation(fields: [rayonKode], references: [kode])
+  program      ProgramKeahlian[]
+  statistik    StatistikSeleksi[]
+  dayaTampung  DayaTampung[]
+  hasilCek     HasilCek[]
+
+  @@index([jenjang, status])
+}
+
+model Rayon {
+  kode    String           @id // "DEPOK-A" sampai "DEPOK-K"
+  nama    String // "Rayon A Cinere"
+  wilayah RayonKecamatan[]
+  sekolah Sekolah[]
+}
+
+model RayonKecamatan {
+  id        Int               @id @default(autoincrement())
+  rayonKode String
+  rayon     Rayon             @relation(fields: [rayonKode], references: [kode])
+  kecamatan String
+  jenis     JenisWilayahRayon
+
+  @@unique([rayonKode, kecamatan])
+  @@index([kecamatan])
+}
+
+model ProgramKeahlian {
+  id            Int                @id @default(autoincrement())
+  sekolahId     Int
+  sekolah       Sekolah            @relation(fields: [sekolahId], references: [id])
+  bidang        String
+  nama          String
+  kelompokBobot String? // TEKNOLOGI | BISNIS, untuk rumus Kelas Industri
+  statistik     StatistikSeleksi[]
+  dayaTampung   DayaTampung[]
+
+  @@unique([sekolahId, nama])
+}
+
+model Jalur {
+  kode         String     @id // DOMISILI | AFIRMASI | PRESTASI | MUTASI | SELEKSI_UNGGULAN
+  namaTampilan String
+  deskripsi    String
+  subJalur     SubJalur[]
+}
+
+model SubJalur {
+  id           Int                @id @default(autoincrement())
+  kode         String             @unique // DOMISILI, AFIRMASI_KETM, PRESTASI_AKD_RAPOR, ...
+  namaDiData   String             @unique // persis seperti kolom "Sub Jalur" di CSV SPMB
+  jalurKode    String
+  jalur        Jalur              @relation(fields: [jalurKode], references: [kode])
+  namaTampilan String
+  metrik       Metrik
+  statistik    StatistikSeleksi[]
+  hasilCek     HasilCek[]
+}
+
+model TahunSpmb {
+  tahun   Int     @id
+  aktif   Boolean @default(false) // tahun acuan mesin peluang
+  aturan  Json // bentuknya divalidasi zod di src/lib/validasi.ts
+  catatan String?
+}
+
+model StatistikSeleksi {
+  id                  Int              @id @default(autoincrement())
+  tahun               Int
+  sekolahId           Int
+  sekolah             Sekolah          @relation(fields: [sekolahId], references: [id])
+  subJalurId          Int
+  subJalur            SubJalur         @relation(fields: [subJalurId], references: [id])
+  programId           Int?
+  program             ProgramKeahlian? @relation(fields: [programId], references: [id])
+  pendaftar           Int? // null untuk SMA 1 Depok (data hanya yang diterima)
+  pendaftarPilihan1   Int?
+  diterima            Int
+  nilaiMinDiterima    Float?
+  nilaiMedianDiterima Float?
+  nilaiMaksDiterima   Float?
+
+  @@index([tahun, sekolahId])
+}
+
+model StatistikKecamatan {
+  id            Int    @id @default(autoincrement())
+  tahun         Int
+  cakupan       String // SMA | SMK | SEMUA (NISN unik tidak bisa dijumlah antarjenjang)
+  kecamatan     String
+  pendaftarUnik Int
+  diterimaUnik  Int
+
+  @@unique([tahun, cakupan, kecamatan])
+}
+
+model DayaTampung {
+  id        Int              @id @default(autoincrement())
+  tahun     Int
+  sekolahId Int
+  sekolah   Sekolah          @relation(fields: [sekolahId], references: [id])
+  programId Int?
+  program   ProgramKeahlian? @relation(fields: [programId], references: [id])
+  kuota     Int
+  sumber    String
+
+  @@index([tahun, sekolahId])
+}
+
+model CekPeluang {
+  id          String     @id @default(cuid())
+  token       String     @unique // untuk /hasil/<token>
+  tahunAcuan  Int
+  kecamatan   String?
+  jenjang     String // SMA | SMK | SEMUA
+  jalurDicek  String[]
+  rentangSkor String? // contoh "290-299", bukan skor persis
+  hasil       Json // kartu hasil; jarak dibulatkan 50 m, tanpa koordinat
+  dibuatPada  DateTime   @default(now())
+  detail      HasilCek[]
+}
+
+model HasilCek {
+  id         Int        @id @default(autoincrement())
+  cekId      String
+  cek        CekPeluang @relation(fields: [cekId], references: [id], onDelete: Cascade)
+  sekolahId  Int
+  sekolah    Sekolah    @relation(fields: [sekolahId], references: [id])
+  subJalurId Int
+  subJalur   SubJalur   @relation(fields: [subJalurId], references: [id])
+  label      Label
+
+  @@index([sekolahId, label])
+}
+
+model Admin {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  nama         String
+  passwordHash String
+  logImpor     LogImpor[]
+}
+
+model LogImpor {
+  id            Int      @id @default(autoincrement())
+  tahun         Int
+  namaFile      String
+  jumlahBaris   Int
+  jumlahSekolah Int
+  adminId       Int?
+  admin         Admin?   @relation(fields: [adminId], references: [id])
+  dibuatPada    DateTime @default(now())
+}
