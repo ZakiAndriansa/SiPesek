@@ -1,32 +1,20 @@
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
 import { z } from "zod";
-import { buatTokenSesi, NAMA_COOKIE, UMUR_SESI_DETIK } from "@/lib/auth";
+import { buatTokenSesi, NAMA_COOKIE, opsiCookieSesi } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { bacaJson, galat } from "@/lib/http";
 
-const skema = z.object({ email: z.string().email(), password: z.string().min(1).max(200) });
+const skema = z.object({ email: z.email(), password: z.string().min(1).max(200) });
+const PESAN_GAGAL = "Email atau kata sandi salah.";
 
 export async function POST(request: Request) {
-  const masukan = skema.safeParse(await request.json().catch(() => null));
-  const gagal = () => Response.json({ galat: "Email atau kata sandi salah." }, { status: 401 });
-  if (!masukan.success) return gagal();
+  const masukan = await bacaJson(request, skema, PESAN_GAGAL);
+  if ("gagal" in masukan) return galat(PESAN_GAGAL, 401);
 
   const admin = await prisma.admin.findUnique({ where: { email: masukan.data.email } });
-  if (!admin || !(await bcrypt.compare(masukan.data.password, admin.passwordHash))) return gagal();
+  if (!admin || !(await bcrypt.compare(masukan.data.password, admin.passwordHash))) return galat(PESAN_GAGAL, 401);
 
-  const token = await buatTokenSesi(admin.id);
-  const respons = Response.json({ nama: admin.nama });
-  respons.headers.append(
-    "Set-Cookie",
-    [
-      `${NAMA_COOKIE}=${token}`,
-      "Path=/",
-      "HttpOnly",
-      "SameSite=Lax",
-      `Max-Age=${UMUR_SESI_DETIK}`,
-      process.env.NODE_ENV === "production" ? "Secure" : "",
-    ]
-      .filter(Boolean)
-      .join("; "),
-  );
-  return respons;
+  (await cookies()).set(NAMA_COOKIE, await buatTokenSesi(admin.id), opsiCookieSesi);
+  return Response.json({ nama: admin.nama });
 }

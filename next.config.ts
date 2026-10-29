@@ -7,7 +7,6 @@ import type { NextConfig } from "next";
 const backend = process.env.BACKEND_URL?.replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   // Image Docker untuk homeserver memakai server.js mandiri.

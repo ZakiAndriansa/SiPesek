@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { sesiAdmin, tolakTanpaSesi } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import type { ResponsGalat } from "@/lib/kontrak";
+import { bacaJson } from "@/lib/http";
 
 const skema = z.object({
   tahun: z.number().int().min(2020).max(2100),
@@ -14,14 +14,11 @@ const skema = z.object({
 
 // Mengganti daya tampung satu sekolah (atau satu program SMK) untuk satu tahun.
 export async function PUT(request: NextRequest) {
-  const sesi = await sesiAdmin(request);
-  if (!sesi) return tolakTanpaSesi();
-  const masukan = skema.safeParse(await request.json().catch(() => null));
-  if (!masukan.success) {
-    return Response.json({ galat: "Data daya tampung tidak valid.", detail: masukan.error.issues } satisfies ResponsGalat, {
-      status: 400,
-    });
-  }
+  if (!(await sesiAdmin(request))) return tolakTanpaSesi();
+
+  const masukan = await bacaJson(request, skema, "Data daya tampung tidak valid.");
+  if ("gagal" in masukan) return masukan.gagal;
+
   const { tahun, sekolahId, programId } = masukan.data;
   const hasil = await prisma.$transaction(async (tx) => {
     await tx.dayaTampung.deleteMany({ where: { tahun, sekolahId, programId } });

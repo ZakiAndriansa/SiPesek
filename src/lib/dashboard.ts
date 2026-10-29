@@ -1,3 +1,4 @@
+import "server-only";
 import { prisma } from "@/lib/db";
 import type { ResponsDashboard, SekolahRingkas } from "@/lib/kontrak";
 import { pilihSekolahRingkas } from "@/lib/peluang/muat";
@@ -7,6 +8,12 @@ const persen = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 1
 export async function tahunAktif(): Promise<number | null> {
   const t = await prisma.tahunSpmb.findFirst({ where: { aktif: true }, orderBy: { tahun: "desc" } });
   return t?.tahun ?? null;
+}
+
+/** Tahun dari query `?tahun=`, atau tahun aktif bila kosong atau tidak valid. */
+export async function tahunDiminta(nilai: string | null): Promise<number | null> {
+  const diminta = Number(nilai);
+  return Number.isInteger(diminta) && diminta > 0 ? diminta : tahunAktif();
 }
 
 export async function muatDashboard(tahun: number): Promise<ResponsDashboard> {

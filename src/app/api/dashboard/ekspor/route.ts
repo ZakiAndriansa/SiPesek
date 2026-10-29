@@ -1,14 +1,13 @@
 import type { NextRequest } from "next/server";
 import Papa from "papaparse";
-import { muatDashboard, tahunAktif } from "@/lib/dashboard";
-import type { ResponsGalat } from "@/lib/kontrak";
+import { muatDashboard, tahunDiminta } from "@/lib/dashboard";
+import { galat } from "@/lib/http";
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams;
-  const diminta = Number(q.get("tahun"));
-  const tahun = Number.isInteger(diminta) && diminta > 0 ? diminta : await tahunAktif();
+  const tahun = await tahunDiminta(q.get("tahun"));
+  if (!tahun) return galat("Belum ada data SPMB.", 404);
   const jenis = q.get("jenis") === "kecamatan" ? "kecamatan" : "sekolah";
-  if (!tahun) return Response.json({ galat: "Belum ada data SPMB." } satisfies ResponsGalat, { status: 404 });
 
   const d = await muatDashboard(tahun);
   const baris: Record<string, string | number>[] =

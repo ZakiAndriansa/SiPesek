@@ -1,27 +1,22 @@
 import { nanoid } from "nanoid";
 import { prisma } from "@/lib/db";
-import type { ResponsGalat, ResponsPeluang } from "@/lib/kontrak";
+import { bacaJson } from "@/lib/http";
+import type { ResponsPeluang } from "@/lib/kontrak";
 import { hitungPeluang } from "@/lib/peluang/mesin";
 import { muatDataMesin } from "@/lib/peluang/muat";
 import { skemaPermintaanPeluang } from "@/lib/validasi";
 
 export async function POST(request: Request) {
-  const masukan = skemaPermintaanPeluang.safeParse(await request.json().catch(() => null));
-  if (!masukan.success) {
-    return Response.json(
-      { galat: "Isian belum lengkap atau tidak sesuai.", detail: masukan.error.issues } satisfies ResponsGalat,
-      { status: 400 },
-    );
-  }
+  const masukan = await bacaJson(request, skemaPermintaanPeluang, "Isian belum lengkap atau tidak sesuai.");
+  if ("gagal" in masukan) return masukan.gagal;
 
-  const data = await muatDataMesin();
-  const hasil = hitungPeluang(masukan.data, data);
+  const hasil = hitungPeluang(masukan.data, await muatDataMesin());
 
   // Yang disimpan hanya ringkasan anonim: tanpa koordinat rumah, tanpa nilai persis.
   const subJalur = await prisma.subJalur.findMany({ select: { id: true, kode: true } });
   const idSubJalur = new Map(subJalur.map((s) => [s.kode, s.id]));
   const skorPertama = hasil.hasil.flatMap((h) => h.jalur).find((j) => j.satuan === "skor" && j.nilaiAnak !== null);
-  const bawah = skorPertama ? Math.floor(skorPertama.nilaiAnak! / 10) * 10 : null;
+  const bawah = skorPertama?.nilaiAnak != null ? Math.floor(skorPertama.nilaiAnak / 10) * 10 : null;
   const token = nanoid(12);
 
   const cek = await prisma.cekPeluang.create({

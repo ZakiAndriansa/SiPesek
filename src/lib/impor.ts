@@ -1,3 +1,4 @@
+import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import type { PermintaanImpor, ResponsImpor } from "@/lib/kontrak";
 import { prisma } from "@/lib/db";

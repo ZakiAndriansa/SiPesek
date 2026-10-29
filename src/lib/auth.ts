@@ -2,8 +2,10 @@
  * Sesi admin berbasis cookie JWT httpOnly.
  * Modul ini sengaja tidak mengimpor database agar bisa dipakai di src/proxy.ts.
  */
+import "server-only";
 import { jwtVerify, SignJWT } from "jose";
 import type { NextRequest } from "next/server";
+import { galat } from "@/lib/http";
 
 export const NAMA_COOKIE = "sipesek_sesi";
 export const UMUR_SESI_DETIK = 8 * 60 * 60;
@@ -37,4 +39,12 @@ export async function verifikasiTokenSesi(token: string | undefined): Promise<{ 
 /** Dipakai di setiap route handler /api/admin. */
 export const sesiAdmin = (request: NextRequest) => verifikasiTokenSesi(request.cookies.get(NAMA_COOKIE)?.value);
 
-export const tolakTanpaSesi = () => Response.json({ galat: "Silakan masuk sebagai admin." }, { status: 401 });
+export const tolakTanpaSesi = () => galat("Silakan masuk sebagai admin.", 401);
+
+export const opsiCookieSesi = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: UMUR_SESI_DETIK,
+} as const;

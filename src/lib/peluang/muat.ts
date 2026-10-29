@@ -1,3 +1,4 @@
+import "server-only";
 import { prisma } from "@/lib/db";
 import type { KodeSubJalur } from "@/lib/jalur";
 import type { SekolahRingkas } from "@/lib/kontrak";
