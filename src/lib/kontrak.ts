@@ -1,5 +1,5 @@
 /**
- * Kontrak API antara backend (Dev A) dan tampilan (Dev B).
+ * Kontrak API antara backend (Zaki) dan tampilan (Aqil).
  * Dikunci setelah hari pertama: perubahan harus disepakati berdua.
  */
 

@@ -1,6 +1,6 @@
 # Pembagian Tugas SiPesek
 
-Batas pengumpulan: **Minggu, 1 November 2026**. Dev A: Zaki. Dev B: rekan tim.
+Batas pengumpulan: **Minggu, 1 November 2026**. Tim: **Zaki** (backend, dashboard, admin) dan **Aqil** (halaman untuk orang tua).
 
 ## Status per Kamis, 29 Oktober 2026
 
@@ -15,28 +15,28 @@ Yang belum ada: **semua halaman tampilan** dan deploy.
 
 ## Pembagian sisa pekerjaan
 
-Karena backend selesai lebih cepat, Dev A ikut mengerjakan halaman yang paling banyak berurusan dengan data (dashboard dan admin). Dev B fokus pada halaman untuk orang tua, yang paling menentukan penilaian. Aturan dan alur kerja setiap branch ada di [PANDUAN-BRANCH.md](PANDUAN-BRANCH.md).
+Karena backend selesai lebih cepat, Zaki ikut mengerjakan halaman yang paling banyak berurusan dengan data (dashboard dan admin). Aqil fokus pada halaman untuk orang tua, yang paling menentukan penilaian. Aturan dan alur kerja setiap branch ada di [PANDUAN-BRANCH.md](PANDUAN-BRANCH.md).
 
 | Branch | Pemilik | Isi |
 |---|---|---|
-| `backend/statistik-seed` | A | Statistik agregat 2026 masuk seed, agar aplikasi bisa jalan tanpa CSV mentah |
-| `backend/perbaikan-data` | A | Koordinat sekolah yang kosong dan biaya sekolah swasta |
-| `backend/deploy` | A | Homeserver (API + database) dan Vercel (halaman), lihat bagian Deploy |
-| `frontend/kerangka` | B | Layout, header, footer, Beranda, gaya dasar (dari prototipe miafrontdev.vercel.app) |
-| `frontend/alur-cek` | B | `/cek` (formulir 3 langkah dengan peta) dan `/hasil/[token]` |
-| `frontend/konten` | B | `/panduan` dan `/tanya-jawab` |
-| `frontend/dashboard` | A | `/dashboard` |
-| `frontend/admin` | A | `/admin/masuk`, `/admin`, `/admin/impor`, `/admin/sekolah`, `/admin/aturan` |
+| `backend/statistik-seed` | Zaki | Statistik agregat 2026 masuk seed, agar aplikasi bisa jalan tanpa CSV mentah |
+| `backend/perbaikan-data` | Zaki | Koordinat sekolah yang kosong dan biaya sekolah swasta |
+| `backend/deploy` | Zaki | Homeserver (API + database) dan Vercel (halaman), lihat bagian Deploy |
+| `frontend/kerangka` | Aqil | Layout, header, footer, Beranda, gaya dasar (dari prototipe miafrontdev.vercel.app) |
+| `frontend/alur-cek` | Aqil | `/cek` (formulir 3 langkah dengan peta) dan `/hasil/[token]` |
+| `frontend/konten` | Aqil | `/panduan` dan `/tanya-jawab` |
+| `frontend/dashboard` | Zaki | `/dashboard` |
+| `frontend/admin` | Zaki | `/admin/masuk`, `/admin`, `/admin/impor`, `/admin/sekolah`, `/admin/aturan` |
 | `fix/…` | siapa saja | Perbaikan bug |
 
 ## Halaman dan API yang dipakai
 
 **Aturan penting untuk semua halaman:** ambil data hanya lewat `/api/...`. Jangan mengimpor `src/lib/db.ts`, `src/lib/dashboard.ts`, `src/lib/peluang/muat.ts`, atau Prisma dari halaman dan komponen. Halaman di-deploy di Vercel yang tidak punya database; hanya `/api` yang diteruskan ke homeserver. Di komponen klien pakai `fetch("/api/...")`; di server component pakai `fetch(urlApi("/api/..."))` dari `src/lib/api.ts`.
 
-### `/` Beranda (B)
+### `/` Beranda (Aqil)
 Penjelasan singkat, tombol "Mulai cek peluang", tiga langkah, empat jalur. Boleh menampilkan angka ringkas dari `GET /api/dashboard` (`ringkas`).
 
-### `/cek` Formulir 3 langkah (B)
+### `/cek` Formulir 3 langkah (Aqil)
 1. **Rumah:** peta Leaflet untuk menaruh pin, tombol "Pakai lokasi saya" (geolocation browser), pilihan kecamatan sesuai KK (`KECAMATAN_DEPOK`, `KECAMATAN_IRISAN_LUAR`, `KECAMATAN_LAINNYA` dari `kontrak.ts`), dan pilihan jenjang (SMA, SMK, atau keduanya).
 2. **Kondisi keluarga (ya/tidak):** terdaftar DTSEN dan punya kartu bantuan (KETM), anak berkebutuhan khusus, orang tua guru di sekolah negeri tertentu (daftar sekolah dari `GET /api/sekolah`, saring `status === "NEGERI"`), dan orang tua pindah tugas.
 3. **Nilai (boleh dilewati):** rata-rata rapor semester 1 sampai 5; untuk SMA nilai TKA Bahasa Indonesia dan Matematika; untuk SMK kelas industri rata-rata 5 mapel (B. Indonesia, Matematika, IPA, IPS, B. Inggris).
@@ -45,17 +45,17 @@ Kirim `POST /api/peluang` (`PermintaanPeluang`), lalu arahkan ke `/hasil/{token}
 
 Catatan teknis: Leaflet harus dimuat hanya di klien (`"use client"` dan `dynamic(..., { ssr: false })`), karena memakai `window`.
 
-### `/hasil/[token]` (B)
+### `/hasil/[token]` (Aqil)
 Data dari `GET /api/hasil/{token}` (`ResponsPeluang`).
 1. Kartu per sekolah negeri: nama, jarak, label terbaik, lalu daftar jalur dengan label dan `kalimat` (kalimat bukti sudah dibuat backend, tinggal ditampilkan).
 2. Bagian "Alternatif swasta terdekat": `swasta.SMA` dan `swasta.SMK`. Biaya: kalau `biaya.resmi` tampilkan biasa; kalau tidak, beri label "menurut media, belum resmi"; kalau `biaya` null tulis "Biaya: tanyakan ke sekolah".
 3. Tampilkan `catatan` (bukan jaminan, bukan aplikasi resmi).
 4. Tombol salin tautan dan bagikan ke WhatsApp.
 
-### `/dashboard` (A)
+### `/dashboard` (Zaki)
 Data dari `GET /api/dashboard`. Peta sekolah dengan lingkaran radius domisili, tekanan per sekolah, persentase diterima per kecamatan (bisa dipilih SMA, SMK, semua), tabel rayon (rayon F Pancoran Mas tanpa SMAN reguler disorot), program SMK, kursi kosong bila daya tampung sudah diisi, sinyal minat, dan tombol ekspor `GET /api/dashboard/ekspor?jenis=sekolah|kecamatan`.
 
-### `/admin/*` (A)
+### `/admin/*` (Zaki)
 `POST /api/admin/masuk`, `/keluar`; impor CSV diparse di browser dengan `agregasi()` dari `src/lib/etl/agregasi.ts` lalu dikirim ke `POST /api/admin/impor`; `PATCH /api/admin/sekolah/[id]`; `PUT /api/admin/daya-tampung`; `GET`/`PUT /api/admin/aturan/[tahun]`.
 
 ## Teks yang sudah disepakati
@@ -79,7 +79,7 @@ Masukan dari uji coba prototipe yang harus diterapkan:
 
 ## Jadwal sisa
 
-| Hari | Dev A | Dev B |
+| Hari | Zaki | Aqil |
 |---|---|---|
 | Kamis 29 (sisa) | Deploy homeserver dan Vercel pertama | Siapkan proyek, mulai `frontend/kerangka` |
 | Jumat 30 | `frontend/dashboard` | `frontend/alur-cek` (cek dan hasil) |
@@ -92,11 +92,11 @@ Kalau waktu habis, yang dipotong berurutan: `/admin/aturan`, sinyal minat di das
 
 1. Jangan commit langsung ke `main`. Buat branch dari `main` terbaru, lalu buka PR. PR digabung setelah dicek orang lain dan preview Vercel-nya jalan.
 2. Gabungkan ke `main` minimal dua kali sehari agar tidak menumpuk konflik.
-3. Hanya Dev A yang mengubah `prisma/schema.prisma` dan migrasi.
+3. Hanya Zaki yang mengubah `prisma/schema.prisma` dan migrasi.
 4. `src/lib/kontrak.ts` hanya diubah setelah disepakati berdua.
 5. Jangan pernah commit `.env` atau isi `data-mentah/` (berisi nama dan NISN anak).
 
-## Menyiapkan proyek (Dev B)
+## Menyiapkan proyek (Aqil)
 
 Tidak perlu Docker dan tidak perlu database. Saat development, `/api` diteruskan ke backend di homeserver.
 
@@ -104,12 +104,12 @@ Tidak perlu Docker dan tidak perlu database. Saat development, `/api` diteruskan
 git clone https://github.com/ZakiAndriansa/SiPesek.git
 cd SiPesek
 npm install
-cp .env.example .env      # isi BACKEND_URL dengan alamat homeserver dari Dev A; DATABASE_URL biarkan
+cp .env.example .env      # isi BACKEND_URL dengan alamat homeserver dari Zaki; DATABASE_URL biarkan
 npm run dev               # http://localhost:3000, data diambil dari homeserver
 git checkout frontend/kerangka
 ```
 
-Catatan: hasil cek yang dibuat saat mencoba ikut tercatat di sinyal minat dashboard. Dev A membersihkannya sebelum demo.
+Catatan: hasil cek yang dibuat saat mencoba ikut tercatat di sinyal minat dashboard. Zaki membersihkannya sebelum demo.
 
 ## Deploy
 
@@ -128,7 +128,7 @@ docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat
 docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma db seed
 ```
 
-Statistik SPMB diimpor dari laptop Dev A, sehingga CSV berisi NISN tidak pernah disalin ke homeserver; yang dikirim hanya angka agregat:
+Statistik SPMB diimpor dari laptop Zaki, sehingga CSV berisi NISN tidak pernah disalin ke homeserver; yang dikirim hanya angka agregat:
 
 ```bash
 SIPESEK_URL=https://alamat-homeserver npm run data:kirim

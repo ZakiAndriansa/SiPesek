@@ -12,19 +12,19 @@ Branch dikelompokkan menurut area: `backend/` untuk API, database, data, dan dep
 
 | Branch | Pemilik | Isi | Folder yang disentuh |
 |---|---|---|---|
-| `backend/statistik-seed` | Dev A | Statistik agregat SPMB 2026 (tanpa nama dan NISN) disimpan di `data/` dan dimuat otomatis oleh seed, sehingga aplikasi bisa dijalankan tanpa CSV mentah | `data/`, `prisma/seed.ts`, `scripts/` |
-| `backend/perbaikan-data` | Dev A | Melengkapi koordinat sekolah yang kosong dan biaya sekolah swasta yang ada sumbernya | `data/`, `scripts/` |
-| `backend/deploy` | Dev A bersama pemilik homeserver | Penyesuaian deploy homeserver (API dan database) dan Vercel (halaman) | `Dockerfile`, `docker-compose.server.yml`, `next.config.ts` |
+| `backend/statistik-seed` | Zaki | Statistik agregat SPMB 2026 (tanpa nama dan NISN) disimpan di `data/` dan dimuat otomatis oleh seed, sehingga aplikasi bisa dijalankan tanpa CSV mentah | `data/`, `prisma/seed.ts`, `scripts/` |
+| `backend/perbaikan-data` | Zaki | Melengkapi koordinat sekolah yang kosong dan biaya sekolah swasta yang ada sumbernya | `data/`, `scripts/` |
+| `backend/deploy` | Zaki bersama pemilik homeserver | Penyesuaian deploy homeserver (API dan database) dan Vercel (halaman) | `Dockerfile`, `docker-compose.server.yml`, `next.config.ts` |
 
 ## Branch frontend
 
 | Branch | Pemilik | Isi | Halaman |
 |---|---|---|---|
-| `frontend/kerangka` | Dev B | Layout, header, footer, beranda, gaya dasar dari prototipe | `/` |
-| `frontend/alur-cek` | Dev B | Formulir 3 langkah dengan peta, halaman hasil, tombol bagikan | `/cek`, `/hasil/[token]` |
-| `frontend/konten` | Dev B | Panduan jalur SPMB dan tanya jawab | `/panduan`, `/tanya-jawab` |
-| `frontend/dashboard` | Dev A | Dashboard publik: peta radius, grafik, tabel rayon, ekspor CSV | `/dashboard` |
-| `frontend/admin` | Dev A | Halaman admin: masuk, impor, sekolah, aturan | `/admin/*` |
+| `frontend/kerangka` | Aqil | Layout, header, footer, beranda, gaya dasar dari prototipe | `/` |
+| `frontend/alur-cek` | Aqil | Formulir 3 langkah dengan peta, halaman hasil, tombol bagikan | `/cek`, `/hasil/[token]` |
+| `frontend/konten` | Aqil | Panduan jalur SPMB dan tanya jawab | `/panduan`, `/tanya-jawab` |
+| `frontend/dashboard` | Zaki | Dashboard publik: peta radius, grafik, tabel rayon, ekspor CSV | `/dashboard` |
+| `frontend/admin` | Zaki | Halaman admin: masuk, impor, sekolah, aturan | `/admin/*` |
 
 ## Branch sementara
 

@@ -6,9 +6,9 @@ Stack: Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma 7, Vitest.
 
 ## Menjalankan di komputer sendiri
 
-Prasyarat: Node 24 dan satu database PostgreSQL. Ada dua pilihan:
+Prasyarat: Node 24. Untuk data, ada dua pilihan:
 
-1. **Database bersama di cloud (paling mudah, tanpa Docker):** minta `DATABASE_URL` ke Dev A, isi di `.env`, lalu cukup `npm install` dan `npm run dev`. Database itu sudah berisi data.
+1. **Pakai backend di homeserver (paling mudah, tanpa Docker dan tanpa database):** minta `BACKEND_URL` (alamat backend di homeserver) ke Zaki, isi di `.env`, lalu cukup `npm install` dan `npm run dev`. Data diambil dari homeserver.
 2. **Database lokal sendiri:** butuh Docker Desktop, lalu jalankan semua langkah di bawah.
 
 ```bash
@@ -22,14 +22,14 @@ npm run dev                 # http://localhost:3000
 npm test                    # tes mesin peluang, agregasi, dan rayon
 ```
 
-CSV klasemen SPMB berisi nama dan NISN anak, jadi **tidak ada di repo**. Minta filenya ke Dev A, lalu taruh di `data-mentah/` (folder ini di-.gitignore). Tanpa file itu, tes yang memakai data asli otomatis dilewati.
+CSV klasemen SPMB berisi nama dan NISN anak, jadi **tidak ada di repo**. Minta filenya ke Zaki, lalu taruh di `data-mentah/` (folder ini di-.gitignore). Tanpa file itu, tes yang memakai data asli otomatis dilewati.
 
 ## Struktur penting
 
 | Lokasi | Isi |
 |---|---|
-| `prisma/schema.prisma` | Rancangan database. Hanya Dev A yang mengubah. |
-| `src/lib/kontrak.ts` | Tipe request dan response API. Pegangan Dev B untuk membuat UI. |
+| `prisma/schema.prisma` | Rancangan database. Hanya Zaki yang mengubah. |
+| `src/lib/kontrak.ts` | Tipe request dan response API. Pegangan Aqil untuk membuat UI. |
 | `src/lib/peluang/` | Mesin peluang (fungsi murni) dan rumus skor juknis. |
 | `src/lib/etl/agregasi.ts` | CSV klasemen menjadi statistik agregat tanpa data pribadi. Dipakai juga di browser admin. |
 | `src/lib/jalur.ts` | Daftar jalur, sub jalur, dan aturan SPMB 2026. |
