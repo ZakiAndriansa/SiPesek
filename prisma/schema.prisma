@@ -1,4 +1,4 @@
-// Rancangan database PetaKursi Depok.
+// Rancangan database SiPesek.
 // Prinsip privasi: tidak ada nama, NISN, nomor HP, atau koordinat rumah yang disimpan.
 
 generator client {

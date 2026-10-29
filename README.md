@@ -1,4 +1,4 @@
-# PetaKursi Depok
+# SiPesek
 
 Perkiraan peluang anak masuk SMA/SMK negeri di Kota Depok per jalur SPMB, alternatif sekolah swasta terdekat, dan dashboard publik untuk melihat sekolah yang kebanjiran pendaftar serta kecamatan yang kekurangan kursi. Subtema: Data-Driven Decision Support (MIA 2026).
 
@@ -6,7 +6,10 @@ Stack: Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma 7, Vitest.
 
 ## Menjalankan di komputer sendiri
 
-Prasyarat: Node 24, Docker Desktop.
+Prasyarat: Node 24 dan satu database PostgreSQL. Ada dua pilihan:
+
+1. **Database bersama di cloud (paling mudah, tanpa Docker):** minta `DATABASE_URL` ke Dev A, isi di `.env`, lalu cukup `npm install` dan `npm run dev`. Database itu sudah berisi data.
+2. **Database lokal sendiri:** butuh Docker Desktop, lalu jalankan semua langkah di bawah.
 
 ```bash
 npm install                 # juga menjalankan prisma generate

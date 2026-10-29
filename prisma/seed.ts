@@ -160,7 +160,7 @@ async function seedAdmin() {
   await prisma.admin.upsert({
     where: { email },
     update: { passwordHash },
-    create: { email, nama: "Admin PetaKursi", passwordHash },
+    create: { email, nama: "Admin SiPesek", passwordHash },
   });
   console.log(`Admin ${email}`);
 }

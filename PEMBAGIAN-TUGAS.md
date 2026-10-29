@@ -1,4 +1,4 @@
-# Pembagian Tugas PetaKursi Depok
+# Pembagian Tugas SiPesek
 
 Batas pengumpulan: **Minggu, 1 November 2026**. Dev A: Zaki. Dev B: rekan tim.
 

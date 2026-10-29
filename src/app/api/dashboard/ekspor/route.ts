@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   return new Response("﻿" + Papa.unparse(baris), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="petakursi-${jenis}-${tahun}.csv"`,
+      "Content-Disposition": `attachment; filename="sipesek-${jenis}-${tahun}.csv"`,
     },
   });
 }

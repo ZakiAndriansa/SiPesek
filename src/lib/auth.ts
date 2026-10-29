@@ -5,7 +5,7 @@
 import { jwtVerify, SignJWT } from "jose";
 import type { NextRequest } from "next/server";
 
-export const NAMA_COOKIE = "petakursi_sesi";
+export const NAMA_COOKIE = "sipesek_sesi";
 export const UMUR_SESI_DETIK = 8 * 60 * 60;
 
 function kunci() {

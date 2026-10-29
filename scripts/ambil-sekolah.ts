@@ -12,7 +12,7 @@ import Papa from "papaparse";
 
 const BASIS = "https://referensi.data.kemendikdasmen.go.id";
 const JEDA_MS = 1000;
-const AGEN = "PetaKursi/0.1 (riset lomba MIA 2026; data publik)";
+const AGEN = "SiPesek/0.1 (riset lomba MIA 2026; data publik)";
 
 const KECAMATAN: Record<string, string> = {
   "026601": "Sawangan",

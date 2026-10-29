@@ -1,14 +1,16 @@
+name: sipesek
+
 services:
   db:
     image: postgres:17
     environment:
-      POSTGRES_USER: petakursi
-      POSTGRES_PASSWORD: petakursi
-      POSTGRES_DB: petakursi
+      POSTGRES_USER: sipesek
+      POSTGRES_PASSWORD: sipesek
+      POSTGRES_DB: sipesek
     ports:
       - "5432:5432"
     volumes:
-      - petakursi-db:/var/lib/postgresql/data
+      - sipesek-db:/var/lib/postgresql/data
 
 volumes:
-  petakursi-db:
+  sipesek-db:

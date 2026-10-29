@@ -1,5 +1,5 @@
 /**
- * Mesin peluang PetaKursi: fungsi murni tanpa akses database.
+ * Mesin peluang SiPesek: fungsi murni tanpa akses database.
  * Data disiapkan oleh pemanggil (src/lib/peluang/muat.ts) agar mesin mudah diuji.
  */
 import type {
