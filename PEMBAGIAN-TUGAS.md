@@ -22,12 +22,14 @@ Karena backend selesai lebih cepat, Dev A ikut mengerjakan halaman yang paling b
 | `feat/b-kerangka` | B | Layout, header, footer, Beranda, gaya dasar (dari prototipe miafrontdev.vercel.app) |
 | `feat/b-alur-cek` | B | `/cek` (formulir 3 langkah dengan peta) dan `/hasil/[token]` |
 | `feat/b-konten` | B | `/panduan` dan `/tanya-jawab` |
-| `feat/a-deploy` | A | Database Neon, Vercel, variabel lingkungan |
+| `feat/a-deploy` | A | Homeserver (API + database) dan Vercel (halaman), lihat bagian Deploy |
 | `feat/a-dashboard-ui` | A | `/dashboard` |
 | `feat/a-admin-ui` | A | `/admin/masuk`, `/admin`, `/admin/impor`, `/admin/sekolah`, `/admin/aturan` |
 | `fix/…` | siapa saja | Perbaikan bug |
 
 ## Halaman dan API yang dipakai
+
+**Aturan penting untuk semua halaman:** ambil data hanya lewat `/api/...`. Jangan mengimpor `src/lib/db.ts`, `src/lib/dashboard.ts`, `src/lib/peluang/muat.ts`, atau Prisma dari halaman dan komponen. Halaman di-deploy di Vercel yang tidak punya database; hanya `/api` yang diteruskan ke homeserver. Di komponen klien pakai `fetch("/api/...")`; di server component pakai `fetch(urlApi("/api/..."))` dari `src/lib/api.ts`.
 
 ### `/` Beranda (B)
 Penjelasan singkat, tombol "Mulai cek peluang", tiga langkah, empat jalur. Boleh menampilkan angka ringkas dari `GET /api/dashboard` (`ringkas`).
@@ -77,7 +79,7 @@ Masukan dari uji coba prototipe yang harus diterapkan:
 
 | Hari | Dev A | Dev B |
 |---|---|---|
-| Kamis 29 (sisa) | Database Neon dan deploy pertama | Siapkan proyek, mulai `feat/b-kerangka` |
+| Kamis 29 (sisa) | Deploy homeserver dan Vercel pertama | Siapkan proyek, mulai `feat/b-kerangka` |
 | Jumat 30 | `feat/a-dashboard-ui` | `feat/b-alur-cek` (cek dan hasil) |
 | Sabtu 31 | `feat/a-admin-ui`, lengkapi koordinat sekolah yang kosong; malam: uji ujung ke ujung di HP | `feat/b-konten`, rapikan tampilan HP; malam: uji bersama |
 | Minggu 1 | Pagi: kode dibekukan, hanya perbaikan bug. Siang: berkas lomba dan pengumpulan | sama |
@@ -94,15 +96,40 @@ Kalau waktu habis, yang dipotong berurutan: `/admin/aturan`, sinyal minat di das
 
 ## Menyiapkan proyek (Dev B)
 
-Tidak perlu Docker. Dev A memberikan `DATABASE_URL` database Neon bersama lewat pesan pribadi (jangan ditaruh di repo atau grup).
+Tidak perlu Docker dan tidak perlu database. Saat development, `/api` diteruskan ke backend di homeserver.
 
 ```bash
 git clone https://github.com/ZakiAndriansa/SiPesek.git
 cd SiPesek
 npm install
-cp .env.example .env      # isi DATABASE_URL dari Dev A dan JWT_SECRET (32 karakter acak)
-npm run dev               # http://localhost:3000, API sudah berisi data asli
+cp .env.example .env      # isi BACKEND_URL dengan alamat homeserver dari Dev A; DATABASE_URL biarkan
+npm run dev               # http://localhost:3000, data diambil dari homeserver
 git checkout -b feat/b-kerangka
 ```
 
-Database bersama sudah berisi data, jadi Dev B **tidak** perlu menjalankan migrate, seed, atau impor.
+Catatan: hasil cek yang dibuat saat mencoba ikut tercatat di sinyal minat dashboard. Dev A membersihkannya sebelum demo.
+
+## Deploy
+
+| Bagian | Tempat | Isi |
+|---|---|---|
+| Halaman | Vercel | Proyek Next.js yang sama. Variabel: `BACKEND_URL` (alamat homeserver, https) dan `JWT_SECRET` (sama persis dengan di homeserver, dipakai `src/proxy.ts` untuk menjaga halaman admin). |
+| API dan database | Homeserver | `docker-compose.server.yml`: aplikasi lengkap dan Postgres. Port Postgres tidak dibuka ke luar. |
+
+`next.config.ts` meneruskan semua `/api/*` ke `BACKEND_URL` bila variabel itu diisi. Karena diteruskan dari server Vercel, tidak perlu pengaturan CORS, dan cookie admin tetap berada di domain Vercel.
+
+Di homeserver (butuh Docker), buat `.env.server` berisi `POSTGRES_PASSWORD`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, lalu:
+
+```bash
+docker compose -f docker-compose.server.yml --env-file .env.server up -d --build
+docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma migrate deploy
+docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma db seed
+```
+
+Statistik SPMB diimpor dari laptop Dev A, sehingga CSV berisi NISN tidak pernah disalin ke homeserver; yang dikirim hanya angka agregat:
+
+```bash
+SIPESEK_URL=https://alamat-homeserver npm run data:kirim
+```
+
+Homeserver harus bisa dijangkau Vercel lewat https, misalnya dengan Cloudflare Tunnel atau reverse proxy (Caddy, Nginx) dengan domain. Kalau homeserver mati, aplikasi tidak bisa menghitung peluang, jadi pastikan menyala selama masa penilaian.

@@ -1,0 +1,53 @@
+# Deploy di homeserver. Rahasia diisi di .env.server (jangan di-commit):
+#   POSTGRES_PASSWORD, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
+#
+#   docker compose -f docker-compose.server.yml --env-file .env.server up -d --build
+#   docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma migrate deploy
+#   docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma db seed
+name: sipesek-server
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sipesek
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di .env.server}
+      POSTGRES_DB: sipesek
+    volumes:
+      - sipesek-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sipesek"]
+      interval: 5s
+      retries: 20
+    # Sengaja tanpa "ports": database hanya bisa diakses dari container aplikasi.
+
+  app:
+    build:
+      context: .
+      target: jalan
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://sipesek:${POSTGRES_PASSWORD}@db:5432/sipesek
+      JWT_SECRET: ${JWT_SECRET:?isi JWT_SECRET di .env.server}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  alat:
+    build:
+      context: .
+      target: alat
+    profiles: ["alat"]
+    environment:
+      DATABASE_URL: postgresql://sipesek:${POSTGRES_PASSWORD}@db:5432/sipesek
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sipesek.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?isi ADMIN_PASSWORD di .env.server}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  sipesek-data:
