@@ -1,120 +1,102 @@
 "use client";
-import { useState, type KeyboardEvent, type MouseEvent } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { Button, Icon } from "@/components";
-import { Roads } from "@/components/map/Map";
-import { SCHOOLS } from "@/data/schools";
-import {
-  BOUNDS,
-  fromPercent,
-  inBounds,
-  MAP_ASPECT,
-  nearestKecamatan,
-  SCHOOL_POINT,
-  toPercent,
-  type GeoPoint,
-} from "@/data/geo";
+import type { ResponsSekolah } from "@/lib/kontrak";
+import { formatJarak, jarakMeter } from "@/lib/peluang/jarak";
+import { diWilayah, type Titik } from "@/lib/quick-check";
+import type { SekolahPeta } from "./PetaRumah";
 
-const STEP_KM = 0.25;
-const shortName = (name: string) => name.replace("SMA Negeri ", "SMAN ").split(" ").slice(0, 2).join(" ");
+const PetaRumah = dynamic(() => import("./PetaRumah"), {
+  ssr: false,
+  loading: () => <div className="quick__map quick__map--memuat">Memuat peta…</div>,
+});
 
 /**
- * Penanda titik rumah. Titik hanya disimpan di state komponen (memori tab) dan dipakai untuk menghitung jarak
- * di browser. Tidak ada permintaan jaringan: peta ini skematis, tanpa ubin dari server peta pihak ketiga.
+ * Penanda titik rumah. Titik hanya disimpan di state (memori tab) dan dikirim ke server SiPesek saat
+ * menghitung, lalu dibuang. Peta memakai ubin OpenStreetMap; titik rumah tidak pernah dikirim ke sana.
  */
-export function HomePicker({ value, onChange }: { value: GeoPoint | null; onChange: (p: GeoPoint | null) => void }) {
+export function HomePicker({ value, onChange }: { value: Titik | null; onChange: (p: Titik | null) => void }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const pin = value ? toPercent(value) : null;
+  const [sekolah, setSekolah] = useState<SekolahPeta[]>([]);
 
-  function place(e: MouseEvent<HTMLDivElement>) {
-    const box = e.currentTarget.getBoundingClientRect();
-    const point = fromPercent(((e.clientX - box.left) / box.width) * 100, ((e.clientY - box.top) / box.height) * 100);
-    setMessage("");
-    onChange(point);
-  }
+  // Titik sekolah negeri sebagai patokan di peta. Gagal dimuat tidak menghalangi isian.
+  useEffect(() => {
+    let batal = false;
+    fetch("/api/sekolah")
+      .then((r) => (r.ok ? (r.json() as Promise<ResponsSekolah>) : null))
+      .then((d) => {
+        if (batal || !d) return;
+        setSekolah(
+          d.sekolah
+            .filter((s) => s.status === "NEGERI" && s.lat !== null && s.lng !== null)
+            .map((s) => ({ id: s.id, nama: s.nama, lat: s.lat!, lng: s.lng! })),
+        );
+      })
+      .catch(() => {});
+    return () => {
+      batal = true;
+    };
+  }, []);
 
-  function nudge(e: KeyboardEvent<HTMLDivElement>) {
-    const dx = e.key === "ArrowRight" ? STEP_KM : e.key === "ArrowLeft" ? -STEP_KM : 0;
-    const dy = e.key === "ArrowUp" ? STEP_KM : e.key === "ArrowDown" ? -STEP_KM : 0;
-    if (!dx && !dy && e.key !== "Enter" && e.key !== " ") return;
-    e.preventDefault();
-    const base = value ?? fromPercent(50, 50);
-    const p = toPercent(base);
-    const kmW = BOUNDS.east - BOUNDS.west;
-    const kmH = BOUNDS.north - BOUNDS.south;
-    const next = fromPercent(
-      Math.min(100, Math.max(0, p.x + (dx / kmW) * 100)),
-      Math.min(100, Math.max(0, p.y - (dy / kmH) * 100)),
-    );
+  function pilih(t: Titik) {
+    if (!diWilayah(t)) return setMessage("Titik itu di luar Depok dan sekitarnya. Tandai rumah di dalam wilayah peta.");
     setMessage("");
-    onChange(next);
+    onChange(t);
   }
 
   function locate() {
-    if (!("geolocation" in navigator)) return setMessage("Browser ini tidak bisa membaca lokasi. Tandai rumah di peta atau pilih kecamatan.");
+    if (!("geolocation" in navigator)) return setMessage("Browser ini tidak bisa membaca lokasi. Tandai rumah di peta.");
     setBusy(true);
     setMessage("");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setBusy(false);
-        const point = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        if (!inBounds(point)) {
-          return setMessage("Lokasi Bapak/Ibu di luar wilayah layanan SiPesek. Tandai rumah di peta atau pilih kecamatan.");
+        const t = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        if (!diWilayah(t)) {
+          return setMessage("Lokasi Bapak/Ibu saat ini di luar Depok dan sekitarnya. Tandai rumah langsung di peta.");
         }
-        onChange(point);
+        onChange(t);
       },
       (err) => {
         setBusy(false);
         setMessage(
           err.code === err.PERMISSION_DENIED
-            ? "Izin lokasi ditolak. Tidak apa-apa: tandai rumah di peta atau pilih kecamatan."
+            ? "Izin lokasi ditolak. Tidak apa-apa: tandai rumah langsung di peta."
             : "Lokasi belum terbaca. Coba lagi, atau tandai rumah di peta.",
         );
       },
-      { timeout: 10000, maximumAge: 0 },
+      { timeout: 10000, maximumAge: 0, enableHighAccuracy: true },
     );
   }
+
+  const terdekat = value
+    ? sekolah
+        .map((s) => ({ nama: s.nama, jarak: jarakMeter(value, s) }))
+        .sort((a, b) => a.jarak - b.jarak)[0]
+    : undefined;
 
   return (
     <div className="stack quick__picker">
       <div className="quick__picker-head">
         <h3 className="field__label">Titik rumah</h3>
         <p className="field__hint" id="peta-hint">
-          Ketuk peta untuk menaruh pin rumah. Dengan keyboard: fokuskan peta, lalu tekan tombol panah. Lokasi tidak dikirim ke mana pun dan hilang saat tab ditutup.
+          Ketuk lokasi rumah di peta, atau pakai lokasi HP saat berada di rumah. Dengan keyboard: fokuskan peta, geser dengan
+          tombol panah, lalu tekan &quot;Tandai titik di tengah peta&quot;. Titik rumah hanya dipakai untuk menghitung jarak dan
+          tidak disimpan.
         </p>
       </div>
       <Button variant="secondary" block iconLeft="map-pin" onClick={locate}>
         {busy ? "Membaca lokasi…" : "Gunakan lokasi saya"}
       </Button>
-      <div
-        className="map quick__map"
-        style={{ aspectRatio: MAP_ASPECT }}
-        role="application"
-        tabIndex={0}
-        aria-label="Peta wilayah layanan. Tandai titik rumah."
-        aria-describedby="peta-hint"
-        onClick={place}
-        onKeyDown={nudge}
-      >
-        <Roads />
-        {SCHOOLS.filter((s) => SCHOOL_POINT[s.id]).map((s) => {
-          const at = toPercent(SCHOOL_POINT[s.id]);
-          return (
-            <span key={s.id} className="quick__school" style={{ left: `${at.x}%`, top: `${at.y}%` }}>
-              <Icon name="school" className="icon icon--sm" />
-              <span className="quick__school-name">{shortName(s.name)}</span>
-            </span>
-          );
-        })}
-        {pin && (
-          <span className="map__home" style={{ ["--x" as string]: `${pin.x}%`, ["--y" as string]: `${pin.y}%` }}>
-            <Icon name="home" className="icon icon--sm" />
-            Rumah
-          </span>
-        )}
-      </div>
+      <PetaRumah value={value} onChange={pilih} sekolah={sekolah} />
       <p className="quick__picker-status" role="status" aria-live="polite">
-        {value ? `Titik rumah ditandai di Kecamatan ${nearestKecamatan(value)}.` : "Titik rumah belum ditandai."}
+        {value
+          ? terdekat
+            ? `Titik rumah sudah ditandai. Sekolah negeri terdekat: ${terdekat.nama}, sekitar ${formatJarak(terdekat.jarak)}.`
+            : "Titik rumah sudah ditandai."
+          : "Titik rumah belum ditandai."}
       </p>
       {message && (
         <p className="field__error" role="alert">

@@ -1,49 +1,60 @@
-// Cek Cepat (tamu): perhitungan perkiraan tiruan yang murni. Tidak membaca atau menulis penyimpanan apa pun.
-// NISN sengaja tidak ada di tipe mana pun di sini: NISN hanya divalidasi di browser lalu dibuang.
-import { KEC_NAMES } from "@/data/kecamatan";
-import { distanceKm, inBounds, isValidPoint, KEC_POINT, SCHOOL_POINT, type GeoPoint } from "@/data/geo";
-import { SCHOOLS, SCHOOL_RULES, type Kind } from "@/data/schools";
+// Cek Cepat (tamu): bentuk isian, validasi, dan pengolahan hasil mesin peluang asli (POST /api/peluang mode tamu).
+// Fungsi di sini murni dan dipakai di browser. Server menghitung lalu membuang isian; tidak ada yang disimpan.
+import { SUB_JALUR } from "@/lib/jalur";
+import {
+  KECAMATAN_DEPOK,
+  KECAMATAN_IRISAN_LUAR,
+  KECAMATAN_LAINNYA,
+  type HasilJalur,
+  type HasilSekolah,
+  type LabelPeluang,
+  type PermintaanPeluang,
+  type ResponsPeluang,
+} from "@/lib/kontrak";
+import { formatJarak } from "@/lib/peluang/jarak";
 
 export const JENJANG = ["sma", "smk", "belum"] as const;
 export const KETM = ["ya", "tidak", "ragu"] as const;
-export const PRESTASI = ["", "Kecamatan", "Kota/Kabupaten", "Provinsi", "Nasional"] as const;
 export const SEMESTER_COUNT = 5;
+export const MAPEL = [
+  ["bin", "Bahasa Indonesia"],
+  ["mtk", "Matematika"],
+  ["ipa", "IPA"],
+  ["ips", "IPS"],
+  ["bing", "Bahasa Inggris"],
+] as const;
+export type KodeMapel = (typeof MAPEL)[number][0];
+
+/** Kecamatan sesuai KK: 11 kecamatan Depok, kecamatan tetangga yang masuk rayon SMAN Depok, atau Lainnya. */
+export const KECAMATAN_KK: string[] = [...KECAMATAN_DEPOK, ...KECAMATAN_IRISAN_LUAR, KECAMATAN_LAINNYA];
+
+export type Titik = { lat: number; lng: number };
+
+/** Wilayah layanan: Kota Depok beserta kecamatan tetangga yang masuk rayon (garis lintang dan bujur). */
+export const WILAYAH = { selatan: -6.56, utara: -6.28, barat: 106.62, timur: 106.98 } as const;
+export const PUSAT_DEPOK: Titik = { lat: -6.4025, lng: 106.7942 };
+export const diWilayah = (t: Titik) =>
+  t.lat >= WILAYAH.selatan && t.lat <= WILAYAH.utara && t.lng >= WILAYAH.barat && t.lng <= WILAYAH.timur;
 
 export type QuickCheckInput = {
   jenjang: (typeof JENJANG)[number];
-  /** 5 semester; null = dikosongkan. */
+  /** Rata-rata rapor tiap semester 1 sampai 5; null = dikosongkan. */
   nilai: (number | null)[];
+  /** Nilai TKA, hanya untuk SMA. */
+  tkaBin: number | null;
+  tkaMtk: number | null;
+  /** Rata-rata 5 mapel selama 5 semester, untuk Kelas Industri SMK. */
+  mapel: Record<KodeMapel, number | null>;
   ketm: (typeof KETM)[number];
-  prestasi: (typeof PRESTASI)[number];
-  /** Kecamatan tempat tinggal. Bila `lokasi` ada, diisi kecamatan terdekat darinya. */
+  disabilitas: boolean;
+  pindahTugas: boolean;
+  /** Kecamatan sesuai KK, dipakai untuk rayon Jalur Domisili SMA. */
   kecamatan: string;
-  /** Titik rumah. Hanya ada di memori tab dan dihitung di browser; tidak pernah dikirim ke server atau ke akun. */
-  lokasi: GeoPoint | null;
+  /** Titik rumah. Hanya di memori tab; dikirim ke server untuk menghitung jarak lalu dibuang. */
+  lokasi: Titik | null;
 };
 
-export type QuickSchool = {
-  id: string;
-  name: string;
-  kec: string;
-  kind: Kind;
-  jalur: string;
-  range: string;
-  reason: string;
-  facts: [string, string][];
-};
-
-export type QuickStrategyItem = { id: string; name: string; role: string; jalur: string; kind: Kind };
-
-export type QuickRoute = { name: string; status: "memenuhi" | "mungkin" | "tidak"; note: string };
-
-export type QuickCheckResult = {
-  routes: QuickRoute[];
-  schools: QuickSchool[];
-  strategy: QuickStrategyItem[];
-  notes: string[];
-};
-
-/** Draft di memori tab: isian + hasil terakhir. Tidak pernah memuat NISN. */
+/** Draf di memori tab untuk dipindahkan ke akun. Tidak pernah memuat NISN maupun titik rumah. */
 export type QuickDraft = { input: QuickCheckInput };
 
 export const isValidNisn = (value: string) => /^\d{10}$/.test(value);
@@ -55,164 +66,167 @@ export const parseNumber = (raw: string): number | null => {
   return Number.isFinite(value) ? value : NaN;
 };
 
-/** Validasi bentuk input dari klien. Mengembalikan pesan error atau null. */
+const nilaiSah = (v: unknown) => v === null || (typeof v === "number" && v >= 0 && v <= 100);
+const PESAN_NILAI = "Nilai ditulis dengan angka 0 sampai 100, misalnya 85,5.";
+
+/** Validasi bentuk isian. Titik rumah diperiksa hanya bila ada. Mengembalikan pesan error atau null. */
 export function validateInput(input: unknown): string | null {
   const i = input as Partial<QuickCheckInput> | null;
   if (!i || typeof i !== "object") return "Isian tidak terbaca. Coba isi ulang.";
   if (!JENJANG.includes(i.jenjang as never)) return "Pilih jenjang tujuan.";
   if (!KETM.includes(i.ketm as never)) return "Pilih jawaban untuk kondisi keluarga.";
-  if (!PRESTASI.includes((i.prestasi ?? "") as never)) return "Tingkat prestasi tidak dikenal.";
-  if (!i.kecamatan || !KEC_NAMES.includes(i.kecamatan)) return "Pilih kecamatan tempat tinggal.";
-  if (i.lokasi != null && (!isValidPoint(i.lokasi) || !inBounds(i.lokasi))) return "Titik rumah di luar wilayah layanan. Tandai ulang di peta atau pilih kecamatan.";
+  if (!i.kecamatan || !KECAMATAN_KK.includes(i.kecamatan)) return "Pilih kecamatan sesuai Kartu Keluarga.";
+  if (i.lokasi != null && !diWilayah(i.lokasi)) return "Titik rumah di luar Depok dan sekitarnya. Tandai ulang di peta.";
   if (!Array.isArray(i.nilai) || i.nilai.length !== SEMESTER_COUNT) return "Nilai semester tidak terbaca.";
-  for (const v of i.nilai) {
-    if (v !== null && (typeof v !== "number" || !(v >= 0 && v <= 100))) {
-      return "Nilai ditulis dengan angka 0 sampai 100, misalnya 85,5.";
-    }
-  }
+  if (!i.nilai.every(nilaiSah) || !nilaiSah(i.tkaBin ?? null) || !nilaiSah(i.tkaMtk ?? null)) return PESAN_NILAI;
+  if (!i.mapel || !MAPEL.every(([k]) => nilaiSah(i.mapel?.[k] ?? null))) return PESAN_NILAI;
   return null;
 }
 
-const RANGE: Record<Kind, string> = { aman: "75-90%", bersaing: "45-60%", berisiko: "10-30%" };
-const ORDER: Record<Kind, number> = { aman: 0, bersaing: 1, berisiko: 2 };
-const PRESTASI_BONUS: Record<string, number> = { "": 0, Kecamatan: 0.5, "Kota/Kabupaten": 1.5, Provinsi: 3, Nasional: 3 };
-const NAME = { domisili: "Jalur dekat rumah (Domisili)", prestasi: "Jalur nilai dan prestasi (Prestasi)", afirmasi: "Jalur keluarga kurang mampu (Afirmasi)" };
+const rata = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+const isi = (xs: (number | null)[]) => xs.filter((v): v is number => v !== null);
 
-const km = (n: number) => n.toFixed(1).replace(".", ",");
-const fmt = (n: number) => n.toFixed(1).replace(".", ",");
-const average = (nilai: (number | null)[]) => {
-  const filled = nilai.filter((v): v is number => v !== null);
-  return { count: filled.length, mean: filled.length ? filled.reduce((a, b) => a + b, 0) / filled.length : null };
-};
-
-type Candidate = { kind: Kind; jalur: string; reason: string; facts: [string, string][] };
-
-/** Perkiraan per sekolah dan strategi 3 pilihan. Hasil berubah mengikuti isian; selalu berupa perkiraan. */
-export function estimate(input: QuickCheckInput): QuickCheckResult {
-  const { count, mean } = average(input.nilai);
-  const bonus = PRESTASI_BONUS[input.prestasi] ?? 0;
-  const prestasiPossible = count >= 3 || bonus >= 1.5;
-  const schools: QuickSchool[] = [];
-
-  for (const school of SCHOOLS) {
-    const rules = SCHOOL_RULES[school.id];
-    if (!rules) continue;
-    const options: Candidate[] = [];
-
-    // Domisili: jarak lurus rumah ke sekolah dibanding perkiraan radius zona tahun lalu.
-    // Tanpa titik rumah, jarak dihitung dari pusat kecamatan (kasar).
-    const precise = !!input.lokasi;
-    const origin = input.lokasi ?? KEC_POINT[input.kecamatan];
-    const dist = Math.round(distanceKm(origin, SCHOOL_POINT[school.id]) * 10) / 10;
-    const radius = rules.radiusKm;
-    const domKind: Kind = dist <= radius * 0.7 ? "aman" : dist <= radius * 1.2 ? "bersaing" : "berisiko";
-    const from = precise ? "Rumah" : `Pusat kecamatan ${input.kecamatan}`;
-    options.push({
-      kind: domKind,
-      jalur: NAME.domisili,
-      reason:
-        domKind === "aman"
-          ? `${from} sekitar ${km(dist)} km dari sekolah, di dalam perkiraan zona tahun lalu (${km(radius)} km). Di jalur dekat rumah, ini posisi kuat.`
-          : domKind === "bersaing"
-            ? `${from} sekitar ${km(dist)} km dari sekolah, dekat batas perkiraan zona tahun lalu (${km(radius)} km). Hasilnya tergantung jumlah pendaftar.`
-            : `${from} sekitar ${km(dist)} km dari sekolah, di luar perkiraan zona tahun lalu (${km(radius)} km). Jadikan pilihan tambahan, bukan satu-satunya.`,
-      facts: [[precise ? "Jarak rumah" : "Jarak dari pusat kecamatan", `±${km(dist)} km`], ["Perkiraan zona tahun lalu", `±${km(radius)} km`]],
-    });
-    // Prestasi: rata-rata nilai dibanding perkiraan batas tahun lalu.
-    if (prestasiPossible) {
-      const base = mean ?? rules.prestasiMin - 2;
-      const diff = base + bonus - rules.prestasiMin;
-      const kind: Kind = diff >= 2 ? "aman" : diff >= -2 ? "bersaing" : "berisiko";
-      options.push({
-        kind,
-        jalur: NAME.prestasi,
-        reason:
-          mean === null
-            ? `Nilai belum diisi, jadi perkiraan memakai prestasi lomba tingkat ${input.prestasi.toLowerCase()}. Isi nilai rapor agar lebih akurat.`
-            : kind === "aman"
-              ? `Rata-rata nilai ${fmt(mean)} berada di atas perkiraan batas ${rules.prestasiMin}.`
-              : kind === "bersaing"
-                ? `Rata-rata nilai ${fmt(mean)} mendekati perkiraan batas ${rules.prestasiMin}. Hasilnya tergantung pendaftar tahun ini.`
-                : `Rata-rata nilai ${fmt(mean)} masih di bawah perkiraan batas ${rules.prestasiMin}. Sebaiknya bukan satu-satunya pilihan.`,
-        facts: [["Rata-rata nilai Bapak/Ibu", mean === null ? "Belum diisi" : fmt(mean)], ["Perkiraan batas", String(rules.prestasiMin)]],
-      });
-    }
-
-    // Afirmasi: hanya bila keluarga KETM.
-    if (input.ketm === "ya") {
-      options.push({
-        kind: rules.afirmasi ? "aman" : "bersaing",
-        jalur: NAME.afirmasi,
-        reason: rules.afirmasi
-          ? "Keluarga KETM bisa memakai kuota Jalur keluarga kurang mampu (Afirmasi) di sekolah ini."
-          : "Sekolah ini punya kuota Afirmasi yang sangat kecil, jadi persaingannya ketat.",
-        facts: [["Kuota Afirmasi", rules.afirmasi ? "Tersedia" : "Sangat kecil"]],
-      });
-    }
-
-    options.sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);
-    const best = options[0];
-    schools.push({
-      id: school.id,
-      name: school.name,
-      kec: school.kec,
-      kind: best.kind,
-      jalur: best.jalur,
-      range: RANGE[best.kind],
-      reason: best.reason,
-      facts: best.facts,
-    });
+/** Isian Cek Cepat ke permintaan POST /api/peluang mode tamu. */
+export function toRequest(input: QuickCheckInput, nisn: string, lokasi: Titik): PermintaanPeluang {
+  const semester = isi(input.nilai);
+  const mapel = MAPEL.map(([k]) => input.mapel[k]);
+  const nilai: NonNullable<PermintaanPeluang["nilai"]> = {};
+  if (semester.length) nilai.rataRapor = Math.round(rata(semester) * 100) / 100;
+  if (input.jenjang !== "smk" && input.tkaBin !== null) nilai.tkaBin = input.tkaBin;
+  if (input.jenjang !== "smk" && input.tkaMtk !== null) nilai.tkaMtk = input.tkaMtk;
+  if (input.jenjang !== "sma" && mapel.every((v) => v !== null)) {
+    nilai.mapel = Object.fromEntries(MAPEL.map(([k]) => [k, input.mapel[k]])) as Record<KodeMapel, number>;
   }
-
-  schools.sort((a, b) => ORDER[a.kind] - ORDER[b.kind] || a.name.localeCompare(b.name));
-
-  // Strategi: satu ambisius, satu seimbang, satu aman (bila tersedia).
-  const pick = (kind: Kind) => schools.filter((s) => s.kind === kind);
-  const aman = pick("aman");
-  const bersaing = pick("bersaing");
-  const berisiko = pick("berisiko");
-  const prestige = (s: QuickSchool) => SCHOOL_RULES[s.id]?.prestasiMin ?? 0;
-  // Bila tidak ada sekolah yang bersaing, sekolah paling favorit di antara yang aman jadi pilihan ambisius.
-  const ambisius = bersaing[0] ?? berisiko[0] ?? [...aman].sort((a, b) => prestige(b) - prestige(a))[0];
-  const rest = aman.filter((s) => s !== ambisius);
-  const chosen = [ambisius, rest[0], rest[1] ?? bersaing.find((s) => s !== ambisius)].filter((s): s is QuickSchool => !!s);
-  const unique = chosen.filter((s, i) => chosen.findIndex((c) => c.id === s.id) === i);
-  const roles = ["Pilihan ambisius", "Pilihan seimbang", "Pilihan aman"];
-  const strategy: QuickStrategyItem[] = (unique.length >= 3 ? unique : [...unique, ...schools.filter((s) => !unique.includes(s))].slice(0, 3)).map(
-    (s, i) => ({ id: s.id, name: s.name, role: roles[i], jalur: s.jalur, kind: s.kind }),
-  );
-
-  const routes: QuickRoute[] = [
-    {
-      name: NAME.domisili,
-      status: "memenuhi",
-      note: input.lokasi ? "Dihitung dari titik rumah yang Bapak/Ibu tandai. Jarak lurus ke sekolah, bukan jarak rute jalan." : `Dihitung kasar dari pusat kecamatan ${input.kecamatan}. Tandai titik rumah di peta agar lebih akurat.`,
-    },
-    prestasiPossible
-      ? { name: NAME.prestasi, status: "memenuhi", note: mean === null ? "Dihitung dari prestasi lomba. Nilai rapor belum diisi." : `Rata-rata nilai ${fmt(mean)} dari ${count} semester.` }
-      : { name: NAME.prestasi, status: "mungkin", note: "Belum cukup data untuk memperkirakan. Isi minimal 3 semester atau prestasi tingkat kota ke atas." },
-    input.ketm === "ya"
-      ? { name: NAME.afirmasi, status: "memenuhi", note: "Keluarga KETM bisa memakai jalur ini. Siapkan bukti bantuan." }
-      : input.ketm === "ragu"
-        ? { name: NAME.afirmasi, status: "mungkin", note: "Cek dulu apakah keluarga terdaftar sebagai penerima bantuan. Tanyakan ke kelurahan." }
-        : { name: NAME.afirmasi, status: "tidak", note: "Tidak dihitung karena keluarga bukan KETM." },
-    { name: "Jalur orang tua pindah tugas (Mutasi)", status: "mungkin", note: "Perlu dokumen penugasan. Cek lewat akun." },
-  ];
-
-  const notes: string[] = [];
-  if (input.jenjang === "smk") notes.push("Data SMK per jurusan belum tersedia di Cek Cepat. Hasil di bawah memakai SMA Negeri.");
-  if (!input.lokasi) notes.push("Titik rumah belum ditandai, jadi jarak ke sekolah dihitung kasar dari pusat kecamatan. Ubah isian dan tandai rumah di peta agar jalur Domisili lebih akurat.");
-  if (aman.length === 0) notes.push("Peluang negeri masih kecil. Masuk untuk melihat sekolah swasta cadangan.");
-
-  return { routes, schools, strategy, notes };
+  return {
+    nisn,
+    jenjang: input.jenjang === "sma" ? "SMA" : input.jenjang === "smk" ? "SMK" : "SEMUA",
+    lokasi,
+    kecamatan: input.kecamatan,
+    kondisi: { ketm: input.ketm === "ya", disabilitas: input.disabilitas, anakGuruSekolahId: null, pindahTugas: input.pindahTugas },
+    nilai,
+  };
 }
 
-/** Pemetaan isian cek cepat ke isian wizard (id field wizard). NISN tidak pernah ikut. */
+// ---------- Membaca hasil mesin ----------
+
+/** Label mesin ke jenis badge yang sudah ada. */
+export const KIND: Record<LabelPeluang, string> = {
+  PELUANG_BESAR: "aman",
+  MASIH_MUNGKIN: "bersaing",
+  PELUANG_KECIL: "berisiko",
+  TIDAK_DIHITUNG: "info",
+};
+export const badgeText = (label: LabelPeluang) => (label === "TIDAK_DIHITUNG" ? "Belum dihitung" : undefined);
+
+const NAMA_LABEL: Record<LabelPeluang, string> = {
+  PELUANG_BESAR: "Peluang besar",
+  MASIH_MUNGKIN: "Masih mungkin",
+  PELUANG_KECIL: "Peluang kecil",
+  TIDAK_DIHITUNG: "Belum dihitung",
+};
+const angka = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+export const namaJalur = (j: HasilJalur) => (j.programKeahlian ? `${j.namaJalur} (${j.programKeahlian})` : j.namaJalur);
+
+/** Fakta singkat di kartu sekolah untuk jalur terbaik. */
+export function faktaSekolah(h: HasilSekolah): [string, string][] {
+  const j = h.jalur[0];
+  const fakta: [string, string][] = [];
+  if (h.jarakMeter !== null) fakta.push(["Jarak rumah (garis lurus)", formatJarak(h.jarakMeter)]);
+  const p = j.pembanding;
+  if (j.label === "TIDAK_DIHITUNG" || !p) return fakta;
+  if (j.satuan === "meter") {
+    if (p.median !== null) fakta.push([`Separuh yang diterima ${p.tahun} tinggal dalam`, formatJarak(p.median)]);
+    if (p.maks !== null) fakta.push(["Terjauh yang diterima", formatJarak(p.maks)]);
+  } else {
+    if (j.nilaiAnak !== null) fakta.push(["Perkiraan skor anak", angka(j.nilaiAnak)]);
+    if (p.min !== null) fakta.push([`Skor terendah diterima ${p.tahun}`, angka(p.min)]);
+  }
+  return fakta;
+}
+
+/** Jalur lain di sekolah yang sama, misalnya "Nilai rapor: Masih mungkin". */
+export const jalurLain = (h: HasilSekolah) => h.jalur.slice(1).map((j) => `${namaJalur(j)}: ${NAMA_LABEL[j.label]}`);
+
+export type RingkasJalur = { kode: string; nama: string; teks: string; terhitung: boolean };
+
+const JALUR_UTAMA = [
+  ["DOMISILI", "Jalur Domisili"],
+  ["AFIRMASI", "Jalur Afirmasi"],
+  ["PRESTASI", "Jalur Prestasi"],
+  ["MUTASI", "Jalur Mutasi"],
+] as const;
+const KE_JALUR = new Map<string, string>(SUB_JALUR.map((s) => [s.kode, s.jalurKode]));
+
+/** Ringkasan per jalur utama: berapa sekolah per label, atau alasan jalur itu belum dihitung. */
+export function ringkasJalur(hasil: HasilSekolah[], input: QuickCheckInput): RingkasJalur[] {
+  return JALUR_UTAMA.map(([kode, nama]) => {
+    const semua = hasil.flatMap((h) => h.jalur).filter((j) => KE_JALUR.get(j.subJalurKode) === kode);
+    const hitung = new Map<LabelPeluang, number>();
+    for (const h of hasil) {
+      const terbaik = h.jalur.find((j) => KE_JALUR.get(j.subJalurKode) === kode && j.label !== "TIDAK_DIHITUNG");
+      if (terbaik) hitung.set(terbaik.label, (hitung.get(terbaik.label) ?? 0) + 1);
+    }
+    if (hitung.size > 0) {
+      const urut: LabelPeluang[] = ["PELUANG_BESAR", "MASIH_MUNGKIN", "PELUANG_KECIL"];
+      const teks = urut.filter((l) => hitung.has(l)).map((l) => `${NAMA_LABEL[l]} di ${hitung.get(l)} sekolah`).join(", ");
+      return { kode, nama, teks: `${teks}.`, terhitung: true };
+    }
+    const belum = semua.find((j) => j.label === "TIDAK_DIHITUNG");
+    return { kode, nama, teks: belum?.kalimat ?? alasanTertutup(kode, input), terhitung: false };
+  });
+}
+
+function alasanTertutup(kode: string, input: QuickCheckInput): string {
+  switch (kode) {
+    case "DOMISILI":
+      return "Kecamatan di KK tidak masuk rayon SMA negeri Depok, dan belum ada SMK negeri yang cocok dengan jenjang tujuan.";
+    case "AFIRMASI":
+      return input.ketm === "ragu"
+        ? "Belum dihitung karena status KETM belum pasti. Cek dulu apakah keluarga terdaftar di DTSEN."
+        : "Dihitung bila keluarga termasuk KETM atau anak penyandang disabilitas.";
+    case "PRESTASI":
+      return "Isi nilai rapor untuk menghitung jalur ini.";
+    default:
+      return "Dihitung bila orang tua pindah tugas. Jalur anak guru bisa dicek setelah masuk.";
+  }
+}
+
+export type PilihanStrategi = { name: string; role: string; jalur: string; kind: string };
+
+/** Strategi 3 pilihan: satu ambisius (Masih mungkin), dua aman (Peluang besar), dari hasil yang sudah terurut. */
+export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
+  const terhitung = hasil.filter((h) => h.labelTerbaik !== "TIDAK_DIHITUNG");
+  const ambisius = terhitung.find((h) => h.labelTerbaik === "MASIH_MUNGKIN");
+  const aman = terhitung.filter((h) => h.labelTerbaik === "PELUANG_BESAR");
+  const pilih = [ambisius, aman[0], aman[1]].filter((h): h is HasilSekolah => !!h);
+  for (const h of terhitung) if (pilih.length < 3 && !pilih.includes(h)) pilih.push(h);
+  const peran: Record<LabelPeluang, string> = {
+    PELUANG_BESAR: "Pilihan aman",
+    MASIH_MUNGKIN: "Pilihan ambisius",
+    PELUANG_KECIL: "Pilihan tambahan",
+    TIDAK_DIHITUNG: "Pilihan tambahan",
+  };
+  return pilih.map((h) => ({ name: h.sekolah.nama, role: peran[h.labelTerbaik], jalur: namaJalur(h.jalur[0]), kind: KIND[h.labelTerbaik] }));
+}
+
+/** Catatan di atas hasil. */
+export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput): string[] {
+  const catatan: string[] = [];
+  if (r.nisnLazim === false) catatan.push("NISN ini tidak lazim untuk calon siswa SMA atau SMK. Pastikan NISN sudah benar di situs resmi.");
+  if (isi(input.nilai).length > 0 && isi(input.nilai).length < SEMESTER_COUNT) {
+    catatan.push(`Rata-rata rapor dihitung dari ${isi(input.nilai).length} semester yang diisi. Lengkapi 5 semester agar perkiraan Jalur Prestasi lebih tepat.`);
+  }
+  if (!r.hasil.some((h) => h.labelTerbaik === "PELUANG_BESAR")) {
+    catatan.push("Belum ada sekolah negeri dengan Peluang besar. Lihat sekolah swasta terdekat di bawah sebagai cadangan.");
+  }
+  return catatan;
+}
+
+/** Pemetaan isian Cek Cepat ke isian wizard (id field wizard). NISN dan titik rumah tidak pernah ikut. */
 export function draftToWizard(input: QuickCheckInput, nama: string): Record<string, string> {
   const data: Record<string, string> = { nama, jenjang: input.jenjang, ketm: input.ketm, kec: input.kecamatan };
   input.nilai.forEach((v, i) => {
     if (v !== null) data[`nilai-${i + 1}`] = String(v).replace(".", ",");
   });
-  if (input.prestasi) data.tingkat = input.prestasi;
   return data;
 }

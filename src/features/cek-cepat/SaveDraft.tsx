@@ -52,9 +52,8 @@ export function SaveDraft() {
       <ul className="quick__summary">
         <li>Jenjang tujuan: {input.jenjang === "belum" ? "Belum tahu" : input.jenjang.toUpperCase()}</li>
         <li>Nilai rapor: {filled} dari 5 semester terisi</li>
-        <li>Kecamatan: {input.kecamatan} (titik rumah tidak ikut, tandai lagi di langkah 5)</li>
+        <li>Kecamatan sesuai KK: {input.kecamatan} (titik rumah tidak ikut, tandai lagi di langkah 5)</li>
         <li>Kondisi keluarga: {input.ketm === "ya" ? "KETM" : input.ketm === "tidak" ? "Bukan KETM" : "Belum yakin"}</li>
-        <li>Prestasi: {input.prestasi || "Tidak ada"}</li>
       </ul>
       <p className="text-secondary">NISN tidak ikut dipindahkan.</p>
       <Form id="simpan-form" onValid={submit}>

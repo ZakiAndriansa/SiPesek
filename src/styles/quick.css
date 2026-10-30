@@ -66,27 +66,26 @@
   gap: var(--space-1);
 }
 .quick__map {
+  height: 360px;
+  width: 100%;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  z-index: 0;
+}
+.quick__map.leaflet-container {
   cursor: crosshair;
+  font-family: var(--font-sans);
 }
 .quick__map:focus-visible {
   outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
-.quick__school {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 999px;
+.quick__map--memuat {
+  display: grid;
+  place-items: center;
   background: var(--color-surface);
-  color: var(--color-ink);
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
+  color: var(--color-ink-soft);
 }
 .quick__picker-status {
   margin: 0;
