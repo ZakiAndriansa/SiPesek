@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Cek Cepat dengan NISN · SiPesek",
-  description: "Perkirakan peluang masuk SMA tanpa membuat akun. Data tidak disimpan.",
+  description: "Perkirakan peluang masuk SMA dan SMK negeri di Depok tanpa membuat akun. Data tidak disimpan.",
   robots: { index: false, follow: false },
 };
 
