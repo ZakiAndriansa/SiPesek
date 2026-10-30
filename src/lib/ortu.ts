@@ -14,7 +14,8 @@ export const BATAS_CEK_PER_HARI = 20;
 export async function orangTuaMasuk(request: NextRequest) {
   const sesi = await sesiOrtu(request);
   if (!sesi) return null;
-  return prisma.orangTua.findUnique({ where: { id: sesi.orangTuaId }, select: { id: true, nama: true, email: true } });
+  const ortu = await prisma.orangTua.findUnique({ where: { id: sesi.orangTuaId }, select: { id: true, nama: true, email: true } });
+  return ortu && { ...ortu, foto: sesi.foto };
 }
 
 export const pilihAnak = {

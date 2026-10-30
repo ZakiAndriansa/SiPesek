@@ -297,6 +297,12 @@
   font-weight: var(--weight-bold);
 }
 
+/* Foto profil Google: ukuran sama dengan avatar huruf agar posisi menu tidak bergeser. */
+.navbar__avatar--foto {
+  display: block;
+  object-fit: cover;
+}
+
 .navbar__child {
   display: flex;
   flex-direction: column;

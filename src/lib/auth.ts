@@ -5,8 +5,9 @@
  * Modul ini sengaja tidak mengimpor database agar bisa dipakai di src/proxy.ts.
  */
 import "server-only";
-import { jwtVerify, SignJWT } from "jose";
+import { decodeJwt, jwtVerify, SignJWT, type JWTPayload } from "jose";
 import type { NextRequest } from "next/server";
+import { fotoGoogle } from "@/lib/foto-google";
 import { galat } from "@/lib/http";
 
 type Peran = "admin" | "ortu";
@@ -23,8 +24,8 @@ function kunci() {
   return new TextEncoder().encode(rahasia);
 }
 
-function buatToken(peran: Peran, id: number, umurDetik: number): Promise<string> {
-  return new SignJWT({})
+function buatToken(peran: Peran, id: number, umurDetik: number, klaim: Record<string, string> = {}): Promise<string> {
+  return new SignJWT(klaim)
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(String(id))
     .setAudience(peran)
@@ -33,12 +34,12 @@ function buatToken(peran: Peran, id: number, umurDetik: number): Promise<string>
     .sign(kunci());
 }
 
-async function verifikasiToken(peran: Peran, token: string | undefined): Promise<number | null> {
+async function verifikasiToken(peran: Peran, token: string | undefined): Promise<{ id: number; payload: JWTPayload } | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, kunci(), { algorithms: ["HS256"], audience: peran });
     const id = Number(payload.sub);
-    return Number.isInteger(id) ? id : null;
+    return Number.isInteger(id) ? { id, payload } : null;
   } catch {
     return null;
   }
@@ -49,8 +50,8 @@ async function verifikasiToken(peran: Peran, token: string | undefined): Promise
 export const buatTokenSesi = (adminId: number) => buatToken("admin", adminId, UMUR_SESI_DETIK);
 
 export async function verifikasiTokenSesi(token: string | undefined): Promise<{ adminId: number } | null> {
-  const adminId = await verifikasiToken("admin", token);
-  return adminId === null ? null : { adminId };
+  const sesi = await verifikasiToken("admin", token);
+  return sesi === null ? null : { adminId: sesi.id };
 }
 
 /** Dipakai di setiap route handler /api/admin. */
@@ -68,11 +69,40 @@ export const opsiCookieSesi = {
 
 // ---------- Orang tua (masuk dengan Google) ----------
 
-export const buatTokenOrtu = (orangTuaId: number) => buatToken("ortu", orangTuaId, UMUR_SESI_ORTU_DETIK);
+/**
+ * Nama dan foto Google ikut ditandatangani di token agar header halaman (yang disajikan Vercel, tanpa
+ * akses database) bisa menampilkannya. Foto tidak disimpan di database.
+ */
+export type ProfilOrtu = { nama: string | null; foto: string | null };
 
-export async function verifikasiTokenOrtu(token: string | undefined): Promise<{ orangTuaId: number } | null> {
-  const orangTuaId = await verifikasiToken("ortu", token);
-  return orangTuaId === null ? null : { orangTuaId };
+export const buatTokenOrtu = (orangTuaId: number, profil: Partial<ProfilOrtu> = {}) => {
+  const klaim: Record<string, string> = {};
+  if (profil.nama) klaim.nama = profil.nama;
+  if (profil.foto) klaim.foto = profil.foto;
+  return buatToken("ortu", orangTuaId, UMUR_SESI_ORTU_DETIK, klaim);
+};
+
+const teks = (v: unknown) => (typeof v === "string" && v ? v : null);
+
+export async function verifikasiTokenOrtu(token: string | undefined): Promise<({ orangTuaId: number } & ProfilOrtu) | null> {
+  const sesi = await verifikasiToken("ortu", token);
+  return sesi === null ? null : { orangTuaId: sesi.id, nama: teks(sesi.payload.nama), foto: teks(sesi.payload.foto) };
+}
+
+/**
+ * Nama dan foto untuk header halaman. Hanya membaca isi token tanpa memeriksa tanda tangan, karena
+ * dipakai untuk tampilan saja (setara cookie sesi prototipe) dan pemeriksaan kripto di render halaman
+ * membuat Next menganggapnya data tak-tercache. Akses data tetap lewat API yang memakai verifikasiTokenOrtu.
+ */
+export function bacaProfilOrtu(token: string | undefined): ProfilOrtu | null {
+  if (!token) return null;
+  try {
+    const payload = decodeJwt(token);
+    if (payload.aud !== "ortu") return null;
+    return { nama: teks(payload.nama), foto: fotoGoogle(payload.foto) };
+  } catch {
+    return null;
+  }
 }
 
 export const sesiOrtu = (request: NextRequest) => verifikasiTokenOrtu(request.cookies.get(NAMA_COOKIE_ORTU)?.value);

@@ -52,7 +52,8 @@ export default function PrivasiPage() {
           <ol className="privasi__daftar">
             <li>
               <strong>Dari akun Google:</strong> ID akun, alamat email, nama, serta waktu pertama dan terakhir masuk.
-              SiPesek tidak meminta akses ke Gmail, Drive, kontak, atau data Google lainnya.
+              Foto profil Google hanya ditampilkan di header dan tidak disimpan di database. SiPesek tidak meminta
+              akses ke Gmail, Drive, kontak, atau data Google lainnya.
             </li>
             <li>
               <strong>Data anak:</strong> nama anak dan NISN dalam bentuk sidik (hash satu arah dengan kunci rahasia)

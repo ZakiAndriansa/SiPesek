@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { stageOf } from "@/lib/accounts";
 import { HELP_URL, PUBLIC_NAV } from "@/lib/nav";
 import { addChild, selectChild, signOut } from "@/lib/session-actions";
@@ -16,11 +16,12 @@ export type NavChild = { id: string; name: string; status: string };
 
 export type NavbarProps =
   | { variant: "guest" }
-  | { variant: "parent-public"; user: string; cont: { label: string; href: string } }
+  | { variant: "parent-public"; user: string; photo: string | null; cont: { label: string; href: string } }
   | { variant: "staff-public"; user: string; role: string; home: string }
   | {
       variant: "parent";
       user: string;
+      photo: string | null;
       kids: NavChild[];
       activeId: string | null;
       stages: StageItem[];
@@ -40,17 +41,52 @@ function SignOutButton() {
   );
 }
 
-function AccountMenu({ user, role, links }: { user: string; role: string; links: [string, string][] }) {
+/** Foto profil Google bila ada; kembali ke huruf awal nama bila tidak ada atau gagal dimuat. */
+function Avatar({ user, photo }: { user: string; photo?: string | null }) {
+  const [gagal, setGagal] = useState(false);
+  const foto = useRef<HTMLImageElement>(null);
+  // Gambar bisa sudah gagal dimuat sebelum React hydrate, sehingga onError tidak sempat terpanggil.
+  useEffect(() => {
+    const img = foto.current;
+    if (img?.complete && img.naturalWidth === 0) setGagal(true);
+  }, [photo]);
+  if (photo && !gagal) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        ref={foto}
+        className="navbar__avatar navbar__avatar--foto"
+        src={photo}
+        alt=""
+        aria-hidden="true"
+        width={36}
+        height={36}
+        // Server gambar Google menolak sebagian permintaan yang membawa Referer.
+        referrerPolicy="no-referrer"
+        onError={() => setGagal(true)}
+      />
+    );
+  }
   return (
-    <Menu
-      id="menu-akun"
-      label={`Menu akun ${user}`}
-      trigger={
-        <span className="navbar__avatar" aria-hidden="true">
-          {user.replace(/^(Ibu|Pak|Bapak)\s+/, "").charAt(0)}
-        </span>
-      }
-    >
+    <span className="navbar__avatar" aria-hidden="true">
+      {user.replace(/^(Ibu|Pak|Bapak)\s+/, "").charAt(0)}
+    </span>
+  );
+}
+
+function AccountMenu({
+  user,
+  photo,
+  role,
+  links,
+}: {
+  user: string;
+  photo?: string | null;
+  role: string;
+  links: [string, string][];
+}) {
+  return (
+    <Menu id="menu-akun" label={`Menu akun ${user}`} trigger={<Avatar user={user} photo={photo} />}>
       <p className="menu__head">
         <strong>{user}</strong>
         <span>{role}</span>
@@ -192,6 +228,7 @@ export function Navbar(props: NavbarProps) {
             <ChildMenu kids={props.kids} activeId={props.activeId} />
             <AccountMenu
               user={props.user}
+              photo={props.photo}
               role="Orang tua"
               links={[
                 ["/panduan", "Panduan Jalur"],
@@ -231,7 +268,7 @@ export function Navbar(props: NavbarProps) {
         <Button variant="primary" sm href={props.cont.href} className="navbar__continue">
           {props.cont.label}
         </Button>
-        <AccountMenu user={props.user} role="Orang tua" links={[["/anak-saya", "Anak Saya"]]} />
+        <AccountMenu user={props.user} photo={props.photo} role="Orang tua" links={[["/anak-saya", "Anak Saya"]]} />
       </>
     );
   } else {
