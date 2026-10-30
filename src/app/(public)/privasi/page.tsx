@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 import { Container, PageHeader, Section } from "@/components";
 import { MasukGoogle } from "@/components/masuk-google/MasukGoogle";
+import { EMAIL_KONTAK } from "@/data/kontak";
 
 export const metadata: Metadata = {
   title: "Kebijakan Privasi",
   description: "Data apa yang disimpan SiPesek, untuk apa dipakai, dan cara menghapusnya.",
 };
-
-// Ubah bila alamat dukungan berganti; samakan dengan "User support email" di Google Cloud Console.
-const EMAIL_KONTAK = "zandriansa@gmail.com";
 
 // Isi halaman ini harus sesuai dengan yang benar-benar disimpan di prisma/schema.prisma dan
 // src/app/api/peluang/route.ts. Ubah keduanya bersamaan.

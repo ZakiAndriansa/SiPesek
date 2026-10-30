@@ -27,12 +27,12 @@ export default function AdminModelPage() {
       <Form toast="Pengaturan model tersimpan.">
         <DashSection
           title="Ambang label"
-          desc="Label Peluang Kecil berlaku untuk peluang di bawah ambang Memungkinkan."
+          desc="Label Peluang kecil berlaku untuk peluang di bawah ambang Masih mungkin."
         >
           <Toolbar>
             <Field
               id="amb-aman"
-              label="Peluang Besar mulai dari (%)"
+              label="Peluang besar mulai dari (%)"
               type="number"
               defaultValue="75"
               inputMode="numeric"
@@ -41,7 +41,7 @@ export default function AdminModelPage() {
             />
             <Field
               id="amb-bersaing"
-              label="Memungkinkan mulai dari (%)"
+              label="Masih mungkin mulai dari (%)"
               type="number"
               defaultValue="40"
               inputMode="numeric"
@@ -89,9 +89,9 @@ export default function AdminModelPage() {
           caption="Sebaran label sebelum dan sesudah"
           head={["Label", "Sebelum", "Sesudah"]}
           rows={[
-            [<>Peluang Besar</>, <>38%</>, <>41%</>],
-            [<>Memungkinkan</>, <>34%</>, <>33%</>],
-            [<>Peluang Kecil</>, <>28%</>, <>26%</>],
+            [<>Peluang besar</>, <>38%</>, <>41%</>],
+            [<>Masih mungkin</>, <>34%</>, <>33%</>],
+            [<>Peluang kecil</>, <>28%</>, <>26%</>],
           ]}
           num={[1, 2]}
           compact={true}

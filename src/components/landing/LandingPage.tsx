@@ -1,5 +1,7 @@
 import { JALUR } from "@/lib/jalur";
 import { PORSI_JALUR, TAHUN_PORSI } from "@/lib/porsi-jalur";
+import { FAQ_BERANDA } from "@/data/faq";
+import { CIRI_JALUR } from "@/data/jalur";
 import { Accordion } from "../accordion/Accordion";
 import { Button } from "../button/Button";
 import { SectionHeading } from "../section-heading/SectionHeading";
@@ -32,10 +34,10 @@ const VALUES = [
 ];
 
 const PATH_STYLE = {
-  DOMISILI: { chip: "Paling umum", color: "landing-path-card--sky", squiggle: "domisili" },
-  AFIRMASI: { chip: "Kartu bantuan & disabilitas", color: "landing-path-card--lime", squiggle: "afirmasi" },
-  PRESTASI: { chip: "Rapor & prestasi", color: "landing-path-card--yellow", squiggle: "prestasi" },
-  MUTASI: { chip: "Pindah tugas & anak guru", color: "landing-path-card--lavender", squiggle: "mutasi" },
+  DOMISILI: { chip: CIRI_JALUR.DOMISILI, color: "landing-path-card--sky", squiggle: "domisili" },
+  AFIRMASI: { chip: CIRI_JALUR.AFIRMASI, color: "landing-path-card--lime", squiggle: "afirmasi" },
+  PRESTASI: { chip: CIRI_JALUR.PRESTASI, color: "landing-path-card--yellow", squiggle: "prestasi" },
+  MUTASI: { chip: CIRI_JALUR.MUTASI, color: "landing-path-card--lavender", squiggle: "mutasi" },
 } as const;
 const PATHS = JALUR.filter((j) => j.kode in PATH_STYLE).map((j) => ({
   // Judul memakai nama resmi jalur ("Jalur Domisili"); penjelasan sehari-hari ada di deskripsi.
@@ -44,24 +46,6 @@ const PATHS = JALUR.filter((j) => j.kode in PATH_STYLE).map((j) => ({
   porsi: PORSI_JALUR[j.kode as keyof typeof PATH_STYLE],
   ...PATH_STYLE[j.kode as keyof typeof PATH_STYLE],
 }));
-const FAQS: readonly (readonly [q: string, a?: string])[] = [
-  [
-    "Apakah hasil ini menjamin anak pasti diterima?",
-    "Tidak. SiPesek memperkirakan peluang dari hasil SPMB 2026 (daya tampung, jarak, dan nilai pendaftar yang diterima). Ini bukan aplikasi resmi dan bukan jaminan. Pendaftaran tetap dilakukan lewat portal SPMB Dinas Pendidikan.",
-  ],
-  [
-    "Apakah data keluarga kami aman?",
-    "Cek Cepat tidak menyimpan apa pun: isian hilang saat tab ditutup. Data anak yang diisi setelah masuk hanya dipakai untuk menghitung peluang dan hanya terlihat oleh akun itu.",
-  ],
-  [
-    "Apakah harus membuat akun?",
-    "Tidak harus. Cek Cepat bisa dipakai tanpa akun dan hasilnya tidak disimpan. Masuk dengan akun Google hanya perlu bila Bapak/Ibu ingin menyimpan data anak dan riwayat hasil.",
-  ],
-  [
-    "Apakah ada biaya untuk memakai SiPesek?",
-    "Tidak ada. SiPesek gratis untuk orang tua.",
-  ],
-];
 function CloudEdge({ flip = false }: { flip?: boolean }) {
   return (
     <div className={`landing-cloud-edge${flip ? " landing-cloud-edge--flip" : ""}`} aria-hidden="true">
@@ -211,7 +195,7 @@ function FaqSection() {
         title={<>Pertanyaan yang sering<br />diajukan.</>}
         desc="Segala hal tentang cara menghitung peluang, keamanan data, dan akun."
       />
-      <Accordion items={FAQS} openFirst noHint />
+      <Accordion items={FAQ_BERANDA} openFirst noHint />
     </section>
   );
 }

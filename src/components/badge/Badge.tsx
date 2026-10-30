@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { Icon } from "../icon/Icon";
 
 const STATUS: Record<string, readonly [icon: string, label: string]> = {
-  aman: ["check", "Peluang Besar"],
-  bersaing: ["scale", "Memungkinkan"],
-  berisiko: ["alert", "Peluang Kecil"],
+  aman: ["check", "Peluang besar"],
+  bersaing: ["scale", "Masih mungkin"],
+  berisiko: ["alert", "Peluang kecil"],
   info: ["info", "Info"],
 };
 
