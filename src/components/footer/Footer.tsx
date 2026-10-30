@@ -77,7 +77,7 @@ export function Footer({ parent }: { parent?: boolean }) {
           ))}
         </div>
         <div className="footer__bottom">
-          <span>© 2026 SiPesek — Sistem Informasi Peluang Seleksi Sekolah. Subtema Data-Driven Decision Support, MIA 2026.</span>
+          <span>© 2026 SiPesek (Sistem Informasi Peluang Seleksi Sekolah). Subtema Data-Driven Decision Support, MIA 2026.</span>
           <span>Bukan situs resmi pemerintah dan bukan jaminan diterima. Data berbasis hasil SPMB 2026.</span>
         </div>
       </div>

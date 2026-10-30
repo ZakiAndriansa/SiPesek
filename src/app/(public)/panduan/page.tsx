@@ -14,6 +14,7 @@ import {
   Icon,
 } from "@/components";
 import { JALUR } from "@/data/jalur";
+import { PORSI_JALUR, TAHUN_PORSI } from "@/lib/porsi-jalur";
 
 export const metadata: Metadata = {
   title: "Panduan Jalur",
@@ -21,11 +22,13 @@ export const metadata: Metadata = {
     "Penjelasan 4 jalur seleksi SPMB, berkas dokumen yang dibutuhkan, cara kalkulasi peluang, dan perlindungan privasi data.",
 };
 
+// Persen = porsi siswa yang diterima di Depok tahun lalu, sama dengan landing page (src/lib/porsi-jalur.ts).
+const porsi = (p: { SMA: number; SMK: number }) => `SMA ${p.SMA}% · SMK ${p.SMK}%`;
 const TOY_COLOR_MAP: Record<string, { colorClass: string; kuota: string; tag: string }> = {
-  domisili: { colorClass: "card--sky", kuota: "Kuota ±50%", tag: "Paling Umum" },
-  afirmasi: { colorClass: "card--lime", kuota: "Kuota ±15%", tag: "KETM & Disabilitas" },
-  prestasi: { colorClass: "card--sun", kuota: "Kuota ±30%", tag: "Rapor & Sertifikat" },
-  mutasi: { colorClass: "card--lavender", kuota: "Kuota ±5%", tag: "Pindah Tugas" },
+  domisili: { colorClass: "card--sky", kuota: porsi(PORSI_JALUR.DOMISILI), tag: "Paling Umum" },
+  afirmasi: { colorClass: "card--lime", kuota: porsi(PORSI_JALUR.AFIRMASI), tag: "KETM & Disabilitas" },
+  prestasi: { colorClass: "card--sun", kuota: porsi(PORSI_JALUR.PRESTASI), tag: "Rapor & Sertifikat" },
+  mutasi: { colorClass: "card--lavender", kuota: porsi(PORSI_JALUR.MUTASI), tag: "Pindah Tugas" },
 };
 
 export default function PanduanPage() {
@@ -42,7 +45,7 @@ export default function PanduanPage() {
       <Section id="jalur">
         <SectionHeading
           title="Empat Jalur Pendaftaran Resmi"
-          desc="Setiap calon siswa memilih satu jalur utama saat pendaftaran dibuka. Kenali ketentuan dan persentase kuotanya untuk menentukan opsi paling aman."
+          desc={`Setiap calon siswa memilih satu jalur utama saat pendaftaran dibuka. Persen di tiap kartu adalah porsi siswa yang diterima di SMA dan SMK negeri Depok tahun ${TAHUN_PORSI}.`}
         />
         <div className="card-grid">
           {JALUR.map((j) => {
@@ -79,7 +82,7 @@ export default function PanduanPage() {
             label="Dokumen per jalur"
             tabs={JALUR.map((j) => ({
               id: j.id,
-              label: j.title.split("(")[1]?.replace(")", "") || j.title,
+              label: j.title.replace(/^Jalur /, ""),
               content: (
                 <ul className="list">
                   {j.docs.map((d) => (
