@@ -2,7 +2,7 @@
 // shortcut: akun dan progres disimpan di cookie sebagai tiruan; ganti dengan backend + sesi asli nanti.
 
 export type Role = "orang-tua" | "kebijakan" | "admin";
-export type AccountKey = "orang-tua" | "orang-tua-baru" | "kebijakan" | "admin";
+export type AccountKey = "google" | "orang-tua" | "orang-tua-baru" | "kebijakan" | "admin";
 
 export type Child = {
   id: string;
@@ -33,6 +33,9 @@ export const COOKIE = {
 type AccountSeed = { role: Role; name: string; label: string; children: Child[] };
 
 export const ACCOUNTS: Record<AccountKey, AccountSeed> = {
+  // Jembatan sementara: dipasang setelah POST /api/ortu/masuk berhasil. Data asli tetap dijaga
+  // cookie sipesek_ortu di API; anak dan progres di sini masih tiruan sampai halaman disambungkan.
+  google: { role: "orang-tua", name: "Orang tua", label: "Akun Google", children: [] },
   "orang-tua": {
     role: "orang-tua",
     name: "Ibu Sari",
