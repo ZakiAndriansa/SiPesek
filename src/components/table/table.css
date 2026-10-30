@@ -1,0 +1,72 @@
+/* Table — Dibungkus .table-wrap agar bisa digeser di layar HP tanpa overflow */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: 0 4px 16px rgba(4, 6, 19, 0.03);
+}
+
+.table {
+  width: 100%;
+  min-width: var(--table-min);
+  border-collapse: collapse;
+  font-size: var(--text-body-md);
+  color: var(--color-ink);
+}
+
+.table th,
+.table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th {
+  background: var(--color-primary-tint);
+  border-bottom: 2px solid var(--color-primary);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.table tbody th {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: var(--color-canvas);
+}
+
+.table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.table__actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.table--compact {
+  min-width: 0;
+}
+
+.table__muted {
+  color: var(--color-ink-soft);
+  font-size: 13px;
+}
+

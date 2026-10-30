@@ -24,4 +24,6 @@ import "../components/alert/alert.css";
 import "../components/toast/toast.css";
 import "../components/breadcrumb/breadcrumb.css";
 import "../components/map/map.css";
+import "../components/table/table.css";
 import "./pages.css";
+import "./quick.css";
