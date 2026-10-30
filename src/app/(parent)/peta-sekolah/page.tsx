@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import {
   Alert,
   Badge,
@@ -31,7 +32,6 @@ export default async function PetaSekolahPage({
   const session = await getSession();
   const name = session?.child?.name ?? "anak";
   const first = name.split(" ")[0];
-  const justFinished = (await searchParams).selesai === "1";
   const pins = SCHOOLS.map((s) => ({
     x: s.pin[0],
     y: s.pin[1],
@@ -59,11 +59,10 @@ export default async function PetaSekolahPage({
         />
 
         <div className="stack">
-          {justFinished && (
-            <Alert kind="success" title={`Data ${first} lengkap. Ini hasilnya.`}>
-              Lihat label tiap sekolah di bawah, lalu lanjut ke Strategi untuk urutan pilihan yang disarankan.
-            </Alert>
-          )}
+          {/* Hanya pesan ini yang bergantung pada URL; sisanya ikut App Shell. */}
+          <Suspense>
+            <PesanSelesai searchParams={searchParams} first={first} />
+          </Suspense>
           <Alert kind="warning" title="Aturan resmi SPMB tahun ini belum terbit">
             Hasil simulasi memakai acuan daya tampung tahun lalu dan akan otomatis diperbarui begitu petunjuk teknis dinas pendidikan resmi disahkan.
           </Alert>
@@ -158,3 +157,17 @@ export default async function PetaSekolahPage({
   );
 }
 
+async function PesanSelesai({
+  searchParams,
+  first,
+}: {
+  searchParams: Promise<{ selesai?: string }>;
+  first: string;
+}) {
+  if ((await searchParams).selesai !== "1") return null;
+  return (
+    <Alert kind="success" title={`Data ${first} lengkap. Ini hasilnya.`}>
+      Lihat label tiap sekolah di bawah, lalu lanjut ke Strategi untuk urutan pilihan yang disarankan.
+    </Alert>
+  );
+}

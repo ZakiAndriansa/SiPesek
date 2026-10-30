@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import {
   continueTarget,
   homeFor,
@@ -95,20 +95,31 @@ export async function LandingChrome({ children }: { children: ReactNode }) {
 }
 
 /** Cangkang wizard (mode fokus): tanpa menu utama, footer, dan navigasi bawah. */
-export async function FocusChrome({ step, children }: { step: number; children: ReactNode }) {
-  const session = await getSession();
-  const name = session?.child ? firstName(session.child.name) : null;
+const KELUAR_WIZARD = { href: "/anak-saya", label: "Simpan & keluar" };
+
+/** `step` berasal dari URL, jadi header progres dialirkan di balik Suspense; sisanya ikut App Shell. */
+export function FocusChrome({ step, children }: { step: Promise<number>; children: ReactNode }) {
   return (
     <>
       <SkipLink />
-      <FocusBar
-        title={name ? `Data ${name}` : "Data anak baru"}
-        subtitle={`Langkah ${step} dari ${WIZARD_TOTAL}`}
-        progress={{ step, total: WIZARD_TOTAL }}
-        exit={{ href: "/anak-saya", label: "Simpan & keluar" }}
-      />
+      <Suspense fallback={<FocusBar title="Data anak" subtitle={`Dari ${WIZARD_TOTAL} langkah`} exit={KELUAR_WIZARD} />}>
+        <WizardBar step={step} />
+      </Suspense>
       <main id="konten">{children}</main>
     </>
+  );
+}
+
+async function WizardBar({ step: langkah }: { step: Promise<number> }) {
+  const [step, session] = await Promise.all([langkah, getSession()]);
+  const name = session?.child ? firstName(session.child.name) : null;
+  return (
+    <FocusBar
+      title={name ? `Data ${name}` : "Data anak baru"}
+      subtitle={`Langkah ${step} dari ${WIZARD_TOTAL}`}
+      progress={{ step, total: WIZARD_TOTAL }}
+      exit={KELUAR_WIZARD}
+    />
   );
 }
 

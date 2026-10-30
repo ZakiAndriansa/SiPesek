@@ -6,17 +6,17 @@ import { getStep } from "@/features/isi-data/steps";
 import { HELP_URL } from "@/lib/nav";
 
 // Mode fokus: header ringkas berisi progres, tanpa menu utama, footer, atau navigasi bawah.
-export default async function WizardLayout({
+export default function WizardLayout({
   children,
   params,
 }: {
   children: ReactNode;
   params: Promise<{ langkah: string }>;
 }) {
-  const found = getStep((await params).langkah);
-  if (!found) notFound();
+  // Promise diteruskan tanpa di-await; FocusChrome membacanya di balik Suspense.
+  const step = params.then(({ langkah }) => getStep(langkah)?.n ?? notFound());
   return (
-    <FocusChrome step={found.n}>
+    <FocusChrome step={step}>
       <Container reading>
         {children}
         <p className="text-secondary wizard__help">
