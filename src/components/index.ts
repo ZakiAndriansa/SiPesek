@@ -14,6 +14,7 @@ export { Stepper } from "./stepper/Stepper";
 export { Accordion } from "./accordion/Accordion";
 export { Tabs } from "./tabs/Tabs";
 export { Breadcrumb } from "./breadcrumb/Breadcrumb";
+export { Table } from "./table/Table";
 export { MapSchools, MapZones, MapLegend } from "./map/Map";
 export { Toggle } from "./toggle/Toggle";
 export { Dialog } from "./dialog/Dialog";
