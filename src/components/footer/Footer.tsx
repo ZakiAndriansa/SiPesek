@@ -35,7 +35,7 @@ const LAYANAN: Column = {
   tone: "lime",
   links: [
     ["/tanya-jawab", "Tanya Jawab (FAQ)"],
-    ["/dashboard", "Dashboard Kebijakan"],
+    ["/kebijakan-ringkasan", "Dashboard Kebijakan"],
   ],
 };
 

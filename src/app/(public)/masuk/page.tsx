@@ -43,6 +43,9 @@ export default function MasukPage({ searchParams }: PageProps<"/masuk">) {
         <p className="card__text">Cek Cepat hanya butuh NISN anak. Hasilnya tidak disimpan.</p>
         <MoreLink href="/cek-cepat">Cek Cepat dengan NISN</MoreLink>
       </div>
+      <p className="text-caption text-secondary">
+        Petugas dinas pendidikan? <MoreLink href="/masuk-petugas">Masuk sebagai petugas</MoreLink>
+      </p>
     </Container>
   );
 }

@@ -160,7 +160,7 @@ export function stageOf(pathname: string): StageKey | null {
 
 // ---------- Akses dan routing ----------
 
-export const PUBLIC_PATHS = ["/", "/panduan", "/tanya-jawab", "/privasi", "/masuk", "/akses-ditolak", "/cek-cepat"];
+export const PUBLIC_PATHS = ["/", "/panduan", "/tanya-jawab", "/privasi", "/masuk", "/masuk-petugas", "/akses-ditolak", "/cek-cepat"];
 const PARENT_PREFIXES = ["/anak-saya", "/isi-data", "/peta-sekolah", "/detail-sekolah", "/strategi", "/cadangan", "/unduhan"];
 
 const underAny = (pathname: string, prefixes: string[]) =>

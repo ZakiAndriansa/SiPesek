@@ -49,7 +49,8 @@ function penjagaOrangTua(request: NextRequest) {
   if (pathname === "/masuk") return session ? go(homeFor(session)) : next();
   const roles = rolesFor(pathname);
   if (!roles) return next();
-  if (!session) return go(`/masuk?next=${encodeURIComponent(pathname + search)}`);
+  // Halaman petugas (kebijakan, admin) punya pintu masuk sendiri, terpisah dari orang tua.
+  if (!session) return go(`${roles.includes("orang-tua") ? "/masuk" : "/masuk-petugas"}?next=${encodeURIComponent(pathname + search)}`);
   if (!roles.includes(session.role)) return go(`/akses-ditolak?dari=${encodeURIComponent(pathname)}`);
   // Orang tua: Hasil, Strategi, Dokumen hanya terbuka bila data anak aktif sudah lengkap.
   if (session.role === "orang-tua") {
