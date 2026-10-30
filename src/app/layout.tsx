@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import "@/styles";
 import { Sprite } from "@/components/icon/Sprite";
 import { ToastProvider, ToastRegion } from "@/components/toast/Toast";
@@ -26,7 +26,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Sprite />
         <ToastProvider>
-          {children}
+          {/* cacheComponents aktif: halaman yang membaca cookie sesi harus berada di dalam Suspense. */}
+          <Suspense fallback={null}>{children}</Suspense>
           <ToastRegion />
         </ToastProvider>
       </body>

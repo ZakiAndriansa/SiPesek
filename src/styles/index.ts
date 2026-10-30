@@ -6,6 +6,7 @@ import "../components/button/button.css";
 import "../components/badge/badge.css";
 import "../components/link/link.css";
 import "../components/navbar/navbar.css";
+import "../components/bottom-nav/bottom-nav.css";
 import "../components/footer/footer.css";
 import "../components/landing/landing.css";
 import "../components/section-heading/section-heading.css";

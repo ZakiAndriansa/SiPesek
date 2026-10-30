@@ -19,16 +19,16 @@ const JALUR: Column = {
     ["/panduan#mutasi", "Jalur Mutasi"],
   ],
 };
-const PANDUAN: Column = {
+const panduan = (parent: boolean): Column => ({
   id: "f-panduan",
   title: "Panduan Orang Tua",
   tone: "sky",
   links: [
-    ["/cek", "Mulai Cek Peluang"],
     ["/panduan#cara-hitung", "Cara Menghitung Peluang"],
     ["/panduan#privasi", "Kebijakan Privasi Data"],
+    parent ? ["/anak-saya", "Data Anak"] : ["/cek-cepat", "Cek Cepat dengan NISN"],
   ],
-};
+});
 const LAYANAN: Column = {
   id: "f-layanan",
   title: "Layanan",
@@ -40,8 +40,8 @@ const LAYANAN: Column = {
 };
 
 /** Footer: kartu merek + tiga kolom berwarna pembeda, lalu bar catatan. Tiap blok punya latar sendiri. */
-export function Footer() {
-  const columns = [JALUR, PANDUAN, LAYANAN];
+export function Footer({ parent }: { parent?: boolean }) {
+  const columns = [JALUR, panduan(!!parent), LAYANAN];
   return (
     <footer className="footer">
       <div className="footer__inner">

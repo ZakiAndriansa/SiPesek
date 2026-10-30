@@ -3,7 +3,7 @@ import { SiteChrome } from "@/components/shell/Shell";
 
 export default function NotFound() {
   return (
-    <SiteChrome>
+    <SiteChrome area="public">
       <Container>
         <PageHeader
         art="lost"

@@ -48,11 +48,11 @@ const FAQS: readonly (readonly [q: string, a?: string])[] = [
   ],
   [
     "Apakah data keluarga kami aman?",
-    "SiPesek tidak menyimpan nama, NISN, nomor HP, dan titik rumah. Hasil cek hanya menyimpan kecamatan, jarak yang dibulatkan 50 m, rentang skor per 10 poin, dan label peluang.",
+    "Cek Cepat tidak menyimpan apa pun: isian hilang saat tab ditutup. Data anak yang diisi setelah masuk hanya dipakai untuk menghitung peluang dan hanya terlihat oleh akun itu.",
   ],
   [
-    "Apakah perlu membuat akun?",
-    "Tidak. Isi tiga langkah, lihat hasilnya, lalu salin tautan hasil bila ingin dibuka lagi atau dibagikan.",
+    "Apakah harus membuat akun?",
+    "Tidak harus. Cek Cepat tidak memerlukan akun dan hasilnya tidak disimpan. Masuk dengan nomor HP hanya diperlukan bila Bapak/Ibu ingin menyimpan data anak dan melihat riwayat hasil.",
   ],
   [
     "Apakah ada biaya untuk memakai SiPesek?",
@@ -152,7 +152,7 @@ function StrategySection() {
       <div className="landing-strategy-copy">
         <h2>Strategi yang tepat untuk setiap anak.</h2>
         <p>Setiap anak punya kondisi berbeda. SiPesek membaca alamat, status keluarga, dan nilai (bila diisi), lalu menunjukkan jalur dengan peluang paling besar.</p>
-        <Button variant="primary" lg href="/cek">Cek Peluang Anak</Button>
+        <Button variant="primary" lg href="/cek-cepat">Cek Peluang Anak</Button>
       </div>
       <div className="landing-timeline">
         <div className="landing-timeline-line" aria-hidden="true" />
@@ -188,7 +188,7 @@ function DataSection() {
           <div className="landing-data-stats">
             <div><strong>20</strong><span><i />SMA/SMK Negeri</span></div>
             <div><strong>7.104</strong><span><i />Daya tampung 2026</span></div>
-            <div><strong>3 langkah</strong><span><i />Tanpa akun</span></div>
+            <div><strong>2 cara</strong><span><i />Cek Cepat atau masuk</span></div>
           </div>
         </div>
       </div>
@@ -209,7 +209,7 @@ function FaqSection() {
   );
 }
 
-function CtaSection() {
+function CtaSection({ cta }: { cta: LandingCta }) {
   return (
     <section className="landing-cta-wrap">
       <div className="landing-cta">
@@ -217,10 +217,10 @@ function CtaSection() {
         <img className="landing-cta-image landing-cta-image--girl" src="/assets/landing-cta-girl.png" alt="" aria-hidden="true" />
         <div className="landing-cta-content">
           <h2>Beri masa depan anak<br />ruang untuk bertumbuh.</h2>
-          <p>Hanya tiga langkah, tanpa akun. Dapatkan gambaran peluang yang jelas sebelum mendaftar.</p>
+          <p>Cek Cepat tanpa akun, atau masuk untuk menyimpan riwayat. Dapatkan gambaran peluang yang jelas sebelum mendaftar.</p>
           <div>
-            <Button variant="inverse" lg href="/cek">Mulai cek peluang</Button>
-            <Button variant="inverse-outline" lg href="/panduan">Pelajari Panduan Jalur</Button>
+            <Button variant="inverse" lg href={cta.href}>{cta.ctaLabel}</Button>
+            <Button variant="inverse-outline" lg href={cta.secondary?.href ?? "/panduan"}>{cta.secondary?.label ?? "Pelajari Panduan Jalur"}</Button>
           </div>
         </div>
         <div className="landing-cta-cloud" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
@@ -228,7 +228,17 @@ function CtaSection() {
     </section>
   );
 }
-export function LandingPage() {
+export type LandingCta = {
+  href: string;
+  label: string;
+  ctaLabel: string;
+  /** Tombol kedua (tamu: masuk dan simpan riwayat). */
+  secondary?: { href: string; label: string };
+  trust?: string;
+};
+
+/** cta: tamu ke Cek Cepat atau Masuk; orang tua yang sudah login langsung ke tahap berikutnya anaknya. */
+export function LandingPage({ cta }: { cta: LandingCta }) {
   return (
     <>
       <section className="landing-hero">
@@ -237,8 +247,12 @@ export function LandingPage() {
           <h1><em>Peluang lolos</em><span>dimulai dari pilihan yang tepat.</span></h1>
           <p>Hitung peluang anak diterima di SMA/SMK Negeri untuk setiap jalur SPMB — domisili, afirmasi, prestasi, dan mutasi — lalu lihat alternatif sekolah swasta terdekat.</p>
           <div className="landing-hero-actions">
-            <Button variant="primary" lg href="/cek">Mulai cek peluang</Button>
-            <Button variant="secondary" lg href="#cara-kerja">Lihat Cara Kerja</Button>
+            <Button variant="primary" lg href={cta.href}>{cta.label}</Button>
+            {cta.secondary ? (
+              <Button variant="secondary" lg href={cta.secondary.href}>{cta.secondary.label}</Button>
+            ) : (
+              <Button variant="secondary" lg href="#cara-kerja">Lihat Cara Kerja</Button>
+            )}
           </div>
           <small className="landing-trust">Gratis  •  Tanpa akun  •  Tidak menyimpan nama, NISN, atau lokasi rumah</small>
         </div>
@@ -251,7 +265,7 @@ export function LandingPage() {
       <StrategySection />
       <DataSection />
       <FaqSection />
-      <CtaSection />
+      <CtaSection cta={cta} />
     </>
   );
 }
