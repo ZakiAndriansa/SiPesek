@@ -73,7 +73,7 @@ export function validateInput(input: unknown): string | null {
   return null;
 }
 
-const RANGE: Record<Kind, string> = { aman: "75–90%", bersaing: "45–60%", berisiko: "10–30%" };
+const RANGE: Record<Kind, string> = { aman: "75-90%", bersaing: "45-60%", berisiko: "10-30%" };
 const ORDER: Record<Kind, number> = { aman: 0, bersaing: 1, berisiko: 2 };
 const PRESTASI_BONUS: Record<string, number> = { "": 0, Kecamatan: 0.5, "Kota/Kabupaten": 1.5, Provinsi: 3, Nasional: 3 };
 const NAME = { domisili: "Jalur dekat rumah (Domisili)", prestasi: "Jalur nilai dan prestasi (Prestasi)", afirmasi: "Jalur keluarga kurang mampu (Afirmasi)" };

@@ -96,7 +96,7 @@ function ValueSection() {
       <SectionHeading
         center
         title={<>Dibuat untuk orang tua.<br />Jujur soal peluang.</>}
-        desc="Semua dirancang agar memilih sekolah terasa tenang dan masuk akal — dengan angka yang jelas dan penjelasan yang mudah dipahami."
+        desc="Semua dirancang agar memilih sekolah terasa tenang dan masuk akal, dengan angka yang jelas dan penjelasan yang mudah dipahami."
       />
       <div className="landing-value-grid">
         {VALUES.map((item) => (
@@ -150,7 +150,7 @@ function PathsSection() {
 const STRATEGY_STEPS = [
   { title: "Nilai rapor rata-rata", accent: "Peluang terbaik lewat Jalur Domisili", chips: ["Jarak rumah ke sekolah", "Titik rumah di peta", "Alamat sesuai KK"], icon: "/assets/landing-icon-home.svg", color: "sky" },
   { title: "Keluarga penerima bantuan (KETM)", accent: "Lebih aman lewat Jalur Afirmasi", chips: ["Kartu bantuan", "Terdaftar di data bantuan pemerintah (DTSEN)", "Anak berkebutuhan khusus"], icon: "/assets/landing-icon-heart.svg", color: "lime" },
-  { title: "Anak berprestasi", accent: "Pertimbangkan Jalur Prestasi", chips: ["Rapor semester 1–5", "Nilai TKA (SMA)", "Kelas industri (SMK)"], icon: "/assets/landing-icon-trophy.svg", color: "yellow" },
+  { title: "Anak berprestasi", accent: "Pertimbangkan Jalur Prestasi", chips: ["Rapor semester 1-5", "Nilai TKA (SMA)", "Kelas industri (SMK)"], icon: "/assets/landing-icon-trophy.svg", color: "yellow" },
 ];
 
 function StrategySection() {

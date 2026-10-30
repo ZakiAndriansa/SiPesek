@@ -158,7 +158,7 @@ export default async function UnduhanPage() {
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <Badge kind="aman" />
                 <span style={{ fontSize: "14px", color: "var(--color-success-text)", fontWeight: 600 }}>
-                  Peluang Diterima di Salah Satu Sekolah Negeri: Sangat Tinggi (80–92%)
+                  Peluang Diterima di Salah Satu Sekolah Negeri: Sangat Tinggi (80-92%)
                 </span>
               </div>
             </div>

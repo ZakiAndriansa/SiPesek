@@ -142,7 +142,7 @@ export default async function PetaSekolahPage({
           <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
             <Badge kind="bersaing" />
             <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.5" }}>
-              <strong>Memungkinkan (Bersaing):</strong> Peluang berimbang (45–60%). Hasilnya sangat bergantung pada fluktuasi pendaftar tahun berjalan. Bagus untuk satu pilihan ambisius.
+              <strong>Memungkinkan (Bersaing):</strong> Peluang berimbang (45-60%). Hasilnya sangat bergantung pada fluktuasi pendaftar tahun berjalan. Bagus untuk satu pilihan ambisius.
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
