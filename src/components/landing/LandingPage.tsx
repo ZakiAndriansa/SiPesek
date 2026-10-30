@@ -1,4 +1,5 @@
 import { JALUR } from "@/lib/jalur";
+import { PORSI_JALUR, TAHUN_PORSI } from "@/lib/porsi-jalur";
 import { Accordion } from "../accordion/Accordion";
 import { Button } from "../button/Button";
 import { SectionHeading } from "../section-heading/SectionHeading";
@@ -31,15 +32,16 @@ const VALUES = [
 ];
 
 const PATH_STYLE = {
-  DOMISILI: { chip: "Paling umum", color: "landing-path-card--sky", squiggle: "domisili", value: "Jarak", note: "diurutkan dari rumah terdekat" },
-  AFIRMASI: { chip: "Kartu bantuan & disabilitas", color: "landing-path-card--lime", squiggle: "afirmasi", value: "Jarak", note: "diurutkan dari rumah terdekat" },
-  PRESTASI: { chip: "Rapor & prestasi", color: "landing-path-card--yellow", squiggle: "prestasi", value: "Skor", note: "diurutkan dari skor tertinggi" },
-  MUTASI: { chip: "Pindah tugas & anak guru", color: "landing-path-card--lavender", squiggle: "mutasi", value: "Jarak", note: "diurutkan dari rumah terdekat" },
+  DOMISILI: { chip: "Paling umum", color: "landing-path-card--sky", squiggle: "domisili" },
+  AFIRMASI: { chip: "Kartu bantuan & disabilitas", color: "landing-path-card--lime", squiggle: "afirmasi" },
+  PRESTASI: { chip: "Rapor & prestasi", color: "landing-path-card--yellow", squiggle: "prestasi" },
+  MUTASI: { chip: "Pindah tugas & anak guru", color: "landing-path-card--lavender", squiggle: "mutasi" },
 } as const;
 const PATHS = JALUR.filter((j) => j.kode in PATH_STYLE).map((j) => ({
   // Judul memakai nama resmi jalur ("Jalur Domisili"); penjelasan sehari-hari ada di deskripsi.
   title: `Jalur ${j.namaTampilan.match(/\(([^)]+)\)$/)?.[1] ?? j.namaTampilan}`,
   description: j.deskripsi,
+  porsi: PORSI_JALUR[j.kode as keyof typeof PATH_STYLE],
   ...PATH_STYLE[j.kode as keyof typeof PATH_STYLE],
 }));
 const FAQS: readonly (readonly [q: string, a?: string])[] = [
@@ -116,7 +118,7 @@ function PathsSection() {
     <section className="landing-section landing-paths">
       <SectionHeading
         title={<>Jalur mana yang paling<br />cocok untuk anak?</>}
-        desc="Empat jalur SPMB, masing-masing dengan kuota dan syarat sendiri. SiPesek mencocokkan kondisi anak dengan jalur yang paling realistis."
+        desc="Empat jalur SPMB dengan kuota dan syarat masing-masing. Porsinya berbeda untuk SMA dan SMK, dan SMAN 1 Depok memakai seleksi unggulan tersendiri. SiPesek mencocokkan kondisi anak dengan jalur yang paling realistis."
         action={
           <Button variant="secondary" href="/panduan#jalur">
             Panduan Lengkap ↗
@@ -130,9 +132,13 @@ function PathsSection() {
             <h3>{path.title}</h3>
             <p>{path.description}</p>
             <div className={`landing-path-visual ${path.color}`}>
-              <strong>{path.value}</strong>
+              {/* Porsi SMA dan SMK berbeda jauh, jadi keduanya ditampilkan terpisah. */}
+              <div className="landing-path-porsi">
+                <span><strong>{path.porsi.SMA}%</strong>SMA</span>
+                <span><strong>{path.porsi.SMK}%</strong>SMK</span>
+              </div>
               <img className={`landing-path-squiggle landing-path-squiggle--${path.squiggle}`} src={`/assets/landing-squiggle-${path.squiggle}.svg`} alt="" aria-hidden="true" />
-              <small>{path.note}</small>
+              <small>siswa diterima di Depok {TAHUN_PORSI}</small>
             </div>
           </article>
         ))}

@@ -5,7 +5,7 @@
 
 export const JALUR = [
   { kode: "DOMISILI", namaTampilan: "Jalur dekat rumah (Domisili)", deskripsi: "Untuk anak yang KK-nya berada di rayon sekolah (SMA) atau dekat sekolah (SMK). Diurutkan dari rumah terdekat." },
-  { kode: "AFIRMASI", namaTampilan: "Jalur keluarga kurang mampu dan berkebutuhan khusus (Afirmasi)", deskripsi: "Untuk keluarga penerima bantuan yang terdaftar di DTSEN pada desil 1 sampai 5 (separuh keluarga dengan tingkat kesejahteraan terendah), anak disabilitas, dan anak cerdas istimewa. Diurutkan dari rumah terdekat." },
+  { kode: "AFIRMASI", namaTampilan: "Jalur keluarga kurang mampu dan berkebutuhan khusus (Afirmasi)", deskripsi: "Untuk keluarga penerima bantuan yang terdaftar di DTSEN pada desil 1 sampai 5, anak disabilitas, dan anak cerdas istimewa. Diurutkan dari rumah terdekat." },
   { kode: "PRESTASI", namaTampilan: "Jalur nilai dan prestasi (Prestasi)", deskripsi: "Berdasarkan skor rapor (dan TKA untuk SMA), juara lomba, atau kepemimpinan organisasi." },
   { kode: "MUTASI", namaTampilan: "Jalur orang tua pindah tugas atau anak guru (Mutasi)", deskripsi: "Untuk anak yang orang tuanya pindah tugas atau mengajar di sekolah tujuan. Diurutkan dari rumah terdekat." },
   { kode: "SELEKSI_UNGGULAN", namaTampilan: "Seleksi sekolah unggulan provinsi", deskripsi: "Seleksi terpisah untuk SMAN 1 Depok." },

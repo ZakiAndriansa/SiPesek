@@ -433,6 +433,8 @@
 
 .landing-path-visual {
   position: relative;
+  /* Panel turun ke dasar kartu agar sejajar walau panjang deskripsi berbeda. */
+  margin-top: auto;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -456,6 +458,30 @@
   font-weight: var(--weight-bold);
   letter-spacing: -0.03em;
   line-height: 76px;
+}
+
+/* Dua angka (SMA dan SMK) berdampingan; ukurannya lebih kecil dari satu angka agar muat di kartu. */
+.landing-path-porsi {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 20px;
+}
+
+.landing-path-porsi span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(4, 6, 19, 0.69);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+  line-height: 16px;
+}
+
+.landing-path-visual .landing-path-porsi strong {
+  font-size: 52px;
+  line-height: 56px;
 }
 
 .landing-path-visual small {
