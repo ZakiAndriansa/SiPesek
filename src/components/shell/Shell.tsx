@@ -10,10 +10,12 @@ import {
   WIZARD_TOTAL,
   type Session,
 } from "@/lib/accounts";
+import { POLICY } from "@/lib/nav";
 import { getSession } from "@/lib/session";
 import { BottomNav } from "../bottom-nav/BottomNav";
 import { Footer } from "../footer/Footer";
-import { FocusBar, Navbar, type NavbarProps } from "../navbar/Navbar";
+import { DashBar, FocusBar, Navbar, type NavbarProps } from "../navbar/Navbar";
+import { Sidebar, type DashMenu } from "../sidebar/Sidebar";
 
 const SkipLink = () => (
   <a className="skip-link" href="#konten">
@@ -136,6 +138,35 @@ export function QuickChrome({ children }: { children: ReactNode }) {
         exit={{ href: "/", label: "Selesai" }}
       />
       <main id="konten">{children}</main>
+    </>
+  );
+}
+
+/** Cangkang dashboard: bar atas (peran + nama), sidebar, konten. Tanpa footer. */
+export async function DashChrome({
+  menu,
+  children,
+}: {
+  menu: DashMenu;
+  children: ReactNode;
+}) {
+  const session = await getSession();
+  const role = session ? ROLE_LABEL[session.role] : menu.role;
+  // Admin yang membuka dashboard kebijakan tetap punya jalan kembali ke panel admin.
+  const items =
+    session?.role === "admin" && menu === POLICY
+      ? [...menu.items, ["/admin-aturan", "Kembali ke Panel Admin", "settings"] as const]
+      : menu.items;
+  return (
+    <>
+      <SkipLink />
+      <DashBar home={session ? homeFor(session) : menu.home} user={session?.name ?? "Petugas"} role={role} />
+      <main id="konten">
+        <div className="container dash">
+          <Sidebar menu={{ ...menu, role: menu === POLICY && session?.role === "admin" ? "Dashboard Kebijakan (Admin)" : menu.role, items }} />
+          <div className="dash__main">{children}</div>
+        </div>
+      </main>
     </>
   );
 }
