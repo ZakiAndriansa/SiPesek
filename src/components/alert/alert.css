@@ -1,0 +1,73 @@
+/* Alert — callout inline. Varian: info, success (aman), warning (bersaing), danger (berisiko). */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 22px;
+  border: 1px solid var(--color-border-subtle);
+  border-left: 5px solid currentColor;
+  border-radius: 20px;
+  font-size: var(--text-body-md);
+  background: var(--color-surface);
+  box-shadow: 0 4px 16px rgba(4, 6, 19, 0.03);
+  line-height: 1.55;
+}
+
+.alert__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.alert__body p {
+  max-width: none;
+  margin: 0;
+}
+
+.alert__title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.alert__text {
+  color: var(--color-ink-soft);
+}
+
+.alert__action {
+  margin-top: 10px;
+}
+
+.alert--info {
+  background: #f7f9fd;
+  border-color: rgba(30, 64, 175, 0.15);
+  color: var(--color-info-text);
+}
+
+.alert--success {
+  background: #f2fbf6;
+  border-color: rgba(5, 150, 105, 0.15);
+  color: var(--color-success-text);
+}
+
+.alert--warning {
+  background: #fffdf2;
+  border-color: rgba(180, 83, 9, 0.18);
+  color: var(--color-warning-text);
+}
+
+.alert--danger {
+  background: #fef4f4;
+  border-color: rgba(220, 38, 38, 0.18);
+  color: var(--color-danger-text);
+}
+

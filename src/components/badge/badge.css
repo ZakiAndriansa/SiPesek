@@ -1,0 +1,74 @@
+/* Badge — pill status (selalu ikon/dot + teks) & tag netral. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.badge__icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Aman — Hijau lembut dengan dot */
+.badge--aman {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+/* Bersaing — Kuning / Oranye lembut */
+.badge--bersaing {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+/* Berisiko — Merah muda lembut */
+.badge--berisiko {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+/* Info */
+.badge--info {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border: 1px solid rgba(29, 78, 216, 0.2);
+}
+
+/* Neutral */
+.badge--neutral {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-ink);
+}
+
+/* Brand Orange */
+.badge--brand {
+  background: var(--color-primary-tint);
+  color: var(--color-primary-text);
+  border: 1px solid rgba(237, 90, 28, 0.2);
+}
+
+/* Ukuran besar untuk ringkasan hasil */
+.badge--lg {
+  min-height: 36px;
+  padding: 6px 16px;
+  font-size: 15px;
+}
+
+.badge--lg .badge__icon {
+  width: 16px;
+  height: 16px;
+}

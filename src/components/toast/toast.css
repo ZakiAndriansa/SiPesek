@@ -1,0 +1,68 @@
+/* Toast — notifikasi sementara di bawah layar, di atas bottom nav pada mobile */
+
+.toast-region {
+  position: fixed;
+  inset-inline: var(--page-margin);
+  bottom: calc(var(--bottom-nav-height) + var(--space-3) + env(safe-area-inset-bottom));
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: var(--border-thin) solid var(--color-border-subtle);
+  border-left: var(--space-1) solid var(--color-info-text);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  pointer-events: auto;
+}
+
+.toast__icon {
+  flex-shrink: 0;
+  margin-top: var(--space-3);
+  color: var(--color-info-text);
+}
+
+.toast__message {
+  flex: 1;
+  padding-block: var(--space-3);
+  font-size: var(--text-body-md);
+}
+
+.toast__close {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.toast--success {
+  border-left-color: var(--color-success-text);
+}
+
+.toast--success .toast__icon {
+  color: var(--color-success-text);
+}
+
+.toast--danger {
+  border-left-color: var(--color-danger-text);
+}
+
+.toast--danger .toast__icon {
+  color: var(--color-danger-text);
+}
+
+@media (min-width: 600px) {
+  .toast-region {
+    inset-inline: auto var(--page-margin-tablet);
+    bottom: var(--space-6);
+    width: min(var(--toast-max), calc(100% - 2 * var(--page-margin-tablet)));
+  }
+}

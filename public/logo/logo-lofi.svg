@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Logo SiPesek">
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="none" stroke="#040613" stroke-width="3"/>
+  <path d="M43 22c0-6-8-8-14-8s-11 3-11 9c0 6 5 8 14 9s13 3 13 9c0 6-6 9-14 9s-14-3-14-8" fill="none" stroke="#040613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="49" cy="15" r="3.5" fill="none" stroke="#040613" stroke-width="2.5"/>
+</svg>

@@ -1,0 +1,62 @@
+/* Section heading — eyebrow + judul + deskripsi, opsional aksi di kanan */
+
+.section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-10);
+}
+
+.section-heading__eyebrow {
+  margin-bottom: var(--space-2);
+  color: var(--color-primary-text);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+}
+
+.section-heading__title {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-heading-lg-mobile);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-tight);
+}
+
+.section-heading__desc {
+  max-width: 42.5rem;
+  margin-top: var(--space-4);
+  color: var(--color-ink-soft);
+  font-size: var(--text-body-md);
+  line-height: 1.5625;
+}
+
+.section-heading--center {
+  align-items: center;
+  text-align: center;
+}
+
+.section-heading--center .section-heading__desc {
+  margin-inline: auto;
+}
+
+@media (min-width: 600px) {
+  .section-heading--split {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .section-heading__action {
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-heading {
+    margin-bottom: var(--space-12);
+  }
+  .section-heading__title {
+    font-size: 2.25rem;
+  }
+}

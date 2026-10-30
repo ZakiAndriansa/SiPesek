@@ -1,17 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+import { Suspense, type ReactNode } from "react";
+import "@/styles";
+import { Sprite } from "@/components/icon/Sprite";
+import { ToastProvider, ToastRegion } from "@/components/toast/Toast";
 export const metadata: Metadata = {
   title: {
     default: "SiPesek",
@@ -20,14 +11,26 @@ export const metadata: Metadata = {
   description:
     "Perkiraan peluang anak masuk SMA/SMK negeri di Kota Depok per jalur SPMB, berdasarkan hasil SPMB tahun lalu, beserta alternatif sekolah swasta terdekat.",
 };
-
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html
-      lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="id">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Josefin+Sans:ital,wght@0,400;0,500;0,600;0,700;1,700&family=Outfit:wght@400;500;600;700&display=swap"
+        />
+      </head>
+      <body>
+        <Sprite />
+        <ToastProvider>
+          {/* cacheComponents aktif: halaman yang membaca cookie sesi harus berada di dalam Suspense. */}
+          <Suspense fallback={null}>{children}</Suspense>
+          <ToastRegion />
+        </ToastProvider>
+      </body>
     </html>
   );
 }

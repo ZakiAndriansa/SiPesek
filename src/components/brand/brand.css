@@ -1,0 +1,29 @@
+/* Brand — logo mark oranye + wordmark Outfit (board FigCraft: Logo) */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.brand__logo {
+  display: block;
+  width: 34px;
+  height: 34px;
+  flex: none;
+}
+
+.brand--sm {
+  font-size: 1.375rem;
+}
+
+.brand--sm .brand__logo {
+  width: 32px;
+  height: 32px;
+}

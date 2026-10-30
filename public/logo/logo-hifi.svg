@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Logo SiPesek">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f47a45"/>
+      <stop offset="1" stop-color="#ed5a1c"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#g)"/>
+  <path d="M10 8h44a8 8 0 0 1 8 8v2C46 22 24 20 2 18v-2a8 8 0 0 1 8-8z" fill="#fff" opacity=".14"/>
+  <path d="M43 22c0-6-8-8-14-8s-11 3-11 9c0 6 5 8 14 9s13 3 13 9c0 6-6 9-14 9s-14-3-14-8" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="49" cy="15" r="4.5" fill="#ffee70"/>
+</svg>

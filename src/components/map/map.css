@@ -1,0 +1,162 @@
+/* Map — Peta interaktif sekolah dengan cartography styling yang hangat */
+
+.map {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background-color: #f4f2ed;
+  background-image:
+    radial-gradient(#e5e1d8 1.5px, transparent 1.5px),
+    linear-gradient(rgba(229, 225, 216, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229, 225, 216, 0.4) 1px, transparent 1px);
+  background-size: 24px 24px, 48px 48px, 48px 48px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(4, 6, 19, 0.04);
+}
+
+.map--square {
+  aspect-ratio: 1;
+}
+
+.map__road {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  border-radius: 6px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Pin sekolah: ikon status + warna, target sentuh 44px */
+.map__pin {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  transform: translate(-50%, -100%);
+  border: 2px solid var(--color-surface);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(4, 6, 19, 0.16);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.map__pin:hover {
+  transform: translate(-50%, -115%) scale(1.1);
+  box-shadow: 0 8px 22px rgba(4, 6, 19, 0.22);
+}
+
+.map__pin--aman {
+  background: var(--color-success-text);
+  color: var(--color-on-primary);
+}
+
+.map__pin--bersaing {
+  background: var(--color-warning-text);
+  color: var(--color-on-primary);
+}
+
+.map__pin--berisiko {
+  background: var(--color-danger-text);
+  color: var(--color-on-primary);
+}
+
+.map__home {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  transform: translate(-50%, -100%);
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(237, 90, 28, 0.4);
+  border: 2px solid var(--color-surface);
+  z-index: 2;
+}
+
+
+/* Zona wilayah (koroplet): nama + nilai selalu tertulis */
+.map__zone {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  width: var(--w);
+  height: var(--h);
+  padding: var(--space-3);
+  overflow: hidden;
+  border: var(--border-thick) solid currentColor;
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  line-height: var(--leading);
+}
+
+.map__zone strong {
+  font-size: var(--text-body-md);
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+}
+.map__zone-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-body-md);
+  font-weight: var(--weight-semibold);
+}
+
+.map__zone--cukup {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.map__zone--terbatas {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.map__zone--kurang {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.map__zone--blank {
+  border-style: dashed;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 1024px) {
+  .map--square {
+    aspect-ratio: 16 / 10;
+  }
+  .map--zones {
+    aspect-ratio: 5 / 2;
+  }
+}
