@@ -116,6 +116,28 @@
   background: #fff5f0;
   color: var(--color-primary-active);
 }
+/* Tombol di band selalu sebaris (dibungkus hanya di HP); teks mengisi sisa lebar. */
+.cta-band .button-group {
+  flex-shrink: 0;
+}
+.cta-band .button-group .button {
+  white-space: nowrap;
+}
+@media (min-width: 1024px) {
+  .cta-band {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+  }
+  .cta-band > div:first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .cta-band .button-group {
+    flex-wrap: nowrap;
+  }
+}
 
 .save-state {
   display: inline-flex;
@@ -301,9 +323,6 @@
   }
 
   .cta-band {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
     padding: 48px 40px;
   }
 }
