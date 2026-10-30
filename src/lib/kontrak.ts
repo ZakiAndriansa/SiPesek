@@ -148,6 +148,11 @@ export type ResponsDashboard = {
     radiusDomisiliMeter: number | null;
     /** null bila daya tampung belum diisi admin. */
     dayaTampung: number | null;
+    /**
+     * Daya tampung dikurangi siswa yang diterima lewat klasemen. Tampilkan sebagai "kuota belum
+     * terisi lewat klasemen", bukan kursi kosong pasti: sebagian kursi bisa terisi di luar klasemen,
+     * misalnya penempatan langsung anak desil 1 oleh Dinas.
+     */
     kursiKosong: number | null;
   }>;
   kecamatan: Array<{
