@@ -579,3 +579,58 @@
 body:has(.dash)::before {
   opacity: 0.5;
 }
+
+/* ---------- Halaman masuk dengan Google ---------- */
+.masuk-google__badge {
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.masuk-google {
+  align-items: center;
+  text-align: center;
+}
+
+.alert + .masuk-google {
+  margin-top: var(--space-4);
+}
+
+/* Tempat tombol Google; tingginya dijaga agar halaman tidak melompat saat tombol dimuat. */
+.masuk-google__tombol {
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+
+.masuk-google .alert,
+.masuk-google form {
+  width: 100%;
+  text-align: left;
+}
+
+.masuk-google__status {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+}
+
+.masuk-google__manfaat {
+  text-align: center;
+  margin-block: var(--space-4) var(--space-6);
+}
+
+/* ---------- Kebijakan privasi ---------- */
+.privasi__daftar {
+  display: grid;
+  gap: var(--space-2);
+  padding-left: var(--space-6);
+  list-style: decimal;
+}
+
+.privasi__masuk {
+  display: grid;
+  gap: var(--space-3);
+}

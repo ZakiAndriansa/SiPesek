@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { NAMA_COOKIE_ORTU } from "./auth";
 import {
   ACCOUNTS,
   buildSession,
@@ -33,6 +34,7 @@ export async function signIn(account: string, next?: string) {
 export async function signOut() {
   const store = await cookies();
   for (const name of Object.values(COOKIE)) store.delete(name);
+  store.delete(NAMA_COOKIE_ORTU);
   redirect("/");
 }
 
