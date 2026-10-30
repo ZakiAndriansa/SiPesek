@@ -1,17 +1,18 @@
 /**
  * Mengisi data referensi: jalur, sub jalur, rayon, sekolah, program keahlian,
- * aturan 2026, dan akun admin pertama. Aman dijalankan berulang (upsert).
+ * daya tampung, aturan 2026, dan akun admin pertama. Aman dijalankan berulang (upsert).
  *
  * Jalankan: npm run db:seed
- * Statistik SPMB diisi terpisah lewat `npm run data:impor`.
+ * Statistik SPMB agregat diisi dari data/statistik-{tahun}.json (dibuat `npm run data:ekspor`).
  */
 import "dotenv/config";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
 import Papa from "papaparse";
 import { prisma } from "../src/lib/db";
+import { simpanImpor } from "../src/lib/impor";
 import { ATURAN_2026, JALUR, SUB_JALUR } from "../src/lib/jalur";
-import { skemaAturan } from "../src/lib/validasi";
+import { skemaAturan, skemaPermintaanImpor } from "../src/lib/validasi";
 
 const csv = <T>(file: string) =>
   Papa.parse<T>(readFileSync(file, "utf8"), { header: true, skipEmptyLines: true }).data;
@@ -86,6 +87,11 @@ async function seedSekolah(rayonUtama: Map<string, string>) {
       b.rayon_kode,
     ]),
   );
+  // Koordinat yang kosong di Data Referensi, dilengkapi manual. Dipisah dari sekolah-depok.csv
+  // supaya tidak tertimpa saat crawler dijalankan ulang; koordinat crawler tetap diutamakan.
+  const koordinatManual = new Map(
+    csv<{ npsn: string; lat: string; lng: string }>("data/koordinat-manual.csv").map((b) => [b.npsn, b]),
+  );
   const juknisTerpakai = new Set<string>();
 
   for (const s of sekolah) {
@@ -97,6 +103,7 @@ async function seedSekolah(rayonUtama: Map<string, string>) {
     }
     const kode = kodeSpmb.get(s.npsn);
     const b = biaya.get(s.npsn);
+    const koordinat = s.lat ? s : (koordinatManual.get(s.npsn) ?? s);
     const data = {
       kodeDiData: s.status === "NEGERI" ? (kode?.kode_di_data ?? s.npsn) : null,
       nama: s.nama,
@@ -106,8 +113,8 @@ async function seedSekolah(rayonUtama: Map<string, string>) {
       alamat: s.alamat,
       kelurahan: s.kelurahan || null,
       kecamatan: s.kecamatan,
-      lat: s.lat ? Number(s.lat) : null,
-      lng: s.lng ? Number(s.lng) : null,
+      lat: koordinat.lat ? Number(koordinat.lat) : null,
+      lng: koordinat.lng ? Number(koordinat.lng) : null,
       akreditasi: s.akreditasi || null,
       sumberUrl: s.sumber_url,
       diambilPada: new Date(s.diambil_pada),
@@ -139,6 +146,26 @@ async function seedProgram() {
   console.log(`Program keahlian ${baris.length}`);
 }
 
+// Daya tampung per sekolah (bukan per program). Diganti utuh per sekolah dan tahun, sama seperti
+// PUT /api/admin/daya-tampung, sehingga seed ulang tidak menggandakan baris.
+const SUMBER_DAYA_TAMPUNG =
+  "Gebrak.id 11 Juni 2026, mengutip data SPMB Jabar 2026: https://www.gebrak.id/2026/06/krisis-daya-tampung-sma-smk-negeri-di-depok-kian-nyata-jabar-gagal-kejar-kebutuhan-25-ribu-siswa.html";
+
+async function seedDayaTampung() {
+  const baris = csv<{ npsn: string; tahun: string; kuota: string }>("data/daya-tampung.csv");
+  for (const b of baris) {
+    const sekolah = await prisma.sekolah.findUniqueOrThrow({ where: { npsn: b.npsn } });
+    const tahun = Number(b.tahun);
+    await prisma.$transaction([
+      prisma.dayaTampung.deleteMany({ where: { tahun, sekolahId: sekolah.id, programId: null } }),
+      prisma.dayaTampung.create({
+        data: { tahun, sekolahId: sekolah.id, kuota: Number(b.kuota), sumber: SUMBER_DAYA_TAMPUNG },
+      }),
+    ]);
+  }
+  console.log(`Daya tampung ${baris.length} sekolah`);
+}
+
 async function seedAturan() {
   const aturan = skemaAturan.parse(ATURAN_2026);
   await prisma.tahunSpmb.upsert({
@@ -165,13 +192,27 @@ async function seedAdmin() {
   console.log(`Admin ${email}`);
 }
 
+// Memakai jalur yang sama dengan POST /api/admin/impor, jadi statistik tahun itu diganti utuh
+// dengan isi file. Impor lewat admin untuk tahun yang sama akan tertimpa saat seed diulang.
+async function seedStatistik() {
+  const files = readdirSync("data").filter((f) => /^statistik-\d{4}\.json$/.test(f));
+  for (const f of files) {
+    const permintaan = skemaPermintaanImpor.parse(JSON.parse(readFileSync(`data/${f}`, "utf8")));
+    const r = await simpanImpor({ ...permintaan, namaFile: `seed ${f}` }, null);
+    console.log(`Statistik ${permintaan.tahun}: ${r.jumlahStatistik} baris dari ${r.jumlahSekolah} sekolah`);
+    for (const p of r.peringatan) console.log(`  peringatan: ${p}`);
+  }
+}
+
 async function main() {
   await seedJalur();
   const rayonUtama = await seedRayon();
   await seedSekolah(rayonUtama);
   await seedProgram();
+  await seedDayaTampung();
   await seedAturan();
   await seedAdmin();
+  await seedStatistik();
 }
 
 main()

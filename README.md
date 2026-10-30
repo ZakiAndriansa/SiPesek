@@ -16,13 +16,12 @@ npm install                 # juga menjalankan prisma generate
 cp .env.example .env        # lalu isi JWT_SECRET dan ADMIN_PASSWORD
 npm run db:up               # Postgres lokal lewat docker compose
 npm run db:migrate          # membuat tabel
-npm run db:seed             # jalur, rayon, sekolah, aturan 2026, akun admin
-npm run data:impor          # statistik SPMB dari CSV di data-mentah/ (lihat di bawah)
+npm run db:seed             # jalur, rayon, sekolah, aturan 2026, statistik SPMB 2026, akun admin
 npm run dev                 # http://localhost:3000
 npm test                    # tes mesin peluang, agregasi, dan rayon
 ```
 
-CSV klasemen SPMB berisi nama dan NISN anak, jadi **tidak ada di repo**. Minta filenya ke Zaki, lalu taruh di `data-mentah/` (folder ini di-.gitignore). Tanpa file itu, tes yang memakai data asli otomatis dilewati.
+Statistik SPMB 2026 sudah ada di repo dalam bentuk agregat (`data/statistik-2026.json`, tanpa nama dan NISN), sehingga seed langsung membuat aplikasi siap dipakai. CSV klasemen mentah berisi nama dan NISN anak, jadi **tidak ada di repo**; hanya Zaki yang menyimpannya di `data-mentah/` (folder ini di-.gitignore). Setelah CSV mentah berubah, jalankan `npm run data:ekspor` untuk menulis ulang file JSON, lalu commit. Tanpa CSV mentah, tes yang memakai data asli otomatis dilewati.
 
 ## Struktur penting
 
