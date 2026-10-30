@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import {
   Alert,
   Badge,
@@ -33,13 +34,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : {};
 }
 
-export default async function DetailSekolahPage({ params }: Props) {
+// Seluruh isi bergantung pada id sekolah di URL, jadi dialirkan di balik Suspense.
+export default function DetailSekolahPage({ params }: Props) {
+  return (
+    <Container>
+      <Suspense fallback={<p className="text-secondary">Memuat data sekolah...</p>}>
+        <DetailSekolah params={params} />
+      </Suspense>
+    </Container>
+  );
+}
+
+async function DetailSekolah({ params }: Props) {
   const school = getSchool((await params).id);
   if (!school) notFound();
   const { detail } = school;
 
   return (
-    <Container>
+    <>
       <Breadcrumb items={[["Hasil Sekolah", "/peta-sekolah"], [school.name]]} />
 
       {/* School Visual Hero Header */}
@@ -224,7 +236,6 @@ export default async function DetailSekolahPage({ params }: Props) {
           </Button>
         </ButtonGroup>
       </div>
-    </Container>
+    </>
   );
 }
-

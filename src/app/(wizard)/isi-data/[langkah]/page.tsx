@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Alert, Button, ButtonGroup, PageHeader } from "@/components";
 import { getSession } from "@/lib/session";
 import { WizardForm } from "@/features/isi-data/WizardForm";
@@ -30,11 +31,20 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const found = getStep((await params).langkah);
   if (!found) return {};
-  const title = `Langkah ${found.n}: ${found.step.title} · SiPesek`;
+  const title = `Langkah ${found.n}: ${found.step.title}`;
   return { title, description: found.step.desc };
 }
 
-export default async function IsiDataPage({ params, searchParams }: Props) {
+// Seluruh isi bergantung pada langkah di URL, jadi dialirkan di balik Suspense.
+export default function IsiDataPage({ params, searchParams }: Props) {
+  return (
+    <Suspense fallback={<div className="card wizard__card" aria-busy="true" />}>
+      <IsiLangkah params={params} searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function IsiLangkah({ params, searchParams }: Props) {
   const found = getStep((await params).langkah);
   if (!found) notFound();
   const { n, step } = found;
