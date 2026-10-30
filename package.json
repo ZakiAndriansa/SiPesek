@@ -15,7 +15,8 @@
     "db:seed": "prisma db seed",
     "data:sekolah": "tsx scripts/ambil-sekolah.ts",
     "data:impor": "tsx --conditions=react-server scripts/impor-klasemen.ts",
-    "data:kirim": "tsx scripts/kirim-impor.ts"
+    "data:kirim": "tsx scripts/kirim-impor.ts",
+    "data:ekspor": "tsx scripts/ekspor-statistik.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
