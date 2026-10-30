@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Alert, Badge, Container, MoreLink, PageHeader } from "@/components";
-import { MasukGoogle } from "./MasukGoogle";
+import { MasukGoogle } from "@/components/masuk-google/MasukGoogle";
 
 export const metadata: Metadata = {
   title: "Masuk dengan Google",

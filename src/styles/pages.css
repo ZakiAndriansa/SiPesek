@@ -628,3 +628,8 @@ body:has(.dash)::before {
   padding-left: var(--space-6);
   list-style: decimal;
 }
+
+.privasi__masuk {
+  display: grid;
+  gap: var(--space-3);
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Container, MoreLink, PageHeader, Section } from "@/components";
+import { Container, PageHeader, Section } from "@/components";
+import { MasukGoogle } from "@/components/masuk-google/MasukGoogle";
 
 export const metadata: Metadata = {
   title: "Kebijakan Privasi",
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 // Ubah bila alamat dukungan berganti; samakan dengan "User support email" di Google Cloud Console.
-const EMAIL_KONTAK = "andriansazaki1@gmail.com";
+const EMAIL_KONTAK = "zandriansa@gmail.com";
 
 // Isi halaman ini harus sesuai dengan yang benar-benar disimpan di prisma/schema.prisma dan
 // src/app/api/peluang/route.ts. Ubah keduanya bersamaan.
@@ -128,7 +129,9 @@ export default function PrivasiPage() {
             Data disimpan sampai Bapak/Ibu menghapusnya. Untuk pertanyaan atau permintaan penghapusan, hubungi{" "}
             <a href={`mailto:${EMAIL_KONTAK}`}>{EMAIL_KONTAK}</a>.
           </p>
-          <MoreLink href="/masuk">Masuk dengan Google</MoreLink>
+          <div className="privasi__masuk">
+            <MasukGoogle />
+          </div>
         </div>
       </Section>
     </Container>
