@@ -86,6 +86,11 @@ async function seedSekolah(rayonUtama: Map<string, string>) {
       b.rayon_kode,
     ]),
   );
+  // Koordinat yang kosong di Data Referensi, dilengkapi manual. Dipisah dari sekolah-depok.csv
+  // supaya tidak tertimpa saat crawler dijalankan ulang; koordinat crawler tetap diutamakan.
+  const koordinatManual = new Map(
+    csv<{ npsn: string; lat: string; lng: string }>("data/koordinat-manual.csv").map((b) => [b.npsn, b]),
+  );
   const juknisTerpakai = new Set<string>();
 
   for (const s of sekolah) {
@@ -97,6 +102,7 @@ async function seedSekolah(rayonUtama: Map<string, string>) {
     }
     const kode = kodeSpmb.get(s.npsn);
     const b = biaya.get(s.npsn);
+    const koordinat = s.lat ? s : (koordinatManual.get(s.npsn) ?? s);
     const data = {
       kodeDiData: s.status === "NEGERI" ? (kode?.kode_di_data ?? s.npsn) : null,
       nama: s.nama,
@@ -106,8 +112,8 @@ async function seedSekolah(rayonUtama: Map<string, string>) {
       alamat: s.alamat,
       kelurahan: s.kelurahan || null,
       kecamatan: s.kecamatan,
-      lat: s.lat ? Number(s.lat) : null,
-      lng: s.lng ? Number(s.lng) : null,
+      lat: koordinat.lat ? Number(koordinat.lat) : null,
+      lng: koordinat.lng ? Number(koordinat.lng) : null,
       akreditasi: s.akreditasi || null,
       sumberUrl: s.sumber_url,
       diambilPada: new Date(s.diambil_pada),

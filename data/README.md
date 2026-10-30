@@ -5,6 +5,7 @@ Semua file di folder ini publik dan boleh di-commit. CSV klasemen SPMB mentah (b
 | File | Isi | Sumber |
 |---|---|---|
 | `sekolah-depok.csv` | Semua SMA dan SMK negeri dan swasta di Kota Depok: alamat, akreditasi, koordinat | Data Referensi Kemendikdasmen, diambil dengan `npm run data:sekolah`. Halaman per sekolah: `https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/{NPSN}` |
+| `koordinat-manual.csv` | Koordinat 8 sekolah yang lintang dan bujurnya kosong (0) di Data Referensi. Dipakai seed hanya bila kolom koordinat di `sekolah-depok.csv` kosong | Google Maps, dicek 30 Oktober 2026: nama dan alamat di Maps dicocokkan dengan alamat Dapodik, sumber per baris ada di kolom `sumber` dan `catatan`. SMAS IT Al-Qudwah dari Sekolah Kita Kemendikdasmen (tanda minus lintang dikoreksi). SMKN 5 Depok sengaja tidak diisi: gedungnya di Meruyung masih dibangun dan KBM menumpang di sekolah lain di Limo yang tidak disebutkan, sehingga jaraknya tidak dihitung |
 | `rayon.csv` | 11 rayon domisili SMA Kota Depok: kecamatan utama dan irisan | Lampiran Kepgub Jabar No. 420/Kep.207-Disdik/2026 (juknis SPMB SMA, SMK, SLB 2026) |
 | `rayon-sekolah.csv` | SMAN dan SMA swasta per rayon, ditulis persis seperti di juknis | Lampiran juknis yang sama. Catatan: di dokumen asli, huruf urut rayon D tidak berurutan (huruf b muncul dua kali dan huruf e tidak ada) |
 | `kode-spmb.csv` | NPSN yang ditulis berbeda di CSV SPMB, serta kategori sekolah unggulan | CSV klasemen SPMB 2026 (SMKN 5 tertulis `USB-SMKN5DEPOK`) |
