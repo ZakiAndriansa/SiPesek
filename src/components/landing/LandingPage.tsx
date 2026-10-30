@@ -37,7 +37,8 @@ const PATH_STYLE = {
   MUTASI: { chip: "Pindah tugas & anak guru", color: "landing-path-card--lavender", squiggle: "mutasi", value: "Jarak", note: "diurutkan dari rumah terdekat" },
 } as const;
 const PATHS = JALUR.filter((j) => j.kode in PATH_STYLE).map((j) => ({
-  title: j.namaTampilan.replace(/\s*\(.*\)$/, ""),
+  // Judul memakai nama resmi jalur ("Jalur Domisili"); penjelasan sehari-hari ada di deskripsi.
+  title: `Jalur ${j.namaTampilan.match(/\(([^)]+)\)$/)?.[1] ?? j.namaTampilan}`,
   description: j.deskripsi,
   ...PATH_STYLE[j.kode as keyof typeof PATH_STYLE],
 }));
