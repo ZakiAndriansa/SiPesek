@@ -26,7 +26,8 @@ export type Aturan = z.infer<typeof skemaAturan>;
 export type RumusSkor = z.infer<typeof rumusSkor>;
 
 export const skemaPermintaanPeluang = z.object({
-  anakId: z.number().int().positive(),
+  anakId: z.number().int().positive().optional(),
+  nisn: z.string().trim().max(20).optional(),
   jenjang: z.enum(["SMA", "SMK", "SEMUA"]),
   lokasi: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
   kecamatan: z.string().min(1).max(60),

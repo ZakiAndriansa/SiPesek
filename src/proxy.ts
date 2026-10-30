@@ -23,7 +23,8 @@ async function jagaAdmin(request: NextRequest) {
   return NextResponse.redirect(masuk);
 }
 
-// Halaman /anak, /cek, /hasil, dan /riwayat hanya untuk orang tua yang sudah masuk dengan Google.
+// Halaman /anak, /hasil, dan /riwayat hanya untuk orang tua yang sudah masuk dengan Google.
+// /cek tetap terbuka untuk tamu (hasilnya tidak disimpan).
 async function jagaOrtu(request: NextRequest) {
   const sesi = await verifikasiTokenOrtu(request.cookies.get(NAMA_COOKIE_ORTU)?.value);
   if (sesi) return NextResponse.next();
@@ -34,5 +35,5 @@ async function jagaOrtu(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/anak/:path*", "/cek/:path*", "/hasil/:path*", "/riwayat/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/anak/:path*", "/hasil/:path*", "/riwayat/:path*"],
 };

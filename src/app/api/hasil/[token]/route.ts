@@ -13,14 +13,15 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/hasil/[t
   const { token } = await ctx.params;
   const cek = await prisma.cekPeluang.findFirst({
     where: { token, anak: { orangTuaId: ortu.id } },
-    include: { anak: { select: { id: true, nama: true } } },
+    include: { anak: { select: { id: true, nama: true, nisnLazim: true } } },
   });
-  if (!cek) return galat("Hasil tidak ditemukan.", 404);
+  if (!cek?.anak) return galat("Hasil tidak ditemukan.", 404);
 
   const tersimpan = cek.hasil as Pick<ResponsPeluang, "hasil" | "swasta" | "catatan">;
   return Response.json({
     token: cek.token,
-    anak: cek.anak,
+    anak: { id: cek.anak.id, nama: cek.anak.nama },
+    nisnLazim: cek.anak.nisnLazim,
     tahunAcuan: cek.tahunAcuan,
     dibuatPada: cek.dibuatPada.toISOString(),
     ...tersimpan,

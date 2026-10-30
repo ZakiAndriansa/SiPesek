@@ -46,7 +46,7 @@ Statistik SPMB 2026 sudah ada di repo dalam bentuk agregat (`data/statistik-2026
 | `GET`/`POST /api/ortu/anak`, `DELETE /api/ortu/anak/[id]` | Data anak (nama dan NISN) milik akun |
 | `GET /api/ortu/riwayat?anakId=` | Riwayat cek satu anak |
 | `DELETE /api/ortu/akun` | Hapus akun dan semua data anak |
-| `POST /api/peluang` | Hitung peluang untuk satu anak (wajib masuk), simpan ringkasan, kembalikan token |
+| `POST /api/peluang` | Hitung peluang. Dengan `anakId` (wajib masuk): disimpan ke riwayat anak. Tanpa `anakId` (mode tamu, wajib NISN): tidak disimpan, tamu dibatasi 10 cek per jam per IP |
 | `GET /api/hasil/[token]` | Buka hasil yang disimpan (hanya pemiliknya) |
 | `GET /api/dashboard?tahun=` | Agregat dashboard |
 | `GET /api/dashboard/ekspor?jenis=sekolah\|kecamatan` | Unduh CSV |
@@ -64,6 +64,6 @@ Lihat [PEMBAGIAN-TUGAS.md](PEMBAGIAN-TUGAS.md) untuk siapa mengerjakan apa, jadw
 
 ## Privasi
 
-Orang tua wajib masuk dengan Google sebelum cek peluang. Yang disimpan: ID Google, email, dan nama orang tua; nama anak; serta NISN dalam bentuk sidik HMAC (`NISN_PEPPER`) dan 3 digit terakhirnya. NISN asli tidak disimpan. Hasil cek hanya menyimpan kecamatan, jarak yang dibulatkan 50 m, rentang skor per 10 poin, dan label peluang; koordinat rumah dan nilai persis tidak pernah disimpan. Orang tua bisa menghapus anak atau seluruh akunnya, dan semua riwayatnya ikut terhapus.
+Tamu bisa cek peluang tanpa masuk: NISN-nya hanya diperiksa, dan tidak ada isian atau hasil yang disimpan. Orang tua yang masuk dengan Google bisa menyimpan riwayat per anak. Yang disimpan untuk mereka: ID Google, email, dan nama orang tua; nama anak; serta NISN dalam bentuk sidik HMAC (`NISN_PEPPER`) dan 3 digit terakhirnya. NISN asli tidak disimpan. Hasil cek hanya menyimpan kecamatan, jarak yang dibulatkan 50 m, rentang skor per 10 poin, dan label peluang; koordinat rumah dan nilai persis tidak pernah disimpan. Orang tua bisa menghapus anak atau seluruh akunnya, dan semua riwayatnya ikut terhapus.
 
 NISN tidak bisa dicek otomatis ke data resmi (pencarian NISN Kemendikdasmen dilindungi reCAPTCHA dan tidak punya API publik). Server memeriksa format 10 digit, kewajaran awalan tahun lahir, dan keunikan antarakun; orang tua diarahkan ke nisn.data.kemendikdasmen.go.id untuk memastikan sendiri. Anak dengan NISN yang tidak lazim tidak dihitung di sinyal minat dashboard.

@@ -59,8 +59,15 @@ export type ResponsSekolah = { sekolah: SekolahRingkas[] };
 export type NilaiMapel = { bin: number; mtk: number; ipa: number; ips: number; bing: number };
 
 export type PermintaanPeluang = {
-  /** id anak milik orang tua yang sedang masuk (dari GET /api/ortu/anak). Wajib sejak ada login. */
-  anakId: number;
+  /**
+   * Diisi: cek atas nama anak milik orang tua yang sedang masuk (dari GET /api/ortu/anak); hasilnya
+   * disimpan ke riwayat (401 bila belum masuk, 404 bila bukan anaknya, 429 bila lewat 20 cek per hari).
+   * Kosong: mode tamu; hasil dihitung lalu dikembalikan tanpa disimpan apa pun, dan `nisn` wajib.
+   * Tamu yang belum masuk dibatasi 10 cek per jam per IP (429 dengan header Retry-After).
+   */
+  anakId?: number;
+  /** Wajib di mode tamu: hanya diperiksa (10 digit, kewajaran tahun lahir), tidak disimpan. */
+  nisn?: string;
   jenjang: Jenjang | "SEMUA";
   lokasi: { lat: number; lng: number };
   /** Kecamatan sesuai KK: salah satu KECAMATAN_DEPOK, KECAMATAN_IRISAN_LUAR, atau "Lainnya". */
@@ -120,9 +127,12 @@ export type AlternatifSwasta = {
 };
 
 export type ResponsPeluang = {
-  token: string;
-  /** Anak yang dicek; null hanya untuk cek lama sebelum ada login. */
+  /** null di mode tamu: hasil tidak disimpan, jadi tidak ada /hasil/<token>. */
+  token: string | null;
+  /** Anak yang dicek; null di mode tamu dan untuk cek lama sebelum ada login. */
   anak: { id: number; nama: string } | null;
+  /** false: tampilkan peringatan NISN tidak lazim. null untuk cek lama. */
+  nisnLazim: boolean | null;
   tahunAcuan: number;
   dibuatPada: string;
   hasil: HasilSekolah[];

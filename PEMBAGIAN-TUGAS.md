@@ -41,7 +41,11 @@ Penjelasan singkat, tombol "Mulai cek peluang", tiga langkah, empat jalur. Boleh
 2. **Kondisi keluarga (ya/tidak):** terdaftar DTSEN dan punya kartu bantuan (KETM), anak berkebutuhan khusus, orang tua guru di sekolah negeri tertentu (daftar sekolah dari `GET /api/sekolah`, saring `status === "NEGERI"`), dan orang tua pindah tugas.
 3. **Nilai (boleh dilewati):** rata-rata rapor semester 1 sampai 5; untuk SMA nilai TKA Bahasa Indonesia dan Matematika; untuk SMK kelas industri rata-rata 5 mapel (B. Indonesia, Matematika, IPA, IPS, B. Inggris).
 
-Kirim `POST /api/peluang` (`PermintaanPeluang`, termasuk `anakId` dari query `?anak=`), lalu arahkan ke `/hasil/{token}`. Tampilkan nama anak di atas formulir. Balasan 429 berarti batas 20 cek per 24 jam tercapai.
+`/cek` terbuka tanpa masuk. Ada dua mode:
+1. **Tamu** (tanpa `?anak=`): tambahkan isian NISN di langkah pertama dan tampilkan keterangan "Mode tamu: hasil tidak disimpan". Kirim `POST /api/peluang` tanpa `anakId` dan dengan `nisn`. Balasannya punya `token: null`, jadi tampilkan hasil langsung di halaman yang sama (komponen kartu hasil yang sama dengan `/hasil/[token]`), lalu tombol "Simpan hasil ini" yang menuju `/masuk?lanjut=/anak`. Simpan isian formulir di `sessionStorage` agar tidak perlu diketik ulang setelah masuk. Balasan 400 berarti NISN bukan 10 digit. Balasan 429 berarti batas 10 cek per jam tercapai; tampilkan pesan `galat` dan ajakan masuk dengan Google.
+2. **Sudah masuk** (`/cek?anak={id}`): tampilkan nama anak di atas formulir, tanpa isian NISN. Kirim dengan `anakId`, lalu arahkan ke `/hasil/{token}`. Balasan 429 berarti batas 20 cek per 24 jam tercapai.
+
+Pada kedua mode, bila `nisnLazim` bernilai false, tampilkan peringatan NISN tidak lazim dan tautan ke `https://nisn.data.kemendikdasmen.go.id/`.
 
 Catatan teknis: Leaflet harus dimuat hanya di klien (`"use client"` dan `dynamic(..., { ssr: false })`), karena memakai `window`.
 
@@ -53,7 +57,7 @@ Data dari `GET /api/hasil/{token}` (`ResponsPeluang`), diambil **di komponen kli
 4. Tombol bagikan ke WhatsApp dihapus, karena hasil hanya bisa dibuka orang tua pemiliknya. Ganti dengan tautan ke `/riwayat/{anakId}`.
 
 ### Masuk dengan Google dan data anak (Aqil)
-Semua bentuk data ada di bagian "Orang tua" di `src/lib/kontrak.ts`. `src/proxy.ts` sudah mengarahkan pengunjung yang belum masuk dari `/anak`, `/cek`, `/hasil/*`, dan `/riwayat/*` ke `/masuk?lanjut=<path>`. Semua respons 401 dari API juga diarahkan ke `/masuk`.
+Semua bentuk data ada di bagian "Orang tua" di `src/lib/kontrak.ts`. `src/proxy.ts` sudah mengarahkan pengunjung yang belum masuk dari `/anak`, `/hasil/*`, dan `/riwayat/*` ke `/masuk?lanjut=<path>`. `/cek` tetap terbuka untuk tamu. Semua respons 401 dari API juga diarahkan ke `/masuk`.
 
 1. **`/masuk`:** muat `https://accounts.google.com/gsi/client` dengan `next/script` (`strategy="afterInteractive"`), lalu `google.accounts.id.initialize({ client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID, callback })` dan `google.accounts.id.renderButton(...)`. Callback mengirim `POST /api/ortu/masuk` dengan `{ credential: respons.credential }`, lalu `router.replace(lanjut)` atau `/anak`. Terima `lanjut` hanya bila diawali `/` dan bukan `//`, agar tidak bisa dipakai untuk mengalihkan ke situs lain. **Form nomor HP dan kode OTP dihapus.**
 2. **`/anak`:** daftar dari `GET /api/ortu/anak`, dengan tombol "Cek peluang" (`/cek?anak={id}`), "Riwayat" (`/riwayat/{id}`), dan "Hapus" (`DELETE /api/ortu/anak/{id}`). Form "Tambah anak" (`POST /api/ortu/anak`):
