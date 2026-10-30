@@ -332,10 +332,10 @@ export function FocusBar({
         {brandHref ? (
           <Brand href={brandHref} />
         ) : (
-          <span className="brand" aria-label="Sipesek">
+          <span className="brand" aria-label="SiPesek">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="brand__logo" src="/logo/logo-hifi.svg" alt="" aria-hidden="true" width={34} height={34} />
-            <span className="navbar__focus-brand">Sipesek</span>
+            <span className="navbar__focus-brand">SiPesek</span>
           </span>
         )}
         <div className="navbar__focus">

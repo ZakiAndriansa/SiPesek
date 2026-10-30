@@ -24,8 +24,8 @@ const VALUES = [
   },
   {
     className: "landing-value-card--lime",
-    title: "Mudah\nDibagikan",
-    text: "Setiap hasil punya tautan sendiri. Salin atau kirim lewat WhatsApp ke pasangan dan keluarga.",
+    title: "Riwayat\nTersimpan",
+    text: "Masuk dengan Google untuk menyimpan hasil tiap anak dan melihatnya lagi kapan saja.",
     glyph: "/assets/landing-glyph-lime.svg",
   },
 ];
@@ -52,7 +52,7 @@ const FAQS: readonly (readonly [q: string, a?: string])[] = [
   ],
   [
     "Apakah harus membuat akun?",
-    "Tidak harus. Cek Cepat tidak memerlukan akun dan hasilnya tidak disimpan. Masuk dengan nomor HP hanya diperlukan bila Bapak/Ibu ingin menyimpan data anak dan melihat riwayat hasil.",
+    "Tidak harus. Cek Cepat bisa dipakai tanpa akun dan hasilnya tidak disimpan. Masuk dengan akun Google hanya perlu bila Bapak/Ibu ingin menyimpan data anak dan riwayat hasil.",
   ],
   [
     "Apakah ada biaya untuk memakai SiPesek?",
@@ -115,7 +115,7 @@ function PathsSection() {
     <section className="landing-section landing-paths">
       <SectionHeading
         title={<>Jalur mana yang paling<br />cocok untuk anak?</>}
-        desc="Empat jalur SPMB, masing-masing dengan kuota dan syarat sendiri. Sipesek mencocokkan kondisi anak dengan jalur yang paling realistis."
+        desc="Empat jalur SPMB, masing-masing dengan kuota dan syarat sendiri. SiPesek mencocokkan kondisi anak dengan jalur yang paling realistis."
         action={
           <Button variant="secondary" href="/panduan#jalur">
             Panduan Lengkap ↗
@@ -142,7 +142,7 @@ function PathsSection() {
 
 const STRATEGY_STEPS = [
   { title: "Nilai rapor rata-rata", accent: "Peluang terbaik lewat Jalur Domisili", chips: ["Jarak rumah ke sekolah", "Titik rumah di peta", "Alamat sesuai KK"], icon: "/assets/landing-icon-home.svg", color: "sky" },
-  { title: "Keluarga KETM", accent: "Lebih aman lewat Jalur Afirmasi", chips: ["Kartu bantuan", "Terdaftar di DTSEN", "Anak berkebutuhan khusus"], icon: "/assets/landing-icon-heart.svg", color: "lime" },
+  { title: "Keluarga penerima bantuan (KETM)", accent: "Lebih aman lewat Jalur Afirmasi", chips: ["Kartu bantuan", "Terdaftar di data bantuan pemerintah (DTSEN)", "Anak berkebutuhan khusus"], icon: "/assets/landing-icon-heart.svg", color: "lime" },
   { title: "Anak berprestasi", accent: "Pertimbangkan Jalur Prestasi", chips: ["Rapor semester 1–5", "Nilai TKA (SMA)", "Kelas industri (SMK)"], icon: "/assets/landing-icon-trophy.svg", color: "yellow" },
 ];
 
@@ -183,8 +183,8 @@ function DataSection() {
           <h2>Dihitung dari data, dijelaskan dengan bahasa sehari-hari.</h2>
           <p>Peluang dihitung dari hasil seleksi SPMB 2026, daya tampung setiap sekolah, dan jarak rumah di Kota Depok. Setiap angka disertai alasan yang bisa dibaca orang tua.</p>
           <h3>Hasil SPMB 2026</h3>
-          <span>Statistik agregat per sekolah, tanpa nama dan NISN anak</span>
-          <div className="landing-highlight">Hasil adalah estimasi berdasarkan data tahun lalu, bukan jaminan diterima.</div>
+          <span>Ringkasan per sekolah, tanpa nama dan NISN anak</span>
+          <div className="landing-highlight">Hasil adalah perkiraan berdasarkan data tahun lalu, bukan jaminan diterima.</div>
           <div className="landing-data-stats">
             <div><strong>20</strong><span><i />SMA/SMK Negeri</span></div>
             <div><strong>7.104</strong><span><i />Daya tampung 2026</span></div>
@@ -202,7 +202,7 @@ function FaqSection() {
       <SectionHeading
         center
         title={<>Pertanyaan yang sering<br />diajukan.</>}
-        desc="Segala hal tentang cara kerja prediksi, keamanan data, dan metodologi seleksi."
+        desc="Segala hal tentang cara menghitung peluang, keamanan data, dan akun."
       />
       <Accordion items={FAQS} openFirst noHint />
     </section>
@@ -216,8 +216,8 @@ function CtaSection({ cta }: { cta: LandingCta }) {
         <img className="landing-cta-image landing-cta-image--boy" src="/assets/landing-cta-boy.png" alt="" aria-hidden="true" />
         <img className="landing-cta-image landing-cta-image--girl" src="/assets/landing-cta-girl.png" alt="" aria-hidden="true" />
         <div className="landing-cta-content">
-          <h2>Beri masa depan anak<br />ruang untuk bertumbuh.</h2>
-          <p>Cek Cepat tanpa akun, atau masuk untuk menyimpan riwayat. Dapatkan gambaran peluang yang jelas sebelum mendaftar.</p>
+          <h2>Siapkan pilihan sekolah<br />sebelum mendaftar.</h2>
+          <p>Cek Cepat tanpa akun, atau masuk untuk menyimpan riwayat. Dapatkan gambaran peluang yang jelas di tiap sekolah.</p>
           <div>
             <Button variant="inverse" lg href={cta.href}>{cta.ctaLabel}</Button>
             <Button variant="inverse-outline" lg href={cta.secondary?.href ?? "/panduan"}>{cta.secondary?.label ?? "Pelajari Panduan Jalur"}</Button>
@@ -234,6 +234,8 @@ export type LandingCta = {
   ctaLabel: string;
   /** Tombol kedua (tamu: masuk dan simpan riwayat). */
   secondary?: { href: string; label: string };
+  /** Keterangan di bawah tombol hero (tamu: NISN yang perlu disiapkan). */
+  hint?: string;
   trust?: string;
 };
 
@@ -243,9 +245,9 @@ export function LandingPage({ cta }: { cta: LandingCta }) {
     <>
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <span className="landing-eyebrow"><i />SPMB SMA/SMK Negeri Kota Depok 2026</span>
-          <h1><em>Peluang lolos</em><span>dimulai dari pilihan yang tepat.</span></h1>
-          <p>Hitung peluang anak diterima di SMA/SMK Negeri untuk setiap jalur SPMB — domisili, afirmasi, prestasi, dan mutasi — lalu lihat alternatif sekolah swasta terdekat.</p>
+          <span className="landing-eyebrow"><i />Persiapan SPMB 2027 · Kota Depok</span>
+          <h1><em>Anak bisa masuk</em><span>SMA/SMK negeri mana?</span></h1>
+          <p>Masukkan tempat tinggal dan nilai rapor anak, lalu lihat peluangnya di tiap sekolah negeri di Depok, beserta sekolah swasta terdekat sebagai cadangan.</p>
           <div className="landing-hero-actions">
             <Button variant="primary" lg href={cta.href}>{cta.label}</Button>
             {cta.secondary ? (
@@ -254,7 +256,8 @@ export function LandingPage({ cta }: { cta: LandingCta }) {
               <Button variant="secondary" lg href="#cara-kerja">Lihat Cara Kerja</Button>
             )}
           </div>
-          <small className="landing-trust">Gratis  •  Tanpa akun  •  Tidak menyimpan nama, NISN, atau lokasi rumah</small>
+          {cta.hint && <small className="landing-trust landing-trust--hint">{cta.hint}</small>}
+          {cta.trust && <small className="landing-trust">{cta.trust}</small>}
         </div>
         <HeroVisual />
       </section>

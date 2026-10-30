@@ -108,6 +108,11 @@
   line-height: 16px;
 }
 
+/* Keterangan NISN tetap berjarak 28px dari tombol; baris "Gratis" di bawahnya lebih rapat. */
+.landing-trust--hint + .landing-trust {
+  margin-top: 8px;
+}
+
 .landing-hero-visual {
   position: relative;
   width: 520px;
