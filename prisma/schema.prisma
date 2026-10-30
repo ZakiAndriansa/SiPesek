@@ -1,5 +1,7 @@
 // Rancangan database SiPesek.
-// Prinsip privasi: tidak ada nama, NISN, nomor HP, atau koordinat rumah yang disimpan.
+// Prinsip privasi: koordinat rumah, nilai persis, dan NISN asli tidak pernah disimpan.
+// Yang disimpan untuk orang tua yang masuk dengan Google: ID Google, email, nama, nama anak,
+// serta sidik HMAC NISN dan 3 digit terakhirnya. Data statistik SPMB hanya berupa agregat.
 
 generator client {
   provider = "prisma-client"
@@ -43,13 +45,13 @@ enum JenisWilayahRayon {
 }
 
 model Sekolah {
-  id           Int             @id @default(autoincrement())
-  npsn         String          @unique
-  kodeDiData   String?         @unique // NPSN seperti tertulis di CSV SPMB, mis. "USB-SMKN5DEPOK"
+  id           Int                @id @default(autoincrement())
+  npsn         String             @unique
+  kodeDiData   String?            @unique // NPSN seperti tertulis di CSV SPMB, mis. "USB-SMKN5DEPOK"
   nama         String
   jenjang      Jenjang
   status       StatusSekolah
-  kategori     KategoriSekolah @default(REGULER)
+  kategori     KategoriSekolah    @default(REGULER)
   alamat       String
   kelurahan    String?
   kecamatan    String
@@ -62,7 +64,7 @@ model Sekolah {
   biayaResmi   Boolean? // true = situs sekolah, false = media
   biayaUrl     String?
   rayonKode    String?
-  rayon        Rayon?          @relation(fields: [rayonKode], references: [kode])
+  rayon        Rayon?             @relation(fields: [rayonKode], references: [kode])
   program      ProgramKeahlian[]
   statistik    StatistikSeleksi[]
   dayaTampung  DayaTampung[]
@@ -182,6 +184,35 @@ model CekPeluang {
   hasil       Json // kartu hasil; jarak dibulatkan 50 m, tanpa koordinat
   dibuatPada  DateTime   @default(now())
   detail      HasilCek[]
+  // null hanya untuk cek lama sebelum ada login; cek baru selalu atas nama satu anak.
+  anakId      Int?
+  anak        Anak?      @relation(fields: [anakId], references: [id], onDelete: Cascade)
+
+  @@index([anakId, dibuatPada])
+}
+
+model OrangTua {
+  id            Int      @id @default(autoincrement())
+  googleSub     String   @unique // klaim "sub" dari ID token Google
+  email         String
+  nama          String
+  dibuatPada    DateTime @default(now())
+  terakhirMasuk DateTime @default(now())
+  anak          Anak[]
+}
+
+model Anak {
+  id         Int          @id @default(autoincrement())
+  orangTuaId Int
+  orangTua   OrangTua     @relation(fields: [orangTuaId], references: [id], onDelete: Cascade)
+  nama       String
+  sidikNisn  String       @unique // HMAC-SHA256 NISN dengan NISN_PEPPER, untuk keunikan
+  nisnAkhir  String // 3 digit terakhir, untuk ditampilkan "NISN ...123"
+  nisnLazim  Boolean // false bila awalan tahun lahir tidak lazim; tidak dihitung di sinyal minat
+  dibuatPada DateTime     @default(now())
+  cek        CekPeluang[]
+
+  @@index([orangTuaId])
 }
 
 model HasilCek {

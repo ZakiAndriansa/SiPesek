@@ -41,16 +41,34 @@ Penjelasan singkat, tombol "Mulai cek peluang", tiga langkah, empat jalur. Boleh
 2. **Kondisi keluarga (ya/tidak):** terdaftar DTSEN dan punya kartu bantuan (KETM), anak berkebutuhan khusus, orang tua guru di sekolah negeri tertentu (daftar sekolah dari `GET /api/sekolah`, saring `status === "NEGERI"`), dan orang tua pindah tugas.
 3. **Nilai (boleh dilewati):** rata-rata rapor semester 1 sampai 5; untuk SMA nilai TKA Bahasa Indonesia dan Matematika; untuk SMK kelas industri rata-rata 5 mapel (B. Indonesia, Matematika, IPA, IPS, B. Inggris).
 
-Kirim `POST /api/peluang` (`PermintaanPeluang`), lalu arahkan ke `/hasil/{token}`.
+`/cek` terbuka tanpa masuk. Ada dua mode:
+1. **Tamu** (tanpa `?anak=`): tambahkan isian NISN di langkah pertama dan tampilkan keterangan "Mode tamu: hasil tidak disimpan". Kirim `POST /api/peluang` tanpa `anakId` dan dengan `nisn`. Balasannya punya `token: null`, jadi tampilkan hasil langsung di halaman yang sama (komponen kartu hasil yang sama dengan `/hasil/[token]`), lalu tombol "Simpan hasil ini" yang menuju `/masuk?lanjut=/anak`. Simpan isian formulir di `sessionStorage` agar tidak perlu diketik ulang setelah masuk. Balasan 400 berarti NISN bukan 10 digit. Balasan 429 berarti batas 10 cek per jam tercapai; tampilkan pesan `galat` dan ajakan masuk dengan Google.
+2. **Sudah masuk** (`/cek?anak={id}`): tampilkan nama anak di atas formulir, tanpa isian NISN. Kirim dengan `anakId`, lalu arahkan ke `/hasil/{token}`. Balasan 429 berarti batas 20 cek per 24 jam tercapai.
+
+Pada kedua mode, bila `nisnLazim` bernilai false, tampilkan peringatan NISN tidak lazim dan tautan ke `https://nisn.data.kemendikdasmen.go.id/`.
 
 Catatan teknis: Leaflet harus dimuat hanya di klien (`"use client"` dan `dynamic(..., { ssr: false })`), karena memakai `window`.
 
 ### `/hasil/[token]` (Aqil)
-Data dari `GET /api/hasil/{token}` (`ResponsPeluang`).
+Data dari `GET /api/hasil/{token}` (`ResponsPeluang`), diambil **di komponen klien** dengan `fetch("/api/hasil/...")` agar cookie ikut terkirim. Server component di Vercel tidak meneruskan cookie ke homeserver. Hasil hanya bisa dibuka pemiliknya (selain itu 404).
 1. Kartu per sekolah negeri: nama, jarak, label terbaik, lalu daftar jalur dengan label dan `kalimat` (kalimat bukti sudah dibuat backend, tinggal ditampilkan).
 2. Bagian "Alternatif swasta terdekat": `swasta.SMA` dan `swasta.SMK`. Biaya: kalau `biaya.resmi` tampilkan biasa; kalau tidak, beri label "menurut media, belum resmi"; kalau `biaya` null tulis "Biaya: tanyakan ke sekolah".
 3. Tampilkan `catatan` (bukan jaminan, bukan aplikasi resmi).
-4. Tombol salin tautan dan bagikan ke WhatsApp.
+4. Tombol bagikan ke WhatsApp dihapus, karena hasil hanya bisa dibuka orang tua pemiliknya. Ganti dengan tautan ke `/riwayat/{anakId}`.
+
+### Masuk dengan Google dan data anak (Aqil)
+Semua bentuk data ada di bagian "Orang tua" di `src/lib/kontrak.ts`. Nama halaman di bawah mengikuti rancangan awal; sesuaikan dengan halaman prototipe (misalnya `/anak` menjadi `/anak-saya`, `/cek` tamu menjadi `/cek-cepat`). `src/proxy.ts` masih memakai sesi tiruan prototipe (`src/lib/accounts.ts`); saat disambungkan, ganti dengan `verifikasiTokenOrtu` atas cookie `sipesek_ortu` dan arahkan pengunjung yang belum masuk ke `/masuk`. Halaman cek untuk tamu tetap terbuka. Semua respons 401 dari API juga diarahkan ke `/masuk`.
+
+1. **`/masuk`:** muat `https://accounts.google.com/gsi/client` dengan `next/script` (`strategy="afterInteractive"`), lalu `google.accounts.id.initialize({ client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID, callback })` dan `google.accounts.id.renderButton(...)`. Callback mengirim `POST /api/ortu/masuk` dengan `{ credential: respons.credential }`, lalu `router.replace(lanjut)` atau `/anak`. Terima `lanjut` hanya bila diawali `/` dan bukan `//`, agar tidak bisa dipakai untuk mengalihkan ke situs lain. **Form nomor HP dan kode OTP dihapus.**
+2. **`/anak`:** daftar dari `GET /api/ortu/anak`, dengan tombol "Cek peluang" (`/cek?anak={id}`), "Riwayat" (`/riwayat/{id}`), dan "Hapus" (`DELETE /api/ortu/anak/{id}`). Form "Tambah anak" (`POST /api/ortu/anak`):
+   a. Isian nama anak dan NISN.
+   b. Kotak centang wajib: "Saya orang tua atau wali anak ini dan setuju datanya diproses".
+   c. Tautan "Cek NISN di situs resmi" ke `https://nisn.data.kemendikdasmen.go.id/`.
+   d. Pesan galat dari `galat` di balasan 400 (format NISN), 409 (NISN sudah terdaftar), dan 422 (sudah 5 anak).
+   e. Peringatan bila `nisnLazim` false. NISN ditampilkan sebagai "NISN ...{nisnAkhir}".
+3. **`/riwayat/[anakId]`:** `GET /api/ortu/riwayat?anakId=`, berisi daftar cek dengan tanggal, jenjang, dan ringkasan label; setiap baris menuju `/hasil/{token}`.
+4. **Header:** nama dari `GET /api/ortu/saya`, tombol Keluar (`POST /api/ortu/keluar`), dan menu "Hapus akun dan semua data" (`DELETE /api/ortu/akun`, dengan konfirmasi).
+5. **Kebijakan privasi:** yang disimpan adalah ID Google, email, dan nama orang tua; nama anak; dan NISN dalam bentuk sidik dan 3 digit terakhir. Riwayat cek disimpan tanpa alamat dan nilai persis. Data bisa dihapus kapan saja dari menu akun.
 
 ### `/dashboard` (Zaki)
 Data dari `GET /api/dashboard`. Peta sekolah dengan lingkaran radius domisili, tekanan per sekolah, persentase diterima per kecamatan (bisa dipilih SMA, SMK, semua), tabel rayon (rayon F Pancoran Mas tanpa SMAN reguler disorot), program SMK, kursi kosong bila daya tampung sudah diisi, sinyal minat, dan tombol ekspor `GET /api/dashboard/ekspor?jenis=sekolah|kecamatan`.
@@ -75,7 +93,7 @@ Masukan dari uji coba prototipe yang harus diterapkan:
 1. Teks jangan kecil dan pucat; utamakan keterbacaan untuk orang tua yang jarang memakai HP.
 2. Tautan "Dashboard kebijakan" boleh ada di footer, tetapi "Panel admin" jangan ditampilkan ke orang tua.
 3. Hapus tulisan "Data contoh untuk prototipe": data sekarang sudah asli.
-4. Tidak ada login untuk orang tua; halaman `/masuk` dengan kode WhatsApp di prototipe tidak dipakai.
+4. Orang tua masuk dengan Google, bukan nomor HP. Halaman `/masuk` dengan kode WhatsApp di prototipe diganti tombol Google.
 
 ## Jadwal sisa
 
@@ -115,12 +133,12 @@ Catatan: hasil cek yang dibuat saat mencoba ikut tercatat di sinyal minat dashbo
 
 | Bagian | Tempat | Isi |
 |---|---|---|
-| Halaman | Vercel | Proyek Next.js yang sama. Variabel: `BACKEND_URL` (alamat homeserver, https) dan `JWT_SECRET` (sama persis dengan di homeserver, dipakai `src/proxy.ts` untuk menjaga halaman admin). |
+| Halaman | Vercel | Proyek Next.js yang sama. Variabel: `BACKEND_URL` (alamat homeserver, https), `JWT_SECRET` (sama persis dengan di homeserver, dipakai `src/proxy.ts` untuk menjaga halaman admin dan orang tua), dan `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (deploy ulang setelah diisi, karena nilainya ditanam saat build). |
 | API dan database | Homeserver | `docker-compose.server.yml`: aplikasi lengkap dan Postgres. Port Postgres tidak dibuka ke luar. |
 
 `next.config.ts` meneruskan semua `/api/*` ke `BACKEND_URL` bila variabel itu diisi. Karena diteruskan dari server Vercel, tidak perlu pengaturan CORS, dan cookie admin tetap berada di domain Vercel.
 
-Di homeserver (butuh Docker), buat `.env.server` berisi `POSTGRES_PASSWORD`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, lalu:
+Di homeserver (butuh Docker), buat `.env.server` berisi `POSTGRES_PASSWORD`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `GOOGLE_CLIENT_ID`, dan `NISN_PEPPER` (simpan cadangannya; jangan pernah diganti setelah ada data anak), lalu:
 
 ```bash
 docker compose -f docker-compose.server.yml --env-file .env.server up -d --build

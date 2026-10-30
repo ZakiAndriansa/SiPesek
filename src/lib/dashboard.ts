@@ -17,7 +17,7 @@ export async function tahunDiminta(nilai: string | null): Promise<number | null>
 }
 
 export async function muatDashboard(tahun: number): Promise<ResponsDashboard> {
-  const [sekolah, statistik, kecamatan, rayon, dayaTampung, totalCek, cekPerKecamatan, hasilCek] = await Promise.all([
+  const [sekolah, statistik, kecamatan, rayon, dayaTampung, cekAnak] = await Promise.all([
     prisma.sekolah.findMany({ where: { status: "NEGERI" }, select: pilihSekolahRingkas, orderBy: { nama: "asc" } }),
     prisma.statistikSeleksi.findMany({ where: { tahun }, include: { subJalur: true, program: true } }),
     prisma.statistikKecamatan.findMany({ where: { tahun }, orderBy: { kecamatan: "asc" } }),
@@ -26,9 +26,12 @@ export async function muatDashboard(tahun: number): Promise<ResponsDashboard> {
       orderBy: { kode: "asc" },
     }),
     prisma.dayaTampung.groupBy({ by: ["sekolahId"], where: { tahun }, _sum: { kuota: true } }),
-    prisma.cekPeluang.count({ where: { tahunAcuan: tahun } }),
-    prisma.cekPeluang.groupBy({ by: ["kecamatan"], where: { tahunAcuan: tahun }, _count: { _all: true } }),
-    prisma.hasilCek.groupBy({ by: ["sekolahId", "label"], where: { cek: { tahunAcuan: tahun } }, _count: { _all: true } }),
+    // Hanya cek atas nama anak dengan NISN lazim; cek lama tanpa anak tidak dihitung.
+    prisma.cekPeluang.findMany({
+      where: { tahunAcuan: tahun, anak: { nisnLazim: true } },
+      select: { anakId: true, kecamatan: true, detail: { select: { sekolahId: true, label: true } } },
+      orderBy: { dibuatPada: "desc" },
+    }),
   ]);
 
   const kuota = new Map(dayaTampung.map((d) => [d.sekolahId, d._sum.kuota]));
@@ -70,12 +73,27 @@ export async function muatDashboard(tahun: number): Promise<ResponsDashboard> {
     programSmk.set(k, p);
   }
 
+  // Satu anak dihitung sekali, dari cek terakhirnya (cekAnak sudah urut terbaru dulu).
+  const cekTerakhir = new Map<number, (typeof cekAnak)[number]>();
+  for (const c of cekAnak) if (c.anakId !== null && !cekTerakhir.has(c.anakId)) cekTerakhir.set(c.anakId, c);
+
   const minat = new Map<number, { jumlahCek: number; peluangKecil: number }>();
-  for (const h of hasilCek) {
-    const m = minat.get(h.sekolahId) ?? { jumlahCek: 0, peluangKecil: 0 };
-    m.jumlahCek += h._count._all;
-    if (h.label === "PELUANG_KECIL") m.peluangKecil += h._count._all;
-    minat.set(h.sekolahId, m);
+  const minatKecamatan = new Map<string, number>();
+  for (const c of cekTerakhir.values()) {
+    const kec = c.kecamatan ?? "Tidak diisi";
+    minatKecamatan.set(kec, (minatKecamatan.get(kec) ?? 0) + 1);
+
+    const labelPerSekolah = new Map<number, string[]>();
+    for (const d of c.detail) labelPerSekolah.set(d.sekolahId, [...(labelPerSekolah.get(d.sekolahId) ?? []), d.label]);
+    for (const [sekolahId, label] of labelPerSekolah) {
+      const m = minat.get(sekolahId) ?? { jumlahCek: 0, peluangKecil: 0 };
+      m.jumlahCek += 1;
+      // "Peluang kecil" bila tidak ada jalur yang lebih baik di sekolah itu.
+      if (label.includes("PELUANG_KECIL") && label.every((l) => l === "PELUANG_KECIL" || l === "TIDAK_DIHITUNG")) {
+        m.peluangKecil += 1;
+      }
+      minat.set(sekolahId, m);
+    }
   }
 
   return {
@@ -103,12 +121,13 @@ export async function muatDashboard(tahun: number): Promise<ResponsDashboard> {
     })),
     programSmk: [...programSmk.values()],
     sinyalMinat: {
-      totalCek,
+      totalCek: cekAnak.length,
+      anakUnik: cekTerakhir.size,
       perSekolah: [...minat.entries()]
         .map(([sekolahId, m]) => ({ sekolahId, nama: sekolah.find((s) => s.id === sekolahId)?.nama ?? "", ...m }))
         .sort((a, b) => b.jumlahCek - a.jumlahCek),
-      perKecamatan: cekPerKecamatan
-        .map((c) => ({ kecamatan: c.kecamatan ?? "Tidak diisi", jumlahCek: c._count._all }))
+      perKecamatan: [...minatKecamatan.entries()]
+        .map(([kecamatan, jumlahCek]) => ({ kecamatan, jumlahCek }))
         .sort((a, b) => b.jumlahCek - a.jumlahCek),
     },
   };
