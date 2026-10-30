@@ -1,6 +1,6 @@
 /**
  * Mengisi data referensi: jalur, sub jalur, rayon, sekolah, program keahlian,
- * aturan 2026, dan akun admin pertama. Aman dijalankan berulang (upsert).
+ * daya tampung, aturan 2026, dan akun admin pertama. Aman dijalankan berulang (upsert).
  *
  * Jalankan: npm run db:seed
  * Statistik SPMB diisi terpisah lewat `npm run data:impor`.
@@ -139,6 +139,26 @@ async function seedProgram() {
   console.log(`Program keahlian ${baris.length}`);
 }
 
+// Daya tampung per sekolah (bukan per program). Diganti utuh per sekolah dan tahun, sama seperti
+// PUT /api/admin/daya-tampung, sehingga seed ulang tidak menggandakan baris.
+const SUMBER_DAYA_TAMPUNG =
+  "Gebrak.id 11 Juni 2026, mengutip data SPMB Jabar 2026: https://www.gebrak.id/2026/06/krisis-daya-tampung-sma-smk-negeri-di-depok-kian-nyata-jabar-gagal-kejar-kebutuhan-25-ribu-siswa.html";
+
+async function seedDayaTampung() {
+  const baris = csv<{ npsn: string; tahun: string; kuota: string }>("data/daya-tampung.csv");
+  for (const b of baris) {
+    const sekolah = await prisma.sekolah.findUniqueOrThrow({ where: { npsn: b.npsn } });
+    const tahun = Number(b.tahun);
+    await prisma.$transaction([
+      prisma.dayaTampung.deleteMany({ where: { tahun, sekolahId: sekolah.id, programId: null } }),
+      prisma.dayaTampung.create({
+        data: { tahun, sekolahId: sekolah.id, kuota: Number(b.kuota), sumber: SUMBER_DAYA_TAMPUNG },
+      }),
+    ]);
+  }
+  console.log(`Daya tampung ${baris.length} sekolah`);
+}
+
 async function seedAturan() {
   const aturan = skemaAturan.parse(ATURAN_2026);
   await prisma.tahunSpmb.upsert({
@@ -170,6 +190,7 @@ async function main() {
   const rayonUtama = await seedRayon();
   await seedSekolah(rayonUtama);
   await seedProgram();
+  await seedDayaTampung();
   await seedAturan();
   await seedAdmin();
 }

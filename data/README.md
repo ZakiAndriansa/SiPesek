@@ -10,5 +10,6 @@ Semua file di folder ini publik dan boleh di-commit. CSV klasemen SPMB mentah (b
 | `kode-spmb.csv` | NPSN yang ditulis berbeda di CSV SPMB, serta kategori sekolah unggulan | CSV klasemen SPMB 2026 (SMKN 5 tertulis `USB-SMKN5DEPOK`) |
 | `program-keahlian.csv` | Program keahlian 5 SMKN dan kelompok bobot Kelas Industri | CSV klasemen SPMB 2026. Bobot dari Tabel 4.1 Juklak SPMB Jabar 2025 (teknologi 2-3-3-1-2, bisnis/pariwisata/seni 3-2-1-3-2) |
 | `biaya-swasta.csv` | Biaya sekolah swasta, hanya yang ada sumbernya | Situs resmi sekolah (`resmi=true`) atau media (`resmi=false`, ditampilkan dengan label "menurut media") |
+| `daya-tampung.csv` | Kuota (daya tampung) 20 SMA/SMK negeri Kota Depok, SPMB 2026 | [Gebrak.id, 11 Juni 2026](https://www.gebrak.id/2026/06/krisis-daya-tampung-sma-smk-negeri-di-depok-kian-nyata-jabar-gagal-kejar-kebutuhan-25-ribu-siswa.html), mengutip data SPMB Jabar 2026. Total 7.104 kursi. Portal spmb.jabarprov.go.id tidak dapat diakses saat data diambil (30 Oktober 2026). Dicocokkan dengan CSV klasemen: siswa yang diterima tidak pernah melebihi kuota di 20 sekolah, dan SMAN 1 tepat 320 dari 320. Angka pendaftar di artikel tidak dipakai karena diambil saat pendaftaran masih berjalan |
 
 Rumus skor ada di `src/lib/jalur.ts` (`ATURAN_2026`), bersumber dari juknis di atas dan slide sosialisasi juklak Disdik Jabar 2026.
