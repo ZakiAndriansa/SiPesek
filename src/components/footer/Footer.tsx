@@ -25,7 +25,7 @@ const panduan = (parent: boolean): Column => ({
   tone: "sky",
   links: [
     ["/panduan#cara-hitung", "Cara Menghitung Peluang"],
-    ["/panduan#privasi", "Kebijakan Privasi Data"],
+    ["/privasi", "Kebijakan Privasi Data"],
     parent ? ["/anak-saya", "Data Anak"] : ["/cek-cepat", "Cek Cepat dengan NISN"],
   ],
 });

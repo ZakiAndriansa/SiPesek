@@ -31,7 +31,7 @@ export default function MasukPage({ searchParams }: PageProps<"/masuk">) {
         <p className="text-caption text-secondary">
           Dengan masuk, Bapak/Ibu setuju data dipakai untuk menghitung peluang SPMB. Data tidak dijual.
         </p>
-        <MoreLink href="/panduan#privasi">Baca kebijakan privasi</MoreLink>
+        <MoreLink href="/privasi">Baca kebijakan privasi</MoreLink>
       </div>
 
       <p className="masuk-google__manfaat text-caption text-secondary">
