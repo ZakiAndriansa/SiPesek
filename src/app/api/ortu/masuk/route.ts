@@ -9,6 +9,7 @@ import { skemaMasukGoogle } from "@/lib/validasi";
 const PESAN_GAGAL = "Masuk dengan Google gagal. Silakan coba lagi.";
 
 // Browser mengirim ID token dari tombol Google; yang disimpan hanya ID Google, email, dan nama.
+// Foto profil hanya ikut di token sesi untuk ditampilkan di header, tidak disimpan di database.
 export async function POST(request: Request) {
   const masukan = await bacaJson(request, skemaMasukGoogle, PESAN_GAGAL);
   if ("gagal" in masukan) return galat(PESAN_GAGAL, 400);
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
     create: { googleSub: akun.sub, ...data },
   });
 
-  (await cookies()).set(NAMA_COOKIE_ORTU, await buatTokenOrtu(ortu.id), opsiCookieOrtu);
-  return Response.json({ nama: ortu.nama, email: ortu.email } satisfies ResponsOrtu);
+  const token = await buatTokenOrtu(ortu.id, { nama: ortu.nama, foto: akun.foto });
+  (await cookies()).set(NAMA_COOKIE_ORTU, token, opsiCookieOrtu);
+  return Response.json({ nama: ortu.nama, email: ortu.email, foto: akun.foto } satisfies ResponsOrtu);
 }

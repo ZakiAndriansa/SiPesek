@@ -4,10 +4,12 @@
  */
 import "server-only";
 import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from "jose";
+import { fotoGoogle } from "@/lib/foto-google";
 
 const JWKS_GOOGLE = createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
 
-export type AkunGoogle = { sub: string; email: string; nama: string };
+export type AkunGoogle = { sub: string; email: string; nama: string; foto: string | null };
+
 
 /** Mengembalikan null bila token tidak sah, kedaluwarsa, bukan untuk aplikasi ini, atau email belum terverifikasi. */
 export async function verifikasiTokenGoogle(
@@ -24,7 +26,7 @@ export async function verifikasiTokenGoogle(
     });
     if (!payload.sub || payload.email_verified !== true || typeof payload.email !== "string") return null;
     const nama = typeof payload.name === "string" && payload.name.trim() ? payload.name.trim() : payload.email;
-    return { sub: payload.sub, email: payload.email, nama };
+    return { sub: payload.sub, email: payload.email, nama, foto: fotoGoogle(payload.picture) };
   } catch {
     return null;
   }

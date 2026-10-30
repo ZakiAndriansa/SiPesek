@@ -37,7 +37,7 @@ function stagesFor(session: Session) {
 function publicNav(session: Session | null): NavbarProps {
   if (!session) return { variant: "guest" };
   if (session.role === "orang-tua") {
-    return { variant: "parent-public", user: session.name, cont: continueFor(session) };
+    return { variant: "parent-public", user: session.name, photo: session.photo, cont: continueFor(session) };
   }
   return { variant: "staff-public", user: session.name, role: ROLE_LABEL[session.role], home: homeFor(session) };
 }
@@ -56,6 +56,7 @@ export async function SiteChrome({
     ? {
         variant: "parent",
         user: parent.name,
+        photo: parent.photo,
         kids: parent.children.map((c) => ({
           id: c.id,
           name: c.name,

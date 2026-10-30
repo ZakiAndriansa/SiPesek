@@ -1,5 +1,6 @@
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWTPayload, type JWTVerifyGetKey } from "jose";
 import { beforeAll, describe, expect, it } from "vitest";
+import { fotoGoogle } from "./foto-google";
 import { verifikasiTokenGoogle } from "./google";
 
 // Kunci tiruan pengganti kunci publik Google, supaya tes tidak butuh internet.
@@ -24,12 +25,18 @@ const tokenGoogle = (klaim: JWTPayload = {}, opsi: { iss?: string; aud?: string 
     .sign(kunciPrivat);
 
 describe("verifikasiTokenGoogle", () => {
-  it("menerima token sah dan mengembalikan sub, email, nama", async () => {
-    expect(await verifikasiTokenGoogle(await tokenGoogle(), jwks, CLIENT_ID)).toEqual({
+  it("menerima token sah dan mengembalikan sub, email, nama, foto", async () => {
+    const foto = "https://lh3.googleusercontent.com/a/contoh=s96-c";
+    expect(await verifikasiTokenGoogle(await tokenGoogle({ picture: foto }), jwks, CLIENT_ID)).toEqual({
       sub: "1234567890",
       email: "bunda@example.com",
       nama: "Bunda",
+      foto,
     });
+  });
+
+  it("foto null bila token tidak membawa foto", async () => {
+    expect(await verifikasiTokenGoogle(await tokenGoogle(), jwks, CLIENT_ID)).toMatchObject({ foto: null });
   });
 
   it("memakai email sebagai nama bila nama kosong", async () => {
@@ -58,5 +65,16 @@ describe("verifikasiTokenGoogle", () => {
 
   it("melempar galat bila GOOGLE_CLIENT_ID belum diisi", async () => {
     await expect(verifikasiTokenGoogle("apa saja", jwks, "")).rejects.toThrow("GOOGLE_CLIENT_ID");
+  });
+});
+
+describe("fotoGoogle", () => {
+  it("hanya menerima https dari server gambar Google", () => {
+    expect(fotoGoogle("https://lh3.googleusercontent.com/a/x=s96-c")).toBe("https://lh3.googleusercontent.com/a/x=s96-c");
+    expect(fotoGoogle("http://lh3.googleusercontent.com/a/x")).toBeNull();
+    expect(fotoGoogle("https://penipu.example/lh3.googleusercontent.com.png")).toBeNull();
+    expect(fotoGoogle("https://googleusercontent.com.penipu.example/a")).toBeNull();
+    expect(fotoGoogle("javascript:alert(1)")).toBeNull();
+    expect(fotoGoogle(undefined)).toBeNull();
   });
 });

@@ -150,7 +150,12 @@ export type ResponsPeluang = {
 export type PermintaanMasukGoogle = { credential: string };
 
 /** Balasan POST /api/ortu/masuk dan GET /api/ortu/saya. */
-export type ResponsOrtu = { nama: string; email: string };
+export type ResponsOrtu = {
+  nama: string;
+  email: string;
+  /** Foto profil Google (https://...googleusercontent.com); null bila tidak ada. Pasang referrerPolicy="no-referrer". */
+  foto: string | null;
+};
 
 export type AnakRingkas = {
   id: number;

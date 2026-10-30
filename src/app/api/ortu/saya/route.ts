@@ -6,5 +6,5 @@ import { orangTuaMasuk } from "@/lib/ortu";
 export async function GET(request: NextRequest) {
   const ortu = await orangTuaMasuk(request);
   if (!ortu) return tolakTanpaSesiOrtu();
-  return Response.json({ nama: ortu.nama, email: ortu.email } satisfies ResponsOrtu);
+  return Response.json({ nama: ortu.nama, email: ortu.email, foto: ortu.foto } satisfies ResponsOrtu);
 }

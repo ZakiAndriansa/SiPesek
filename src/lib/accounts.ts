@@ -17,6 +17,8 @@ export type Session = {
   account: AccountKey;
   role: Role;
   name: string;
+  /** Foto profil Google; null untuk akun contoh atau bila tidak ada. */
+  photo: string | null;
   children: Child[];
   /** Anak yang sedang dilihat; null bila belum ada anak. */
   child: Child | null;
@@ -99,7 +101,7 @@ export function buildSession(
     }
   }
   const child = children.find((c) => c.id === childId) ?? children[0] ?? null;
-  return { account, role: seed.role, name: seed.name, children, child };
+  return { account, role: seed.role, name: seed.name, photo: null, children, child };
 }
 
 // ---------- Tahap perjalanan orang tua ----------
