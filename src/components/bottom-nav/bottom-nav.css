@@ -1,0 +1,70 @@
+/* Bottom nav — 4 tahap orang tua, hanya < 600px. Ikon selalu berlabel teks. */
+.bottom-nav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  background: var(--color-surface);
+  border-top: var(--border-thin) solid var(--color-border-subtle);
+  box-shadow: var(--shadow-sm);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav__list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 0;
+  list-style: none;
+}
+
+.stage--bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--bottom-nav-height);
+  padding: var(--space-2) var(--space-1);
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+
+.stage--bottom:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width) - var(--focus-ring-offset));
+}
+
+.stage--bottom[aria-current="page"] {
+  color: var(--color-primary-text);
+}
+
+.stage--bottom.stage--locked {
+  color: var(--color-ink-muted);
+}
+
+.stage__icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-16);
+  height: var(--space-8);
+  border-radius: var(--radius-full);
+}
+
+.stage__icon-wrap .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+.stage--bottom[aria-current="page"] .stage__icon-wrap {
+  background: var(--color-primary-tint);
+}
+
+@media (min-width: 600px) {
+  .bottom-nav {
+    display: none;
+  }
+}

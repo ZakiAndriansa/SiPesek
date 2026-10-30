@@ -1,0 +1,95 @@
+/* Dialog — native <dialog>. < 600px tampil sebagai bottom sheet, >= 600px modal tengah. */
+
+.dialog {
+  width: 100%;
+  max-width: 100%;
+  max-height: 85vh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-overlay);
+}
+
+.dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog__handle {
+  align-self: center;
+  width: var(--space-10);
+  height: var(--space-1);
+  margin-top: var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-border-subtle);
+}
+
+.dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) 0;
+}
+
+.dialog__title {
+  padding-top: var(--space-2);
+  font-size: var(--text-heading-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.dialog__close {
+  flex-shrink: 0;
+  color: var(--color-text);
+}
+
+.dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  overflow-y: auto;
+  font-size: var(--text-body-lg);
+}
+
+.dialog__footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-top: var(--border-thin) solid var(--color-border-subtle);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 600px) {
+  .dialog {
+    max-width: var(--dialog-max);
+    margin: auto;
+    border-radius: var(--radius-xl);
+  }
+
+  .dialog__handle {
+    display: none;
+  }
+
+  .dialog__header {
+    padding: var(--space-6) var(--space-6) 0;
+  }
+
+  .dialog__body {
+    padding: var(--space-4) var(--space-6) var(--space-6);
+  }
+
+  .dialog__footer {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: var(--space-4) var(--space-6);
+  }
+}

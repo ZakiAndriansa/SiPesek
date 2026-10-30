@@ -1,20 +1,26 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { NAMA_COOKIE, NAMA_COOKIE_ORTU, verifikasiTokenOrtu, verifikasiTokenSesi } from "@/lib/auth";
+import { NAMA_COOKIE, verifikasiTokenSesi } from "@/lib/auth";
+import {
+  buildSession,
+  COOKIE,
+  homeFor,
+  nextWizardHref,
+  rolesFor,
+  stageOf,
+  stageStatus,
+} from "@/lib/accounts";
 
-// Penjaga lapis pertama untuk halaman admin dan halaman orang tua. API tetap memeriksa sesi sendiri.
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) return jagaAdmin(request);
-  return jagaOrtu(request);
-}
+// Dua penjaga dalam satu proxy (Next 16 hanya mengizinkan satu berkas):
+// 1. /admin dan /api/admin: sesi admin asli (JWT), milik Zaki.
+// 2. Halaman orang tua: login, peran, dan tahap terkunci (sesi tiruan berbasis cookie dari prototipe).
+//    Saat disambungkan ke login Google, ganti sesi tiruan dengan verifikasiTokenOrtu(cookie NAMA_COOKIE_ORTU).
 
-async function jagaAdmin(request: NextRequest) {
+// Penjaga lapis pertama untuk halaman admin. API admin tetap memeriksa sesi sendiri.
+async function penjagaAdmin(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname === "/admin/masuk" || pathname === "/api/admin/masuk") return NextResponse.next();
-
   const sesi = await verifikasiTokenSesi(request.cookies.get(NAMA_COOKIE)?.value);
   if (sesi) return NextResponse.next();
-
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ galat: "Silakan masuk sebagai admin." }, { status: 401 });
   }
@@ -23,17 +29,46 @@ async function jagaAdmin(request: NextRequest) {
   return NextResponse.redirect(masuk);
 }
 
-// Halaman /anak, /hasil, dan /riwayat hanya untuk orang tua yang sudah masuk dengan Google.
-// /cek tetap terbuka untuk tamu (hasilnya tidak disimpan).
-async function jagaOrtu(request: NextRequest) {
-  const sesi = await verifikasiTokenOrtu(request.cookies.get(NAMA_COOKIE_ORTU)?.value);
-  if (sesi) return NextResponse.next();
+function penjagaOrangTua(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+  const session = buildSession(
+    request.cookies.get(COOKIE.account)?.value,
+    request.cookies.get(COOKIE.child)?.value,
+    request.cookies.get(COOKIE.progress)?.value,
+  );
+  const go = (path: string) => NextResponse.redirect(new URL(path, request.url));
+  // Cek Cepat tidak boleh di-cache atau diindeks: isiannya pribadi dan tidak disimpan.
+  const next = () => {
+    const response = NextResponse.next();
+    if (pathname.startsWith("/cek-cepat")) {
+      response.headers.set("Cache-Control", "no-store");
+      response.headers.set("X-Robots-Tag", "noindex");
+    }
+    return response;
+  };
+  if (pathname === "/masuk") return session ? go(homeFor(session)) : next();
+  const roles = rolesFor(pathname);
+  if (!roles) return next();
+  if (!session) return go(`/masuk?next=${encodeURIComponent(pathname + search)}`);
+  if (!roles.includes(session.role)) return go(`/akses-ditolak?dari=${encodeURIComponent(pathname)}`);
+  // Orang tua: Hasil, Strategi, Dokumen hanya terbuka bila data anak aktif sudah lengkap.
+  if (session.role === "orang-tua") {
+    const stage = stageOf(pathname);
+    if (stage && stage !== "data" && stageStatus(session.child)[stage] === "terkunci") {
+      return go(`${nextWizardHref(session.child)}?terkunci=${stage}`);
+    }
+  }
+  return next();
+}
 
-  const masuk = new URL("/masuk", request.url);
-  masuk.searchParams.set("lanjut", request.nextUrl.pathname + request.nextUrl.search);
-  return NextResponse.redirect(masuk);
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/api/admin/")) {
+    return penjagaAdmin(request);
+  }
+  return penjagaOrangTua(request);
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/anak/:path*", "/hasil/:path*", "/riwayat/:path*"],
+  matcher: ["/((?!_next/|assets/|api/|favicon|icon).*)", "/api/admin/:path*"],
 };

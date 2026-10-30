@@ -1,0 +1,49 @@
+/* Link — selalu bergaris bawah (mudah dikenali), varian standalone, eksternal, bantuan */
+
+.link {
+  color: var(--color-primary-text);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  text-decoration-thickness: var(--border-thin);
+  text-underline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration-thickness: var(--border-thick);
+}
+
+.link:active {
+  color: var(--color-primary-active);
+}
+
+.link:visited {
+  color: var(--color-primary-deep);
+}
+
+/* Standalone: target sentuh 48px + ikon panah */
+.link--standalone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+}
+
+.link__icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+/* Bantuan "Apa ini?" — pemicu dialog/sheet istilah */
+.link--help {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: var(--text-body-md);
+  cursor: pointer;
+}
