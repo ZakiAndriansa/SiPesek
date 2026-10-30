@@ -48,8 +48,8 @@ export const FAQ_GROUPS: FaqGroup[] = [
     title: "Membaca hasil",
     items: [
       [
-        "Apa arti Peluang Besar, Memungkinkan, dan Peluang Kecil?",
-        "Peluang Besar: peluang besar berdasarkan data tahun lalu. Memungkinkan: peluang seimbang, tergantung jumlah pendaftar tahun ini. Peluang Kecil: peluang masih kecil, sebaiknya bukan satu-satunya pilihan.",
+        "Apa arti Peluang besar, Masih mungkin, dan Peluang kecil?",
+        "Peluang besar: peluang besar berdasarkan data tahun lalu. Masih mungkin: peluang seimbang, tergantung jumlah pendaftar tahun ini. Peluang kecil: peluang masih kecil, sebaiknya bukan satu-satunya pilihan.",
       ],
       [
         "Mengapa hasilnya berupa rentang, bukan angka pasti?",

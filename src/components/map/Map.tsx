@@ -33,9 +33,9 @@ const PIN_ICON: Record<string, string> = {
   berisiko: "alert",
 };
 const LABEL: Record<string, string> = {
-  aman: "Peluang Besar",
-  bersaing: "Memungkinkan",
-  berisiko: "Peluang Kecil",
+  aman: "Peluang besar",
+  bersaing: "Masih mungkin",
+  berisiko: "Peluang kecil",
 };
 
 type Pin = {

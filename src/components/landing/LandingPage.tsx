@@ -1,5 +1,6 @@
 import { JALUR } from "@/lib/jalur";
 import { PORSI_JALUR, TAHUN_PORSI } from "@/lib/porsi-jalur";
+import { CIRI_JALUR } from "@/data/jalur";
 import { Accordion } from "../accordion/Accordion";
 import { Button } from "../button/Button";
 import { SectionHeading } from "../section-heading/SectionHeading";
@@ -32,10 +33,10 @@ const VALUES = [
 ];
 
 const PATH_STYLE = {
-  DOMISILI: { chip: "Paling umum", color: "landing-path-card--sky", squiggle: "domisili" },
-  AFIRMASI: { chip: "Kartu bantuan & disabilitas", color: "landing-path-card--lime", squiggle: "afirmasi" },
-  PRESTASI: { chip: "Rapor & prestasi", color: "landing-path-card--yellow", squiggle: "prestasi" },
-  MUTASI: { chip: "Pindah tugas & anak guru", color: "landing-path-card--lavender", squiggle: "mutasi" },
+  DOMISILI: { chip: CIRI_JALUR.DOMISILI, color: "landing-path-card--sky", squiggle: "domisili" },
+  AFIRMASI: { chip: CIRI_JALUR.AFIRMASI, color: "landing-path-card--lime", squiggle: "afirmasi" },
+  PRESTASI: { chip: CIRI_JALUR.PRESTASI, color: "landing-path-card--yellow", squiggle: "prestasi" },
+  MUTASI: { chip: CIRI_JALUR.MUTASI, color: "landing-path-card--lavender", squiggle: "mutasi" },
 } as const;
 const PATHS = JALUR.filter((j) => j.kode in PATH_STYLE).map((j) => ({
   // Judul memakai nama resmi jalur ("Jalur Domisili"); penjelasan sehari-hari ada di deskripsi.

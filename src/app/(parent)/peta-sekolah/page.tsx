@@ -80,7 +80,7 @@ export default async function PetaSekolahPage({
             <div style={{ marginTop: "16px", padding: "16px 20px", background: "var(--color-surface)", borderRadius: "18px", border: "1px solid var(--color-border-subtle)" }}>
               <MapLegend />
               <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--color-border-subtle)" }}>
-                <HelpLink opens="dlg-label">Apa arti label Peluang Besar, Memungkinkan, & Berisiko?</HelpLink>
+                <HelpLink opens="dlg-label">Apa arti label Peluang besar, Masih mungkin, dan Peluang kecil?</HelpLink>
               </div>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default async function PetaSekolahPage({
               <Select
                 id="f-label"
                 label="Tingkat Peluang"
-                options={["Semua label", "Peluang Besar", "Memungkinkan", "Peluang Kecil"]}
+                options={["Semua label", "Peluang besar", "Masih mungkin", "Peluang kecil"]}
               />
             </Toolbar>
 
@@ -136,19 +136,19 @@ export default async function PetaSekolahPage({
           <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
             <Badge kind="aman" />
             <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.5" }}>
-              <strong>Peluang Besar (Aman):</strong> Berdasarkan data kuota dan batas jarak/nilai tahun lalu, berkas anak berada dalam batas aman. Tetap lakukan pendaftaran tepat waktu di hari pertama.
+              <strong>Peluang besar:</strong> Berdasarkan data kuota dan batas jarak/nilai tahun lalu, berkas anak berada dalam batas aman. Tetap lakukan pendaftaran tepat waktu di hari pertama.
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
             <Badge kind="bersaing" />
             <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.5" }}>
-              <strong>Memungkinkan (Bersaing):</strong> Peluang berimbang (45-60%). Hasilnya sangat bergantung pada fluktuasi pendaftar tahun berjalan. Bagus untuk satu pilihan ambisius.
+              <strong>Masih mungkin:</strong> Peluang berimbang (45-60%). Hasilnya sangat bergantung pada fluktuasi pendaftar tahun berjalan. Bagus untuk satu pilihan ambisius.
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
             <Badge kind="berisiko" />
             <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.5" }}>
-              <strong>Peluang Kecil (Berisiko):</strong> Kuota tahun lalu terlampaui pada jarak atau nilai di atas anak. Disarankan tidak menjadi satu-satunya pilihan sekolah.
+              <strong>Peluang kecil:</strong> Kuota tahun lalu terlampaui pada jarak atau nilai di atas anak. Disarankan tidak menjadi satu-satunya pilihan sekolah.
             </p>
           </div>
         </div>
