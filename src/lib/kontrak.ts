@@ -59,6 +59,8 @@ export type ResponsSekolah = { sekolah: SekolahRingkas[] };
 export type NilaiMapel = { bin: number; mtk: number; ipa: number; ips: number; bing: number };
 
 export type PermintaanPeluang = {
+  /** id anak milik orang tua yang sedang masuk (dari GET /api/ortu/anak). Wajib sejak ada login. */
+  anakId: number;
   jenjang: Jenjang | "SEMUA";
   lokasi: { lat: number; lng: number };
   /** Kecamatan sesuai KK: salah satu KECAMATAN_DEPOK, KECAMATAN_IRISAN_LUAR, atau "Lainnya". */
@@ -119,6 +121,8 @@ export type AlternatifSwasta = {
 
 export type ResponsPeluang = {
   token: string;
+  /** Anak yang dicek; null hanya untuk cek lama sebelum ada login. */
+  anak: { id: number; nama: string } | null;
   tahunAcuan: number;
   dibuatPada: string;
   hasil: HasilSekolah[];
@@ -126,7 +130,56 @@ export type ResponsPeluang = {
   catatan: string;
 };
 
-// GET /api/hasil/[token] mengembalikan ResponsPeluang yang sama.
+// GET /api/hasil/[token] mengembalikan ResponsPeluang yang sama, hanya untuk orang tua pemiliknya
+// (404 bila milik akun lain). Ambil di klien dengan fetch("/api/hasil/...") agar cookie ikut terkirim.
+
+// ---------- Orang tua: masuk dengan Google dan data anak ----------
+// Semua rute di bawah (kecuali masuk dan keluar) membalas 401 bila belum masuk.
+
+/** POST /api/ortu/masuk: `credential` dari callback google.accounts.id. */
+export type PermintaanMasukGoogle = { credential: string };
+
+/** Balasan POST /api/ortu/masuk dan GET /api/ortu/saya. */
+export type ResponsOrtu = { nama: string; email: string };
+
+export type AnakRingkas = {
+  id: number;
+  nama: string;
+  /** 3 digit terakhir NISN; tampilkan sebagai "NISN ...123". NISN lengkap tidak disimpan. */
+  nisnAkhir: string;
+  /** false: tampilkan peringatan "NISN ini tidak lazim untuk calon siswa SMA atau SMK, pastikan di situs resmi". */
+  nisnLazim: boolean;
+  jumlahCek: number;
+};
+
+/** GET /api/ortu/anak */
+export type ResponsAnak = { anak: AnakRingkas[] };
+
+/**
+ * POST /api/ortu/anak. Balasan: 201 AnakRingkas; 400 NISN bukan 10 digit; 409 NISN sudah terdaftar;
+ * 422 sudah 5 anak. Sertakan tautan "Cek NISN di situs resmi": https://nisn.data.kemendikdasmen.go.id/
+ */
+export type PermintaanTambahAnak = {
+  nama: string;
+  nisn: string;
+  /** Kotak centang "Saya orang tua atau wali anak ini dan setuju datanya diproses". */
+  setuju: true;
+};
+
+export type RiwayatCek = {
+  token: string;
+  dibuatPada: string;
+  tahunAcuan: number;
+  jenjang: Jenjang | "SEMUA";
+  kecamatan: string | null;
+  /** Jumlah sekolah negeri per label terbaik. */
+  ringkas: { jumlahSekolah: number; peluangBesar: number; masihMungkin: number; peluangKecil: number };
+};
+
+/** GET /api/ortu/riwayat?anakId= (404 bila anak bukan milik akun ini). */
+export type ResponsRiwayat = { anak: AnakRingkas; riwayat: RiwayatCek[] };
+
+// DELETE /api/ortu/anak/[id]: hapus anak dan riwayatnya. DELETE /api/ortu/akun: hapus akun dan semua data anak.
 
 // ---------- GET /api/dashboard?tahun= ----------
 
@@ -170,9 +223,20 @@ export type ResponsDashboard = {
     smanReguler: string[];
   }>;
   programSmk: Array<{ sekolah: string; program: string; pendaftar: number | null; diterima: number }>;
+  /**
+   * Minat dari orang tua yang masuk dengan Google, dihitung per anak (NISN lazim) dan hanya dari
+   * cek terakhir tiap anak, jadi satu anak yang dicek berkali-kali tetap terhitung sekali.
+   */
   sinyalMinat: {
+    /** Semua cek tahun ini dari anak dengan NISN lazim. */
     totalCek: number;
+    anakUnik: number;
+    /**
+     * jumlahCek: jumlah anak yang sekolah ini muncul di hasil cek terakhirnya.
+     * peluangKecil: dari anak itu, yang semua jalurnya di sekolah ini "Peluang kecil".
+     */
     perSekolah: Array<{ sekolahId: number; nama: string; jumlahCek: number; peluangKecil: number }>;
+    /** jumlahCek: jumlah anak per kecamatan KK di cek terakhirnya. */
     perKecamatan: Array<{ kecamatan: string; jumlahCek: number }>;
   };
 };

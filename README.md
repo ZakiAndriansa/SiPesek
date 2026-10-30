@@ -41,8 +41,13 @@ Statistik SPMB 2026 sudah ada di repo dalam bentuk agregat (`data/statistik-2026
 | Rute | Fungsi |
 |---|---|
 | `GET /api/sekolah` | Semua sekolah dan koordinatnya |
-| `POST /api/peluang` | Hitung peluang, simpan ringkasan anonim, kembalikan token |
-| `GET /api/hasil/[token]` | Buka hasil yang disimpan |
+| `POST /api/ortu/masuk`, `/keluar` | Sesi orang tua dengan Google (ID token, cookie httpOnly) |
+| `GET /api/ortu/saya` | Orang tua yang sedang masuk |
+| `GET`/`POST /api/ortu/anak`, `DELETE /api/ortu/anak/[id]` | Data anak (nama dan NISN) milik akun |
+| `GET /api/ortu/riwayat?anakId=` | Riwayat cek satu anak |
+| `DELETE /api/ortu/akun` | Hapus akun dan semua data anak |
+| `POST /api/peluang` | Hitung peluang untuk satu anak (wajib masuk), simpan ringkasan, kembalikan token |
+| `GET /api/hasil/[token]` | Buka hasil yang disimpan (hanya pemiliknya) |
 | `GET /api/dashboard?tahun=` | Agregat dashboard |
 | `GET /api/dashboard/ekspor?jenis=sekolah\|kecamatan` | Unduh CSV |
 | `POST /api/admin/masuk`, `/keluar` | Sesi admin (cookie httpOnly) |
@@ -59,4 +64,6 @@ Lihat [PEMBAGIAN-TUGAS.md](PEMBAGIAN-TUGAS.md) untuk siapa mengerjakan apa, jadw
 
 ## Privasi
 
-Yang tidak pernah disimpan: nama, NISN, nomor HP, dan koordinat rumah. Hasil cek hanya menyimpan kecamatan, jarak yang dibulatkan 50 m, rentang skor per 10 poin, dan label peluang.
+Orang tua wajib masuk dengan Google sebelum cek peluang. Yang disimpan: ID Google, email, dan nama orang tua; nama anak; serta NISN dalam bentuk sidik HMAC (`NISN_PEPPER`) dan 3 digit terakhirnya. NISN asli tidak disimpan. Hasil cek hanya menyimpan kecamatan, jarak yang dibulatkan 50 m, rentang skor per 10 poin, dan label peluang; koordinat rumah dan nilai persis tidak pernah disimpan. Orang tua bisa menghapus anak atau seluruh akunnya, dan semua riwayatnya ikut terhapus.
+
+NISN tidak bisa dicek otomatis ke data resmi (pencarian NISN Kemendikdasmen dilindungi reCAPTCHA dan tidak punya API publik). Server memeriksa format 10 digit, kewajaran awalan tahun lahir, dan keunikan antarakun; orang tua diarahkan ke nisn.data.kemendikdasmen.go.id untuk memastikan sendiri. Anak dengan NISN yang tidak lazim tidak dihitung di sinyal minat dashboard.

@@ -61,6 +61,7 @@ const data: DataMesin = {
 };
 
 const minta = (o: Partial<PermintaanPeluang> = {}): PermintaanPeluang => ({
+  anakId: 1,
   jenjang: "SMA",
   lokasi: keUtara(900),
   kecamatan: "Cinere",

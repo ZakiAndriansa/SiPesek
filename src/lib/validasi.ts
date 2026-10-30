@@ -26,6 +26,7 @@ export type Aturan = z.infer<typeof skemaAturan>;
 export type RumusSkor = z.infer<typeof rumusSkor>;
 
 export const skemaPermintaanPeluang = z.object({
+  anakId: z.number().int().positive(),
   jenjang: z.enum(["SMA", "SMK", "SEMUA"]),
   lokasi: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
   kecamatan: z.string().min(1).max(60),
@@ -43,6 +44,15 @@ export const skemaPermintaanPeluang = z.object({
       mapel: z.object({ bin: nilai100, mtk: nilai100, ipa: nilai100, ips: nilai100, bing: nilai100 }).optional(),
     })
     .optional(),
+});
+
+export const skemaMasukGoogle = z.object({ credential: z.string().min(20).max(8000) });
+
+// Format NISN diperiksa terpisah oleh periksaNisn() agar pesannya jelas untuk orang tua.
+export const skemaTambahAnak = z.object({
+  nama: z.string().trim().min(1).max(80),
+  nisn: z.string().trim().min(1).max(20),
+  setuju: z.literal(true),
 });
 
 const angkaAtauNull = z.number().nullable();
