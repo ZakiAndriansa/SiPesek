@@ -3,15 +3,16 @@
  * daya tampung, aturan 2026, dan akun admin pertama. Aman dijalankan berulang (upsert).
  *
  * Jalankan: npm run db:seed
- * Statistik SPMB diisi terpisah lewat `npm run data:impor`.
+ * Statistik SPMB agregat diisi dari data/statistik-{tahun}.json (dibuat `npm run data:ekspor`).
  */
 import "dotenv/config";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
 import Papa from "papaparse";
 import { prisma } from "../src/lib/db";
+import { simpanImpor } from "../src/lib/impor";
 import { ATURAN_2026, JALUR, SUB_JALUR } from "../src/lib/jalur";
-import { skemaAturan } from "../src/lib/validasi";
+import { skemaAturan, skemaPermintaanImpor } from "../src/lib/validasi";
 
 const csv = <T>(file: string) =>
   Papa.parse<T>(readFileSync(file, "utf8"), { header: true, skipEmptyLines: true }).data;
@@ -191,6 +192,18 @@ async function seedAdmin() {
   console.log(`Admin ${email}`);
 }
 
+// Memakai jalur yang sama dengan POST /api/admin/impor, jadi statistik tahun itu diganti utuh
+// dengan isi file. Impor lewat admin untuk tahun yang sama akan tertimpa saat seed diulang.
+async function seedStatistik() {
+  const files = readdirSync("data").filter((f) => /^statistik-\d{4}\.json$/.test(f));
+  for (const f of files) {
+    const permintaan = skemaPermintaanImpor.parse(JSON.parse(readFileSync(`data/${f}`, "utf8")));
+    const r = await simpanImpor({ ...permintaan, namaFile: `seed ${f}` }, null);
+    console.log(`Statistik ${permintaan.tahun}: ${r.jumlahStatistik} baris dari ${r.jumlahSekolah} sekolah`);
+    for (const p of r.peringatan) console.log(`  peringatan: ${p}`);
+  }
+}
+
 async function main() {
   await seedJalur();
   const rayonUtama = await seedRayon();
@@ -199,6 +212,7 @@ async function main() {
   await seedDayaTampung();
   await seedAturan();
   await seedAdmin();
+  await seedStatistik();
 }
 
 main()

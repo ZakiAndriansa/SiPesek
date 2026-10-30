@@ -128,7 +128,7 @@ docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat
 docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma db seed
 ```
 
-Statistik SPMB diimpor dari laptop Zaki, sehingga CSV berisi NISN tidak pernah disalin ke homeserver; yang dikirim hanya angka agregat:
+Seed sudah mengisi statistik SPMB 2026 dari `data/statistik-2026.json` (agregat, tanpa nama dan NISN), jadi CSV mentah tidak pernah disalin ke homeserver dan tidak perlu impor terpisah. Kalau statistik perlu diperbarui tanpa menunggu deploy ulang, Zaki bisa mengirim agregat langsung dari laptopnya:
 
 ```bash
 SIPESEK_URL=https://alamat-homeserver npm run data:kirim
