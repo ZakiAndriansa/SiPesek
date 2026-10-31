@@ -31,7 +31,7 @@ export default async function StrategiPage() {
         title={`Strategi untuk ${first}`}
         desc="Urutan pilihan yang kami sarankan berdasarkan data resmi dan aturan terbaru. Bapak/Ibu bebas menyesuaikan urutan."
       />
-      <div className="stack stack--lg">
+      <div className="stack stack--lg" data-reveal-group="">
         {/* Strategy Hero Probability Card */}
         <div className="strategy-hero">
           <div className="strategy-hero__top">

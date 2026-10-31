@@ -20,13 +20,14 @@ export default function TanyaJawabPage() {
     <Container>
       
       <PageHeader
+        reveal
         art="faq"
         title="Tanya Jawab & Bantuan"
         desc="Temukan jawaban cepat seputar metodologi prediksi, keamanan data keluarga, dan panduan teknis pengisian."
       />
 
       {/* Topic Chips */}
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }} data-reveal="" data-reveal-live="">
         <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--color-ink)", alignSelf: "center", marginRight: "8px" }}>Kategori:</span>
         {FAQ_GROUPS.map((g) => (
           <a
@@ -39,7 +40,7 @@ export default function TanyaJawabPage() {
         ))}
       </div>
 
-      <div className="stack stack--lg">
+      <div className="stack stack--lg" data-reveal-group="" data-reveal-live="">
         {FAQ_GROUPS.map((group, i) => {
           const sectionId = group.title.toLowerCase().replace(/\s+/g, "-");
           return (

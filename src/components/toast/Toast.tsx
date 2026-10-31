@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { AnimatePresence, m } from "motion/react";
 import { Icon } from "../icon/Icon";
 
 const ICONS: Record<string, string> = {
@@ -73,7 +74,12 @@ function ToastItem({
   }, []);
 
   return (
-    <div
+    // A-04: masuk dari bawah 200ms, keluar memudar 120ms. Toast lain bergeser halus (layout).
+    <m.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: [0.2, 0, 0, 1] } }}
+      exit={{ opacity: 0, transition: { duration: 0.12 } }}
       className={`toast toast--${toast.variant}`}
       onMouseEnter={stop}
       onMouseLeave={start}
@@ -95,7 +101,7 @@ function ToastItem({
       >
         <Icon name="x" className="icon button__icon" />
       </button>
-    </div>
+    </m.div>
   );
 }
 
@@ -103,9 +109,11 @@ export function ToastRegion() {
   const { items, dismiss } = useToast();
   return (
     <div className="toast-region" data-toast-region="" aria-live="polite">
-      {items.map((t) => (
-        <ToastItem key={t.id} toast={t} onDismiss={() => dismiss(t.id)} />
-      ))}
+      <AnimatePresence initial={false}>
+        {items.map((t) => (
+          <ToastItem key={t.id} toast={t} onDismiss={() => dismiss(t.id)} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

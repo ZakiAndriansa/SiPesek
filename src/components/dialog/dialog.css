@@ -93,3 +93,57 @@
     padding: var(--space-4) var(--space-6);
   }
 }
+
+/* A-05: backdrop memudar, panel naik dari bawah (HP) atau membesar sedikit (layar lebar).
+   Masuk 200ms, keluar 120ms. Animasi keluar memakai allow-discrete; browser tanpa dukungan
+   langsung menutup. */
+.dialog,
+.dialog::backdrop {
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    translate var(--duration-fast) var(--ease-out),
+    scale var(--duration-fast) var(--ease-out),
+    overlay var(--duration-fast) allow-discrete,
+    display var(--duration-fast) allow-discrete;
+}
+.dialog:not([open]) {
+  opacity: 0;
+  translate: 0 var(--space-6);
+}
+.dialog:not([open])::backdrop {
+  opacity: 0;
+}
+.dialog[open] {
+  transition-duration: var(--duration-base);
+}
+.dialog[open]::backdrop {
+  transition-duration: var(--duration-base);
+}
+@starting-style {
+  .dialog[open] {
+    opacity: 0;
+    translate: 0 var(--space-6);
+  }
+  .dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+@media (min-width: 600px) {
+  .dialog:not([open]) {
+    translate: none;
+    scale: 0.97;
+  }
+  @starting-style {
+    .dialog[open] {
+      translate: none;
+      scale: 0.97;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog:not([open]),
+  .dialog[open] {
+    translate: none;
+    scale: none;
+  }
+}

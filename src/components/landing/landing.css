@@ -949,3 +949,36 @@
   .landing-cta-image--boy { left: 8px; }
   .landing-cta-image--girl { right: 8px; }
 }
+
+/* ---------- Gerak beranda (animation/PROPOSAL.md B-01, B-02) ---------- */
+/* B-01: judul dan tombol langsung tampil; hanya ilustrasi yang naik pelan berurutan. */
+.landing-hero-visual > * {
+  animation: rise-in var(--duration-reveal) var(--ease-out) both;
+}
+.landing-hero-blob { animation-delay: 0s; }
+.landing-hero-image--boy { animation-delay: calc(var(--stagger) * 2); }
+.landing-hero-image--girl { animation-delay: calc(var(--stagger) * 3); }
+.landing-hero-image--school { animation-delay: calc(var(--stagger) * 4); }
+.landing-squiggle { animation-delay: calc(var(--stagger) * 6); }
+
+/* B-02: kartu jalur naik 4px saat disentuh kursor, coretan di dalamnya ikut bergeser. */
+.landing-path-card {
+  transition: translate var(--duration-base) var(--ease-out);
+}
+.landing-path-squiggle {
+  transition: translate var(--duration-base) var(--ease-out);
+}
+@media (hover: hover) {
+  .landing-path-card:hover {
+    translate: 0 calc(-1 * var(--space-1));
+  }
+  .landing-path-card:hover .landing-path-squiggle {
+    translate: var(--space-1) calc(-1 * var(--space-1));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-path-card:hover,
+  .landing-path-card:hover .landing-path-squiggle {
+    translate: none;
+  }
+}

@@ -112,3 +112,8 @@
     padding: 28px;
   }
 }
+
+/* C-03: label peluang muncul dengan "pop" kecil sekali, setelah kartunya tampil */
+.school-card__badge .badge {
+  animation: pop-in var(--duration-slow) var(--ease-out) var(--duration-base) both;
+}

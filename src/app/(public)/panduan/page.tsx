@@ -33,18 +33,19 @@ export default function PanduanPage() {
     <Container>
       
       <PageHeader
+        reveal
         art="guide"
         title="Panduan Jalur SPMB"
         desc="Pahami setiap jalur pendaftaran, persyaratan berkas resmi, dan cara SIPESEK mengalkulasi peluang kelulusan anak Anda dengan tenang."
       />
 
       {/* 4 Jalur Cards in Toy Colors */}
-      <Section id="jalur">
+      <Section reveal id="jalur">
         <SectionHeading
           title="Empat Jalur Pendaftaran Resmi"
           desc="Setiap calon siswa memilih satu jalur utama saat pendaftaran dibuka. Kenali ketentuan dan persentase kuotanya untuk menentukan opsi paling aman."
         />
-        <div className="card-grid">
+        <div className="card-grid" data-reveal-group="" data-reveal-live="">
           {JALUR.map((j) => {
             const extra = TOY_COLOR_MAP[j.id] || { colorClass: "", kuota: "", tag: "" };
             return (
@@ -69,7 +70,7 @@ export default function PanduanPage() {
       </Section>
 
       {/* Dokumen Tab */}
-      <Section id="dokumen">
+      <Section reveal id="dokumen">
         <SectionHeading
           title="Dokumen yang Perlu Disiapkan"
           desc="Daftar berkas penting sesuai jalur yang dipilih. Siapkan fotokopi dan scan digital sedini mungkin."
@@ -96,13 +97,13 @@ export default function PanduanPage() {
       </Section>
 
       {/* Cara Peluang Dihitung */}
-      <Section id="cara-hitung">
+      <Section reveal id="cara-hitung">
         <SectionHeading
           title="Bagaimana Peluang Dihitung?"
           desc="SIPESEK mengolah data historis seleksi tahun lalu secara transparan melalui lima tahapan ilmiah."
         />
         <div className="stack stack--lg">
-          <div className="card-grid card-grid--3">
+          <div className="card-grid card-grid--3" data-reveal-group="" data-reveal-live="">
             <div className="card" style={{ background: "var(--color-surface)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <span style={{ width: "36px", height: "36px", borderRadius: "999px", background: "var(--color-primary-tint)", color: "var(--color-primary-text)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700" }}>1</span>
@@ -134,7 +135,7 @@ export default function PanduanPage() {
             </div>
           </div>
 
-          <div className="card-grid card-grid--3">
+          <div className="card-grid card-grid--3" data-reveal-group="" data-reveal-live="">
             <div className="card" style={{ borderLeft: "4px solid var(--color-success-text)" }}>
               <Badge kind="aman" lg />
               <p className="card__text" style={{ marginTop: "12px" }}>
@@ -162,13 +163,13 @@ export default function PanduanPage() {
       </Section>
 
       {/* Privasi & Keamanan Data */}
-      <Section id="privasi">
+      <Section reveal id="privasi">
         <SectionHeading
           title="Keamanan & Privasi Data Keluarga"
           desc="Kami memprioritaskan privasi Anda dengan komitmen zero-selling dan enkripsi menyeluruh."
         />
         <div className="card" style={{ background: "var(--color-surface)" }}>
-          <div className="card-grid" style={{ gap: "24px" }}>
+          <div className="card-grid" style={{ gap: "24px" }} data-reveal-group="" data-reveal-live="">
             <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
               <span style={{ width: "40px", height: "40px", borderRadius: "12px", background: "var(--color-primary-tint)", color: "var(--color-primary-text)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Icon name="shield" />
@@ -193,7 +194,7 @@ export default function PanduanPage() {
       </Section>
 
       {/* CTA Band */}
-      <Section>
+      <Section reveal>
         <CtaBand
           title="Sudah Memahami Jalur yang Tepat?"
           text="Mulai kalkulasi peluang anak Anda di SMA/SMK Negeri impian sekarang juga. Hanya butuh waktu 8 menit."

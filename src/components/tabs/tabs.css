@@ -17,6 +17,7 @@
 }
 
 .tabs__tab {
+  position: relative;
   flex-shrink: 0;
   min-height: 40px;
   padding: 8px 20px;
@@ -37,9 +38,18 @@
 }
 
 .tabs__tab[aria-selected="true"] {
-  background: var(--color-primary);
   color: var(--color-on-primary);
+}
+/* Latar tab aktif dipisah agar bisa meluncur antar tab (Motion layoutId). */
+.tabs__pill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-primary);
   box-shadow: 0 4px 12px rgba(237, 90, 28, 0.25);
+}
+.tabs__label {
+  position: relative;
 }
 
 .tabs__tab:disabled {

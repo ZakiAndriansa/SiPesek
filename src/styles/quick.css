@@ -92,3 +92,8 @@
   margin: 0;
   color: var(--color-ink-soft);
 }
+
+/* C-03: kartu isian muncul pelan setiap pindah tahap Cek Cepat */
+.quick__card {
+  animation: rise-in var(--duration-slow) var(--ease-out) both;
+}

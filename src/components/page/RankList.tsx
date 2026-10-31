@@ -1,5 +1,6 @@
 "use client";
 
+import { m } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "../badge/Badge";
 import { Icon } from "../icon/Icon";
@@ -11,6 +12,8 @@ export function RankList({ items }: { items: Item[] }) {
   const [order, setOrder] = useState(items);
   const buttons = useRef<Record<string, HTMLButtonElement | null>>({});
   const refocus = useRef<string | null>(null);
+  // D-02: item yang baru dipindah disorot sebentar supaya jelas apa yang berubah.
+  const [moved, setMoved] = useState<string | null>(null);
 
   useEffect(() => {
     if (refocus.current) buttons.current[refocus.current]?.focus();
@@ -24,12 +27,21 @@ export function RankList({ items }: { items: Item[] }) {
     [next[index], next[target]] = [next[target], next[index]];
     refocus.current = `${order[index].name}:${dir}`;
     setOrder(next);
+    setMoved(order[index].name);
   }
 
   return (
     <ol className="rank">
       {order.map((item, i) => (
-        <li key={item.name} className="card rank__item">
+        <m.li
+          key={item.name}
+          layout="position"
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          className={`card rank__item${moved === item.name ? " rank__item--moved" : ""}`}
+          onAnimationEnd={(e) => {
+            if (e.animationName === "rank-moved") setMoved(null);
+          }}
+        >
           <span className="rank__num" aria-hidden="true">
             {i + 1}
           </span>
@@ -61,7 +73,7 @@ export function RankList({ items }: { items: Item[] }) {
               </button>
             ))}
           </div>
-        </li>
+        </m.li>
       ))}
     </ol>
   );

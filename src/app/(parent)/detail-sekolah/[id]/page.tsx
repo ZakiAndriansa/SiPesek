@@ -154,7 +154,7 @@ async function DetailSekolah({ params }: Props) {
         </div>
       </div>
 
-      <div className="stack stack--lg">
+      <div className="stack stack--lg" data-reveal-group="">
         {/* Featured Probability Card */}
         <div className="card card--featured">
           <div className="card__meta">

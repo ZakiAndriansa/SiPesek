@@ -24,6 +24,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* A-01: tekan terasa (scale terpisah dari transform hover) */
+.button:active:not(:disabled) {
+  scale: 0.98;
+}
 .button:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
@@ -178,5 +182,14 @@
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
+  }
+}
+
+/* Kurangi gerak: tanpa naik dan tanpa mengecil, hanya perubahan warna. */
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled),
+  .button:hover {
+    scale: none;
+    transform: none;
   }
 }

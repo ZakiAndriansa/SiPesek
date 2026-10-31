@@ -124,3 +124,30 @@
 .page .accordion .accordion__item:last-child {
   border-bottom: 0;
 }
+
+/* A-06: isi membuka dengan tinggi sungguhan (Chromium 131+; browser lain langsung terbuka),
+   lalu teks muncul pelan. Ikon minus berputar masuk. */
+.accordion__item {
+  interpolate-size: allow-keywords;
+}
+.accordion__item::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size var(--duration-base) var(--ease-in-out),
+    content-visibility var(--duration-base) allow-discrete;
+}
+.accordion__item[open]::details-content {
+  block-size: auto;
+}
+.accordion__item[open] .accordion__panel {
+  animation: drop-in var(--duration-base) var(--ease-out) both;
+}
+.accordion__icon .icon {
+  transition: rotate var(--duration-base) var(--ease-out);
+}
+@starting-style {
+  .accordion__item[open] .accordion__minus {
+    rotate: -90deg;
+  }
+}

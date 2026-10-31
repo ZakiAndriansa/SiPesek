@@ -508,3 +508,13 @@
   border: 0;
   border-top: var(--border-thin) solid var(--color-border-subtle);
 }
+
+/* A-05: menu dropdown dan menu HP turun 4px sambil memudar saat dibuka */
+.menu__panel:not([hidden]) {
+  animation: drop-in var(--duration-base) var(--ease-out) both;
+}
+@media (max-width: 1023px) {
+  .navbar__nav[data-open="true"] {
+    animation: drop-in var(--duration-base) var(--ease-out) both;
+  }
+}

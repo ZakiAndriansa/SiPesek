@@ -315,7 +315,7 @@ function Hasil({
   date: string;
 }) {
   return (
-    <div className="stack quick__result">
+    <div className="stack quick__result" data-reveal-live="">
       <p className="print-only quick__print-head">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo/logo-lofi.svg" alt="" width={32} height={32} />
@@ -332,7 +332,7 @@ function Hasil({
 
       <section className="stack" aria-labelledby="q-jalur">
         <h2 className="text-heading-md" id="q-jalur">Jalur yang cocok</h2>
-        <div className="quick__routes">
+        <div className="quick__routes" data-reveal-group="">
           {result.routes.map((r) => (
             <div key={r.name} className="card">
               <p className="card__title">{r.name}</p>
@@ -345,7 +345,7 @@ function Hasil({
         </div>
       </section>
 
-      <section className="stack" aria-labelledby="q-sekolah">
+      <section className="stack" aria-labelledby="q-sekolah" data-reveal-group="">
         <h2 className="text-heading-md" id="q-sekolah">Hasil Sekolah</h2>
         {result.schools.map((s) => (
           <SchoolCard key={s.id} name={s.name} kec={s.kec} jalur={s.jalur} kind={s.kind} range={s.range} facts={s.facts} reason={s.reason}>
@@ -354,7 +354,7 @@ function Hasil({
         ))}
       </section>
 
-      <section className="stack" aria-labelledby="q-strategi">
+      <section className="stack" aria-labelledby="q-strategi" data-reveal="">
         <h2 className="text-heading-md" id="q-strategi">Strategi 3 pilihan</h2>
         <RankList items={result.strategy} />
       </section>
