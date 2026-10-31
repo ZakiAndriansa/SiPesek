@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { Alert, Badge, Button, ButtonGroup, CtaBand, Dialog, HelpLink, Icon, RankList } from "@/components";
+import { Alert, Badge, Button, ButtonGroup, CtaBand, Dialog, HelpLink, Icon } from "@/components";
 import type { HasilSekolah, ResponsPeluang, SkorAnak } from "@/lib/kontrak";
 import { formatJarak } from "@/lib/peluang/jarak";
 import {
@@ -18,6 +18,7 @@ import {
   ringkasan,
   ringkasJalur,
   strategi,
+  type PilihanStrategi,
   type QuickCheckInput,
 } from "@/lib/quick-check";
 
@@ -88,7 +89,11 @@ export function HasilCepat({
             <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
             <p className="text-secondary">Satu ambisius, dua aman.</p>
           </div>
-          <RankList items={pilihan} tetap />
+          <ol className="hasil-pilihan">
+            {pilihan.map((p, i) => (
+              <KartuPilihan key={p.name} p={p} no={i + 1} />
+            ))}
+          </ol>
         </section>
       )}
 
@@ -314,6 +319,26 @@ function DialogBaca({ skor, utama, hasil, tahun }: { skor: SkorAnak[]; utama?: S
         </section>
       </div>
     </Dialog>
+  );
+}
+
+/** Satu kartu rekomendasi: nomor, peran, sekolah, jalur, label, dan jarak. Ditata tiga kolom di layar lebar. */
+function KartuPilihan({ p, no }: { p: PilihanStrategi; no: number }) {
+  return (
+    <li className="hasil-pilihan__kartu">
+      <div className="hasil-pilihan__atas">
+        <span className="rank__num" aria-hidden="true">
+          {no}
+        </span>
+        <span className="hasil-pilihan__peran">{p.role}</span>
+      </div>
+      <p className="hasil-pilihan__nama">{p.name}</p>
+      <p className="hasil-pilihan__jalur">{p.jalur}</p>
+      <div className="hasil-pilihan__bawah">
+        <Badge kind={p.kind} />
+        {p.jarakMeter !== null && <span>{formatJarak(p.jarakMeter)}</span>}
+      </div>
+    </li>
   );
 }
 

@@ -192,7 +192,7 @@ function alasanTertutup(kode: string, input: QuickCheckInput): string {
   }
 }
 
-export type PilihanStrategi = { name: string; role: string; jalur: string; kind: string };
+export type PilihanStrategi = { name: string; role: string; jalur: string; kind: string; jarakMeter: number | null };
 
 /** Strategi 3 pilihan: satu ambisius (Masih mungkin), dua aman (Peluang besar), dari hasil yang sudah terurut. */
 export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
@@ -207,7 +207,13 @@ export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
     PELUANG_KECIL: "Pilihan tambahan",
     TIDAK_DIHITUNG: "Pilihan tambahan",
   };
-  return pilih.map((h) => ({ name: h.sekolah.nama, role: peran[h.labelTerbaik], jalur: namaJalur(h.jalur[0]), kind: KIND[h.labelTerbaik] }));
+  return pilih.map((h) => ({
+    name: h.sekolah.nama,
+    role: peran[h.labelTerbaik],
+    jalur: namaJalur(h.jalur[0]),
+    kind: KIND[h.labelTerbaik],
+    jarakMeter: h.jarakMeter,
+  }));
 }
 
 export type Ringkasan = {
