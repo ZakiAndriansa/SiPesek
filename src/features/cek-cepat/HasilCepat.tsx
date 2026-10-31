@@ -322,19 +322,19 @@ function DialogBaca({ skor, utama, hasil, tahun }: { skor: SkorAnak[]; utama?: S
   );
 }
 
-/** Satu kartu rekomendasi: nomor, peran, sekolah, jalur, label, dan jarak. Ditata tiga kolom di layar lebar. */
+/** Satu rekomendasi sebagai baris: nomor, peran, sekolah, dan jalur di kiri; label dan jarak di kanan. */
 function KartuPilihan({ p, no }: { p: PilihanStrategi; no: number }) {
   return (
-    <li className="hasil-pilihan__kartu">
-      <div className="hasil-pilihan__atas">
-        <span className="rank__num" aria-hidden="true">
-          {no}
-        </span>
+    <li className="card rank__item hasil-pilihan__kartu">
+      <span className="rank__num" aria-hidden="true">
+        {no}
+      </span>
+      <div className="hasil-pilihan__isi">
         <span className="hasil-pilihan__peran">{p.role}</span>
+        <p className="hasil-pilihan__nama">{p.name}</p>
+        <p className="hasil-pilihan__jalur">{p.jalur}</p>
       </div>
-      <p className="hasil-pilihan__nama">{p.name}</p>
-      <p className="hasil-pilihan__jalur">{p.jalur}</p>
-      <div className="hasil-pilihan__bawah">
+      <div className="hasil-pilihan__kanan">
         <Badge kind={p.kind} />
         {p.jarakMeter !== null && <span>{formatJarak(p.jarakMeter)}</span>}
       </div>
