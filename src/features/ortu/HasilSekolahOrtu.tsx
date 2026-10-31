@@ -5,6 +5,7 @@ import { Alert, Badge, Button, Dialog, Disclaimer, HelpLink, MapLegend, NextStep
 import type { HasilJalur, HasilSekolah, LabelPeluang } from "@/lib/kontrak";
 import { badgeText, catatanHasil, faktaSekolah, JALUR_UTAMA, jalurUtama, KIND, namaJalur, namaLabel } from "@/lib/quick-check";
 import { MAKS_PILIHAN, usePilihan } from "./pilihan";
+import { HapusHasil } from "./HapusHasil";
 import { DenganHasil, SumberHasil, type DataTahap } from "./Wadah";
 
 const PetaHasil = dynamic(() => import("./PetaHasil"), {
@@ -78,7 +79,10 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
         }
       />
       <div className="stack">
-        <SumberHasil terakhir={terakhir} hasil={hasil} />
+        <div className="hasil-sekolah__sumber">
+          <SumberHasil terakhir={terakhir} hasil={hasil} />
+          <HapusHasil token={terakhir.token} nama={aktif.nama} dibuatPada={terakhir.dibuatPada} />
+        </div>
         {catatanHasil(hasil, null).map((c) => (
           <Alert key={c} kind="info">
             {c}

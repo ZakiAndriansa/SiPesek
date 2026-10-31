@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Alert, Badge, Button, Dialog, Icon } from "@/components";
 import type { RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
+import { HapusHasil } from "@/features/ortu/HapusHasil";
 import { bacaIsian, hapusIsian, lanjutIsiHref } from "@/features/ortu/isian";
 import { pilihAnakAktif, segarkanOrtu, useOrtu, type AnakOrtu } from "@/features/ortu/store";
 import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
@@ -16,7 +17,8 @@ const tanggal = (iso: string) =>
 
 /**
  * Anak dan riwayat cek yang benar-benar tersimpan di akun Google, dari data bersama di features/ortu/store
- * (sama dengan pemilih anak di navbar). Hapus anak memanggil DELETE /api/ortu/anak/[id] lalu memuat ulang.
+ * (sama dengan pemilih anak di navbar). Hapus anak memanggil DELETE /api/ortu/anak/[id] lalu memuat ulang;
+ * satu hasil bisa dihapus dari barisnya di riwayat.
  */
 export function RiwayatAnak() {
   const router = useRouter();
@@ -152,7 +154,7 @@ function KartuAnak({
       ) : (
         <ul className="riwayat-anak__daftar">
           {a.riwayat.map((r) => (
-            <li key={r.token}>
+            <li key={r.token} className="riwayat-anak__baris">
               <Link href={`/hasil/${r.token}`} className="riwayat-anak__tautan">
                 <span className="riwayat-anak__isi">
                   <span className="riwayat-anak__judul">
@@ -171,6 +173,7 @@ function KartuAnak({
                 <Icon name="chevron-right" className="icon" />
                 <span className="visually-hidden">Buka hasil</span>
               </Link>
+              <HapusHasil token={r.token} nama={a.nama} dibuatPada={r.dibuatPada} ikon />
             </li>
           ))}
         </ul>

@@ -5,7 +5,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { AnakRingkas, ResponsAnak, ResponsPeluang, ResponsRiwayat, RiwayatCek } from "@/lib/kontrak";
 import { lupakanIsian } from "./isian";
-import { lupakanPilihan } from "./pilihan";
+import { hapusPilihan, lupakanPilihan } from "./pilihan";
 
 export type AnakOrtu = AnakRingkas & { riwayat: RiwayatCek[] };
 export type StatusOrtu = "memuat" | "ada" | "belum-masuk" | "galat";
@@ -119,6 +119,23 @@ export function tandaiUsang(aktifId?: number) {
     tulisAktif(aktifId);
     keadaan = { ...keadaan, aktifId };
   }
+}
+
+/**
+ * Hapus satu hasil dari riwayat (DELETE /api/hasil/[token]), lalu ambil ulang daftar anak. Halaman tahap
+ * otomatis memakai hasil sebelumnya bila yang dihapus adalah hasil terakhir.
+ */
+export async function hapusHasil(token: string): Promise<"ok" | "belum-masuk" | "galat"> {
+  const res = await fetch(`/api/hasil/${encodeURIComponent(token)}`, { method: "DELETE" }).catch(() => null);
+  if (res?.status === 401) return "belum-masuk";
+  // 404: sudah terhapus (misal dari tab lain), jadi cukup dibersihkan dari tampilan.
+  if (!res || (!res.ok && res.status !== 404)) return "galat";
+  hapusPilihan(token);
+  const sisa = { ...keadaan.hasil };
+  delete sisa[token];
+  keadaan = { ...keadaan, hasil: sisa };
+  await segarkanOrtu();
+  return "ok";
 }
 
 const hasilDiminta = new Set<string>();

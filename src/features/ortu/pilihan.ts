@@ -113,5 +113,8 @@ export function useBerkas(anakId: number | null) {
   };
 }
 
+/** Buang susunan pilihan untuk hasil yang sudah dihapus. */
+export const hapusPilihan = (token: string) => tulis(`sipesek:pilihan:${token}`, null);
+
 /** Kosongkan salinan memori (dipanggil setelah localStorage dibersihkan saat keluar). */
 export const lupakanPilihan = () => memori.clear();
