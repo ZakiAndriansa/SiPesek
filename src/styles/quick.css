@@ -20,11 +20,6 @@
   display: grid;
   gap: var(--space-3);
 }
-.quick__routes {
-  display: grid;
-  gap: var(--space-4);
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-}
 .quick__summary {
   margin: 0;
   padding-left: var(--space-5);
@@ -90,4 +85,115 @@
 .quick__picker-status {
   margin: 0;
   color: var(--color-ink-soft);
+}
+
+/* Hasil Cek Cepat: ringkasan dulu, rincian dilipat dalam baris tipis. */
+.hasil-ringkas {
+  display: grid;
+  gap: var(--space-3);
+}
+.hasil-ringkas__judul {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-heading-md);
+  line-height: 1.25;
+}
+.hasil-ringkas__jumlah {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hasil-ringkas__catatan {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-body-sm);
+}
+.hasil-daftar {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.hasil-baris {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.hasil-baris__ringkas {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  list-style: none;
+  cursor: pointer;
+}
+.hasil-baris__ringkas::-webkit-details-marker {
+  display: none;
+}
+.hasil-baris__ringkas:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.hasil-lipat .hasil-baris__ringkas > strong,
+.hasil-baris__nama {
+  flex: 1;
+  min-width: 0;
+}
+.hasil-baris__nama {
+  display: grid;
+  gap: 2px;
+}
+.hasil-baris__nama strong {
+  color: var(--color-ink);
+}
+.hasil-baris__nama span {
+  color: var(--color-ink-soft);
+  font-size: var(--text-body-sm);
+}
+.hasil-baris__ringkas .badge {
+  flex-shrink: 0;
+}
+.hasil-baris__panah {
+  flex-shrink: 0;
+  color: var(--color-ink-soft);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.hasil-baris[open] .hasil-baris__panah {
+  transform: rotate(180deg);
+}
+.hasil-baris__isi {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-4);
+}
+.hasil-baris__isi p {
+  margin: 0;
+}
+.hasil-baris__jalur {
+  color: var(--color-primary-text);
+  font-weight: var(--weight-semibold);
+}
+.hasil-lipat__daftar {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hasil-lipat__daftar li {
+  display: grid;
+  gap: 2px;
+}
+.hasil-lipat__daftar span {
+  color: var(--color-ink-soft);
+}
+@media (max-width: 480px) {
+  .hasil-baris__ringkas {
+    flex-wrap: wrap;
+  }
+  .hasil-baris__nama {
+    flex-basis: calc(100% - 2rem);
+  }
 }

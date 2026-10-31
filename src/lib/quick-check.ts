@@ -209,18 +209,34 @@ export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
   return pilih.map((h) => ({ name: h.sekolah.nama, role: peran[h.labelTerbaik], jalur: namaJalur(h.jalur[0]), kind: KIND[h.labelTerbaik] }));
 }
 
-/** Catatan di atas hasil. */
+export type Ringkasan = { judul: string; jumlah: { label: LabelPeluang; n: number }[] };
+
+/** Satu kalimat jawaban di puncak hasil, beserta jumlah sekolah per label. */
+export function ringkasan(hasil: HasilSekolah[]): Ringkasan {
+  const n = (l: LabelPeluang) => hasil.filter((h) => h.labelTerbaik === l).length;
+  const besar = n("PELUANG_BESAR");
+  const mungkin = n("MASIH_MUNGKIN");
+  const judul =
+    besar > 0
+      ? `Anak punya Peluang besar di ${besar} sekolah negeri.`
+      : mungkin > 0
+        ? `Belum ada Peluang besar, tapi masih mungkin di ${mungkin} sekolah negeri.`
+        : "Peluang di sekolah negeri masih kecil. Siapkan sekolah swasta terdekat sebagai cadangan.";
+  const urut: LabelPeluang[] = ["PELUANG_BESAR", "MASIH_MUNGKIN", "PELUANG_KECIL", "TIDAK_DIHITUNG"];
+  return { judul, jumlah: urut.map((label) => ({ label, n: n(label) })).filter((x) => x.n > 0) };
+}
+
+/** Catatan yang perlu diperhatikan di atas hasil (hanya bila ada). */
 export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput): string[] {
   const catatan: string[] = [];
   if (r.nisnLazim === false) catatan.push("NISN ini tidak lazim untuk calon siswa SMA atau SMK. Pastikan NISN sudah benar di situs resmi.");
   if (isi(input.nilai).length > 0 && isi(input.nilai).length < SEMESTER_COUNT) {
     catatan.push(`Rata-rata rapor dihitung dari ${isi(input.nilai).length} semester yang diisi. Lengkapi 5 semester agar perkiraan Jalur Prestasi lebih tepat.`);
   }
-  if (!r.hasil.some((h) => h.labelTerbaik === "PELUANG_BESAR")) {
-    catatan.push("Belum ada sekolah negeri dengan Peluang besar. Lihat sekolah swasta terdekat di bawah sebagai cadangan.");
-  }
   return catatan;
 }
+
+export const namaLabel = (l: LabelPeluang) => NAMA_LABEL[l];
 
 /** Pemetaan isian Cek Cepat ke isian wizard (id field wizard). NISN dan titik rumah tidak pernah ikut. */
 export function draftToWizard(input: QuickCheckInput, nama: string): Record<string, string> {

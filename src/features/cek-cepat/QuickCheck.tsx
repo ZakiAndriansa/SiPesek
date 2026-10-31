@@ -7,38 +7,26 @@ import {
   ButtonGroup,
   Choice,
   ChoiceGroup,
-  CtaBand,
   Dialog,
   Field,
   Form,
   HelpLink,
-  RankList,
-  SchoolCard,
   Select,
   Stepper,
 } from "@/components";
-import { Disclaimer } from "@/components/alert/Disclaimer";
 import type { ResponsPeluang } from "@/lib/kontrak";
-import { formatJarak } from "@/lib/peluang/jarak";
 import {
-  badgeText,
-  catatanHasil,
-  faktaSekolah,
   isValidNisn,
-  jalurLain,
   KECAMATAN_KK,
-  KIND,
   MAPEL,
-  namaJalur,
   parseNumber,
-  ringkasJalur,
   SEMESTER_COUNT,
-  strategi,
   toRequest,
   validateInput,
   type QuickCheckInput,
   type Titik,
 } from "@/lib/quick-check";
+import { HasilCepat } from "./HasilCepat";
 import { HomePicker } from "./HomePicker";
 import { setDraft } from "./draft-store";
 
@@ -343,7 +331,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
       )}
 
       {phase === "hasil" && result && (
-        <Hasil
+        <HasilCepat
           result={result}
           input={input}
           loggedIn={loggedIn}
@@ -358,131 +346,3 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   );
 }
 
-function Hasil({
-  result,
-  input,
-  loggedIn,
-  canSave,
-  onSave,
-  onEdit,
-  onRestart,
-  date,
-}: {
-  result: ResponsPeluang;
-  input: QuickCheckInput;
-  loggedIn: boolean;
-  canSave: boolean;
-  onSave: () => void;
-  onEdit: () => void;
-  onRestart: () => void;
-  date: string;
-}) {
-  const swasta = [...result.swasta.SMA, ...result.swasta.SMK].sort((a, b) => (a.jarakMeter ?? Infinity) - (b.jarakMeter ?? Infinity));
-  return (
-    <div className="stack quick__result">
-      <p className="print-only quick__print-head">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo/logo-lofi.svg" alt="" width={32} height={32} />
-        SiPesek · Cek Cepat · {date}. {result.catatan}
-      </p>
-      <Alert kind="warning" title="Hasil ini tidak disimpan">
-        Menutup tab atau memuat ulang halaman menghapus hasil. Cetak bila ingin menyimpannya.
-      </Alert>
-      {catatanHasil(result, input).map((note) => (
-        <Alert key={note} kind="info">
-          {note}
-        </Alert>
-      ))}
-
-      <section className="stack" aria-labelledby="q-jalur">
-        <h2 className="text-heading-md" id="q-jalur">Jalur yang cocok</h2>
-        <div className="quick__routes">
-          {ringkasJalur(result.hasil, input).map((r) => (
-            <div key={r.kode} className="card">
-              <p className="card__title">{r.nama}</p>
-              <p className="card__text">
-                <strong>{r.terhitung ? "Dihitung" : "Belum dihitung"}</strong>
-              </p>
-              <p className="card__text">{r.teks}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="stack" aria-labelledby="q-sekolah">
-        <h2 className="text-heading-md" id="q-sekolah">Hasil sekolah negeri</h2>
-        {result.hasil.length === 0 && <p className="text-secondary">Belum ada sekolah negeri yang bisa dihitung untuk isian ini.</p>}
-        {result.hasil.map((h) => {
-          const lain = jalurLain(h);
-          return (
-            <SchoolCard
-              key={h.sekolah.id}
-              name={h.sekolah.nama}
-              type={`${h.sekolah.jenjang} · Negeri`}
-              kec={h.sekolah.kecamatan}
-              jalur={namaJalur(h.jalur[0])}
-              kind={KIND[h.labelTerbaik]}
-              badgeText={badgeText(h.labelTerbaik)}
-              facts={faktaSekolah(h)}
-              reason={h.jalur[0].kalimat}
-            >
-              {lain.length > 0 && <p className="text-secondary">Jalur lain: {lain.join("; ")}.</p>}
-            </SchoolCard>
-          );
-        })}
-      </section>
-
-      {result.hasil.length > 0 && (
-        <section className="stack" aria-labelledby="q-strategi">
-          <h2 className="text-heading-md" id="q-strategi">Strategi 3 pilihan</h2>
-          <RankList items={strategi(result.hasil)} />
-        </section>
-      )}
-
-      {swasta.length > 0 && (
-        <section className="stack" aria-labelledby="q-swasta">
-          <h2 className="text-heading-md" id="q-swasta">Sekolah swasta terdekat sebagai cadangan</h2>
-          <ul className="list">
-            {swasta.map((s) => (
-              <li key={s.sekolah.id}>
-                <strong>{s.sekolah.nama}</strong> ({s.sekolah.jenjang}, {s.sekolah.kecamatan})
-                {s.jarakMeter !== null && `, sekitar ${formatJarak(s.jarakMeter)}`}. Biaya: {s.biaya?.ringkas ?? "tanyakan ke sekolah"}.
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <Disclaimer />
-
-      {canSave && (
-        <CtaBand title="Mau menyimpan hasil ini?" text="Isian dipindahkan ke akun Bapak/Ibu sebagai data anak baru, setelah Bapak/Ibu setuju di langkah berikutnya.">
-          <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
-            Simpan hasil ini ke akun
-          </Button>
-        </CtaBand>
-      )}
-      {!loggedIn && (
-        <CtaBand title="Mau menyimpan hasil ini?" text="Masuk dulu. Setelah masuk, Bapak/Ibu bisa memindahkan isian ini ke akun. Tanpa masuk, hasil tidak tersimpan.">
-          <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
-            Masuk & simpan hasil ini
-          </Button>
-        </CtaBand>
-      )}
-
-      <div className="no-print">
-        <ButtonGroup>
-          <Button variant="secondary" print iconLeft="download">
-            Cetak
-          </Button>
-          <Button variant="ghost" onClick={onEdit}>
-            Ubah isian
-          </Button>
-          <Button variant="ghost" onClick={onRestart}>
-            Cek anak lain
-          </Button>
-        </ButtonGroup>
-      </div>
-    </div>
-  );
-}
