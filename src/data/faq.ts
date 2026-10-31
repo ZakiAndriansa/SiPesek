@@ -74,7 +74,7 @@ export const FAQ_GROUPS: FaqGroup[] = [
       ],
       [
         "Bagaimana cara menghapus data?",
-        "Buka halaman Anak Saya, lalu pilih Hapus Seluruh Data. Semua data anak dan riwayatnya langsung terhapus.",
+        "Buka halaman Data Anak. Satu hasil cek bisa dihapus dari riwayatnya, satu anak lewat Hapus data anak, dan seluruh akun lewat Hapus Akun dan Seluruh Data. Data yang dihapus langsung hilang dari database. Salinan data bisa diunduh dulu lewat Unduh Salinan Data.",
       ],
     ],
   },

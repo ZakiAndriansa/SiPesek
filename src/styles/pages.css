@@ -519,6 +519,10 @@
   flex-basis: 100%;
   margin-bottom: var(--space-3);
 }
+/* Pembungkus isian wizard hanya untuk menangkap perubahan; tata letak tetap mengikuti .form. */
+.wizard-ortu__isian {
+  display: contents;
+}
 .hasil-sekolah__sumber {
   display: flex;
   flex-wrap: wrap;

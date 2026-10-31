@@ -271,7 +271,7 @@ export function Navbar(props: NavbarProps) {
         <Button variant="primary" sm href={props.cont.href} className="navbar__continue">
           {props.cont.label}
         </Button>
-        <AccountMenu user={props.user} photo={props.photo} role="Orang tua" links={[["/anak-saya", "Anak Saya"]]} />
+        <AccountMenu user={props.user} photo={props.photo} role="Orang tua" links={[["/anak-saya", "Data Anak"]]} />
       </>
     );
   } else {
