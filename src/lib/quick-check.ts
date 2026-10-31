@@ -210,21 +210,21 @@ export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
   return pilih.map((h) => ({ name: h.sekolah.nama, role: peran[h.labelTerbaik], jalur: namaJalur(h.jalur[0]), kind: KIND[h.labelTerbaik] }));
 }
 
-export type Ringkasan = { judul: string; jumlah: { label: LabelPeluang; n: number }[] };
+export type Ringkasan = {
+  /** Label terbaik yang dimiliki sekolah, mis. "Peluang besar di 11 dari 15"; null bila semua kecil. */
+  sorotan: { label: LabelPeluang; n: number; total: number } | null;
+  jumlah: { label: LabelPeluang; n: number }[];
+};
 
-/** Satu kalimat jawaban di puncak hasil, beserta jumlah sekolah per label. */
+/** Jawaban peluang di puncak hasil: label terbaik dan jumlah sekolahnya, beserta jumlah per label. */
 export function ringkasan(hasil: HasilSekolah[]): Ringkasan {
   const n = (l: LabelPeluang) => hasil.filter((h) => h.labelTerbaik === l).length;
-  const besar = n("PELUANG_BESAR");
-  const mungkin = n("MASIH_MUNGKIN");
-  const judul =
-    besar > 0
-      ? `Anak punya Peluang besar di ${besar} sekolah negeri.`
-      : mungkin > 0
-        ? `Belum ada Peluang besar, tapi masih mungkin di ${mungkin} sekolah negeri.`
-        : "Peluang di sekolah negeri masih kecil. Siapkan sekolah swasta terdekat sebagai cadangan.";
+  const terbaik = (["PELUANG_BESAR", "MASIH_MUNGKIN"] as const).find((l) => n(l) > 0);
   const urut: LabelPeluang[] = ["PELUANG_BESAR", "MASIH_MUNGKIN", "PELUANG_KECIL", "TIDAK_DIHITUNG"];
-  return { judul, jumlah: urut.map((label) => ({ label, n: n(label) })).filter((x) => x.n > 0) };
+  return {
+    sorotan: terbaik ? { label: terbaik, n: n(terbaik), total: hasil.length } : null,
+    jumlah: urut.map((label) => ({ label, n: n(label) })).filter((x) => x.n > 0),
+  };
 }
 
 /** Catatan yang perlu diperhatikan di atas hasil (hanya bila ada). */

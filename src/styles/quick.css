@@ -203,85 +203,8 @@
   margin: 0;
   color: var(--color-ink);
   font-family: var(--font-heading);
-  font-size: var(--text-heading-md);
+  font-size: var(--text-heading-sm);
   line-height: 1.25;
-}
-.hasil-skor__angka {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  margin: 0;
-}
-.hasil-skor__angka strong {
-  color: var(--color-ink);
-  font-family: var(--font-heading);
-  font-size: clamp(2.5rem, 8vw, 3.25rem);
-  line-height: 1;
-}
-.hasil-skor__angka span {
-  color: var(--color-ink-soft);
-}
-.hasil-skor__skala {
-  display: grid;
-  gap: var(--space-2);
-  padding-top: var(--space-2);
-}
-.hasil-skor__bar {
-  position: relative;
-  height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--color-surface-muted);
-}
-.hasil-skor__rentang {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-success-text);
-  opacity: 0.35;
-}
-.hasil-skor__titik {
-  position: absolute;
-  top: 50%;
-  width: 20px;
-  height: 20px;
-  border: 3px solid var(--color-surface);
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  box-shadow: 0 1px 3px rgba(4, 6, 19, 0.3);
-  transform: translate(-50%, -50%);
-}
-.hasil-skor__legenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--color-ink-soft);
-  font-size: var(--text-body-sm);
-}
-.hasil-skor__legenda li {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.hasil-skor__tanda {
-  display: inline-block;
-  flex-shrink: 0;
-}
-.hasil-skor__tanda--titik {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-}
-.hasil-skor__tanda--rentang {
-  width: 20px;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: var(--color-success-text);
-  opacity: 0.35;
 }
 .hasil-skor__kosong {
   margin: 0;
@@ -296,9 +219,6 @@
   gap: var(--space-2);
 }
 .hasil-ringkas__kepala .link--help {
-  font-size: var(--text-body-sm);
-}
-.hasil-skor__angka span {
   font-size: var(--text-body-sm);
 }
 .hasil-skor__kosong .link {
@@ -335,4 +255,71 @@
   margin-top: var(--space-2);
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-border-subtle);
+}
+
+/* Gauge skor akhir: busur setengah lingkaran, angka dan label di tengahnya. */
+.hasil-gauge {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.hasil-gauge svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.hasil-gauge__jalur,
+.hasil-gauge__isi {
+  fill: none;
+  stroke-width: 16;
+  stroke-linecap: round;
+}
+.hasil-gauge__jalur {
+  stroke: var(--color-surface-muted);
+}
+.hasil-gauge__isi {
+  stroke: var(--color-primary);
+}
+.hasil-gauge__tengah {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  left: 0;
+  text-align: center;
+}
+.hasil-gauge__tengah p {
+  margin: 0;
+}
+.hasil-gauge__angka strong {
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 9vw, 2.5rem);
+  line-height: 1;
+}
+.hasil-gauge__angka span {
+  margin-left: var(--space-1);
+  color: var(--color-ink-soft);
+  font-size: var(--text-body-sm);
+}
+.hasil-gauge__label {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+.hasil-gauge__ujung {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+}
+.hasil-ringkas__peluang {
+  display: grid;
+  gap: var(--space-3);
+}
+.hasil-ringkas__label--aman {
+  color: var(--color-success-text);
+}
+.hasil-ringkas__label--bersaing {
+  color: var(--color-warning-text);
 }

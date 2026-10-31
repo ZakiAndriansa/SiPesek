@@ -174,81 +174,81 @@ export function HasilCepat({
 }
 
 /**
- * Satu kartu jawaban: skor akhir anak (bila jenjangnya punya jalur skor) dan peluangnya di sekolah negeri.
- * Rincian skor, rentang yang diterima, dan arti label ada di dialog "Cara membaca".
+ * Kartu jawaban dengan gauge setengah lingkaran: skor akhir anak di tengah busur dengan labelnya tepat di bawah
+ * angka, lalu peluang di sekolah negeri. Rincian skor dan arti label ada di dialog "Cara membaca".
  */
 function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => void }) {
   const skor = result.skorAnak ?? [];
   const utama = skor.find((s) => s.nilai !== null) ?? skor[0];
   const r = ringkasan(result.hasil);
   return (
-    <section className="card hasil-ringkas" aria-label="Skor akhir dan peluang">
-      {/* Judul bagian berukuran judul, bukan label kecil, agar angka di bawahnya jelas terbaca sebagai skor akhir. */}
+    <section className="card hasil-ringkas" aria-labelledby="q-hasil">
       <div className="hasil-ringkas__kepala">
-        <h2 className="hasil-ringkas__bagian">{utama ? "Skor akhir anak" : "Peluang di sekolah negeri"}</h2>
+        <h2 className="hasil-ringkas__bagian" id="q-hasil">Hasil anak</h2>
         <HelpLink opens="dlg-baca-hasil">Cara membaca</HelpLink>
       </div>
 
       {utama &&
         (utama.nilai === null ? (
           <p className="hasil-skor__kosong">
-            Skor belum dihitung: isi {gabung(utama.kurang)}.{" "}
+            Skor akhir belum dihitung: isi {gabung(utama.kurang)}.{" "}
             <button type="button" className="link" onClick={onEdit}>
               Lengkapi nilai
             </button>
           </p>
         ) : (
-          <>
-            <p className="hasil-skor__angka">
-              <strong>{angkaSkor(utama.nilai)}</strong>
-              <span>
-                dari {angkaSkor(utama.maks)} · {judulSkor(utama)}
-              </span>
-            </p>
-            {utama.terendahDiterima && <SkalaSkor nilai={utama.nilai} rentang={utama.terendahDiterima} />}
-          </>
+          <Gauge nilai={utama.nilai} maks={utama.maks} />
         ))}
 
-      {utama && <h2 className="hasil-ringkas__bagian hasil-ringkas__pemisah">Peluang di sekolah negeri</h2>}
-      <p className="hasil-ringkas__judul">{r.judul}</p>
-      {r.jumlah.length > 0 && (
-        <ul className="hasil-ringkas__jumlah" aria-label="Jumlah sekolah per label">
-          {r.jumlah.map((j) => (
-            <li key={j.label}>
-              <Badge kind={KIND[j.label]}>{`${namaLabel(j.label)}: ${j.n}`}</Badge>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="hasil-ringkas__catatan">Perkiraan dari SPMB {result.tahunAcuan}, bukan jaminan. Hasil tidak disimpan.</p>
+      <div className={utama ? "hasil-ringkas__peluang hasil-ringkas__pemisah" : "hasil-ringkas__peluang"}>
+        <p className="hasil-ringkas__judul">
+          {r.sorotan ? (
+            <>
+              <strong className={`hasil-ringkas__label hasil-ringkas__label--${KIND[r.sorotan.label]}`}>{namaLabel(r.sorotan.label)}</strong> di{" "}
+              {r.sorotan.n} dari {r.sorotan.total} sekolah negeri
+            </>
+          ) : (
+            "Peluang di sekolah negeri masih kecil. Siapkan sekolah swasta terdekat sebagai cadangan."
+          )}
+        </p>
+        {r.jumlah.length > 0 && (
+          <ul className="hasil-ringkas__jumlah" aria-label="Jumlah sekolah per label">
+            {r.jumlah.map((j) => (
+              <li key={j.label}>
+                <Badge kind={KIND[j.label]}>{`${namaLabel(j.label)} ${j.n}`}</Badge>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="hasil-ringkas__catatan">Perkiraan dari SPMB {result.tahunAcuan}, bukan jaminan. Hasil tidak disimpan.</p>
+      </div>
 
       <DialogBaca skor={skor} utama={utama} hasil={result.hasil} tahun={result.tahunAcuan} />
     </section>
   );
 }
 
-/** Garis posisi skor, diperbesar di sekitar rentang skor terendah yang diterima. */
-function SkalaSkor({ nilai, rentang }: { nilai: number; rentang: { dari: number; sampai: number } }) {
-  const lebar = Math.max(rentang.sampai - rentang.dari, 1);
-  const bawah = Math.min(rentang.dari, nilai) - lebar * 0.6;
-  const atas = Math.max(rentang.sampai, nilai) + lebar * 0.6;
-  const pos = (n: number) => `${((n - bawah) / (atas - bawah)) * 100}%`;
+/** Busur setengah lingkaran dari 0 sampai skor maksimal; angka dan labelnya di tengah busur. */
+function Gauge({ nilai, maks }: { nilai: number; maks: number }) {
+  const panjang = Math.PI * 130;
+  const isi = Math.min(1, Math.max(0, nilai / maks)) * panjang;
   return (
-    <div className="hasil-skor__skala">
-      <div className="hasil-skor__bar" aria-hidden="true">
-        <span className="hasil-skor__rentang" style={{ left: pos(rentang.dari), right: `calc(100% - ${pos(rentang.sampai)})` }} />
-        <span className="hasil-skor__titik" style={{ left: pos(nilai) }} />
+    <div className="hasil-gauge" role="img" aria-label={`Skor akhir anak ${angkaSkor(nilai)} dari ${angkaSkor(maks)}`}>
+      <svg viewBox="0 0 300 160" aria-hidden="true">
+        <path className="hasil-gauge__jalur" d="M20 150 A130 130 0 0 1 280 150" />
+        <path className="hasil-gauge__isi" d="M20 150 A130 130 0 0 1 280 150" strokeDasharray={`${isi} ${panjang}`} />
+      </svg>
+      <div className="hasil-gauge__tengah" aria-hidden="true">
+        <p className="hasil-gauge__angka">
+          <strong>{angkaSkor(nilai)}</strong>
+          <span>/ {angkaSkor(maks)}</span>
+        </p>
+        <p className="hasil-gauge__label">Skor akhir anak</p>
       </div>
-      <ul className="hasil-skor__legenda">
-        <li>
-          <span className="hasil-skor__tanda hasil-skor__tanda--titik" aria-hidden="true" />
-          Skor anak
-        </li>
-        <li>
-          <span className="hasil-skor__tanda hasil-skor__tanda--rentang" aria-hidden="true" />
-          Skor terendah yang diterima
-        </li>
-      </ul>
+      <div className="hasil-gauge__ujung" aria-hidden="true">
+        <span>0</span>
+        <span>{angkaSkor(maks)}</span>
+      </div>
     </div>
   );
 }
@@ -269,9 +269,8 @@ function DialogBaca({ skor, utama, hasil, tahun }: { skor: SkorAnak[]; utama?: S
             </p>
             {utama.terendahDiterima && (
               <p>
-                Bagian hijau pada garis adalah skor terendah yang diterima tahun {tahun} di {utama.jenjang} negeri Depok, yaitu{" "}
-                {angkaSkor(utama.terendahDiterima.dari)} sampai {angkaSkor(utama.terendahDiterima.sampai)} tergantung sekolahnya. Titik oranye adalah
-                skor anak{posisi && `, yang sudah mencapai batas itu di ${posisi.atas} dari ${posisi.total} sekolah`}.
+                Skor terendah yang diterima tahun {tahun} di {utama.jenjang} negeri Depok berkisar{" "}
+                {angkaSkor(utama.terendahDiterima.dari)} sampai {angkaSkor(utama.terendahDiterima.sampai)}, tergantung sekolahnya{posisi && `. Skor anak sudah mencapai batas itu di ${posisi.atas} dari ${posisi.total} sekolah`}.
               </p>
             )}
           </section>

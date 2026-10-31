@@ -90,14 +90,14 @@ describe("Cek Cepat", () => {
     const mungkin = sekolah(2, "MASIH_MUNGKIN", jalur("DOMISILI", "MASIH_MUNGKIN"));
     const kecil = sekolah(3, "PELUANG_KECIL", jalur("DOMISILI", "PELUANG_KECIL"));
     expect(ringkasan([besar, mungkin, kecil])).toEqual({
-      judul: "Anak punya Peluang besar di 1 sekolah negeri.",
+      sorotan: { label: "PELUANG_BESAR", n: 1, total: 3 },
       jumlah: [
         { label: "PELUANG_BESAR", n: 1 },
         { label: "MASIH_MUNGKIN", n: 1 },
         { label: "PELUANG_KECIL", n: 1 },
       ],
     });
-    expect(ringkasan([mungkin, kecil]).judul).toBe("Belum ada Peluang besar, tapi masih mungkin di 1 sekolah negeri.");
-    expect(ringkasan([kecil]).judul).toMatch(/swasta terdekat/);
+    expect(ringkasan([mungkin, kecil]).sorotan).toEqual({ label: "MASIH_MUNGKIN", n: 1, total: 2 });
+    expect(ringkasan([kecil]).sorotan).toBeNull();
   });
 });
