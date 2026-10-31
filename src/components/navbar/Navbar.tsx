@@ -35,7 +35,7 @@ const firstName = (name: string) => name.split(" ")[0];
 
 function SignOutButton() {
   return (
-    <form action={signOut} onSubmit={lupakanDataOrtu}>
+    <form action={signOut} onSubmit={() => lupakanDataOrtu({ perangkat: true })}>
       <button type="submit" className="menu__item">
         <Icon name="log-out" className="icon icon--sm" />
         Keluar

@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, type ReactNode } from "react";
-import { Alert, Button } from "@/components";
+import { Alert, Button, ButtonGroup } from "@/components";
+import { CEK_LAGI_HREF, lanjutIsiHref } from "./isian";
 import type { ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
 import { useHasilAktif, type AnakOrtu } from "./store";
@@ -12,7 +13,7 @@ export type DataTahap = { aktif: AnakOrtu; terakhir: RiwayatCek; hasil: ResponsP
 export const tanggalCek = (iso: string) =>
   new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
-function Memuat({ teks }: { teks: string }) {
+export function Memuat({ teks }: { teks: string }) {
   return (
     <div className="card" aria-busy="true">
       <p className="text-secondary">{teks}</p>
@@ -25,51 +26,30 @@ function Memuat({ teks }: { teks: string }) {
  * Menangani semua keadaan sebelum ada hasil, lalu memanggil `children` dengan hasil cek terakhir anak aktif.
  */
 export function DenganHasil({ children }: { children: (data: DataTahap) => ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const { status, anak, aktif, terakhir, hasil } = useHasilAktif();
 
   if (status === "memuat") return <Memuat teks="Memuat data anak…" />;
-  if (status === "belum-masuk") {
-    return (
-      <Alert
-        kind="info"
-        title="Sesi masuk sudah berakhir"
-        action={
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              await lupakanSesi();
-              router.push(`/masuk?next=${encodeURIComponent(pathname)}`);
-            }}
-          >
-            Masuk lagi dengan Google
-          </Button>
-        }
-      >
-        Masuk lagi untuk melihat hasil anak yang tersimpan.
-      </Alert>
-    );
-  }
-  if (status === "galat") {
-    return (
-      <Alert kind="danger" title="Data belum bisa dimuat">
-        Tidak tersambung ke server SiPesek. Periksa internet, lalu muat ulang halaman ini.
-      </Alert>
-    );
-  }
+  if (status === "belum-masuk") return <SesiBerakhir />;
+  if (status === "galat") return <GagalMuat />;
   if (!aktif || !terakhir) {
     const nama = aktif?.nama;
     return (
       <div className="card empty-state">
         <h2 className="card__title">{nama ? `Belum ada hasil untuk ${nama}` : "Belum ada hasil tersimpan"}</h2>
         <p className="card__text">
-          Hasil sekolah, strategi, dan dokumen disusun dari hasil cek yang tersimpan. Cek peluang lewat Cek Cepat, lalu tekan
-          Simpan di akhir hasil.
+          Hasil sekolah, strategi, dan dokumen disusun dari hasil cek yang tersimpan. Lengkapi data anak, atau coba Cek
+          Cepat lalu tekan Simpan di akhir hasil.
         </p>
-        <Button variant="primary" lg href="/cek-cepat" icon="arrow-right">
-          {anak.length > 0 ? "Cek lagi" : "Mulai Cek Cepat"}
-        </Button>
+        <ButtonGroup>
+          <Button variant="primary" lg href={aktif ? lanjutIsiHref(aktif.id) : "/isi-data/1?baru=1"} icon="arrow-right">
+            {aktif ? "Lanjutkan isi data" : "Isi data anak"}
+          </Button>
+          {anak.length === 0 && (
+            <Button variant="secondary" lg href="/cek-cepat">
+              Coba Cek Cepat
+            </Button>
+          )}
+        </ButtonGroup>
       </div>
     );
   }
@@ -90,10 +70,43 @@ export function SumberHasil({ terakhir, hasil }: { terakhir: RiwayatCek; hasil: 
   return (
     <p className="text-secondary sumber-hasil">
       Dari cek {tanggalCek(terakhir.dibuatPada)} (acuan SPMB {hasil.tahunAcuan}). Data anak berubah?{" "}
-      <Link className="link" href="/cek-cepat">
-        Cek lagi
-      </Link>{" "}
-      lalu simpan; halaman ini memakai hasil terbaru.
+      <Link className="link" href={CEK_LAGI_HREF}>
+        Perbarui data dan cek lagi
+      </Link>
+      ; halaman ini memakai hasil terbaru.
     </p>
+  );
+}
+
+/** Sesi Google habis: hapus sesi lama lalu kembali ke halaman ini setelah masuk. */
+export function SesiBerakhir() {
+  const router = useRouter();
+  const pathname = usePathname();
+  return (
+    <Alert
+      kind="info"
+      title="Sesi masuk sudah berakhir"
+      action={
+        <Button
+          variant="secondary"
+          onClick={async () => {
+            await lupakanSesi();
+            router.push(`/masuk?next=${encodeURIComponent(pathname)}`);
+          }}
+        >
+          Masuk lagi dengan Google
+        </Button>
+      }
+    >
+      Masuk lagi untuk melanjutkan. Data anak yang tersimpan tidak hilang.
+    </Alert>
+  );
+}
+
+export function GagalMuat() {
+  return (
+    <Alert kind="danger" title="Data belum bisa dimuat">
+      Tidak tersambung ke server SiPesek. Periksa internet, lalu muat ulang halaman ini.
+    </Alert>
   );
 }

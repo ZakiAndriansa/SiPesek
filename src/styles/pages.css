@@ -477,6 +477,14 @@
   }
 }
 
+/* Isi data akun Google (features/ortu/WizardOrtu). */
+.wizard-ortu__anak {
+  margin: 0 0 var(--space-4);
+}
+.wizard-ortu__catatan {
+  margin: var(--space-4) 0 0;
+}
+
 /* Riwayat cek tersimpan per anak (akun Google) di halaman Data Anak. */
 .riwayat-anak {
   display: grid;

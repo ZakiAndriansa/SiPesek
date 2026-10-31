@@ -40,9 +40,9 @@ export function MenuAnakOrtu() {
         </button>
       ))}
       <hr className="menu__sep" />
-      <Link className="menu__item" href="/cek-cepat">
+      <Link className="menu__item" href="/isi-data/1?baru=1">
         <Icon name="plus" className="icon icon--sm" />
-        Cek anak lain
+        Tambah anak
       </Link>
     </Menu>
   );

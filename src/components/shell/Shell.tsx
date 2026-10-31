@@ -8,6 +8,7 @@ import {
   STAGES,
   stageStatus,
   WIZARD_TOTAL,
+  WIZARD_TOTAL_ORTU,
   type Session,
 } from "@/lib/accounts";
 import { MenuAnakOrtu } from "@/features/ortu/MenuAnakOrtu";
@@ -121,12 +122,15 @@ export function FocusChrome({ step, children }: { step: Promise<number>; childre
 
 async function WizardBar({ step: langkah }: { step: Promise<number> }) {
   const [step, session] = await Promise.all([langkah, getSession()]);
-  const name = session?.child ? firstName(session.child.name) : null;
+  // Akun Google: nama anak ada di API (dibaca di klien), dan langkahnya 4.
+  const google = session?.account === "google";
+  const total = google ? WIZARD_TOTAL_ORTU : WIZARD_TOTAL;
+  const name = !google && session?.child ? firstName(session.child.name) : null;
   return (
     <FocusBar
-      title={name ? `Data ${name}` : "Data anak baru"}
-      subtitle={`Langkah ${step} dari ${WIZARD_TOTAL}`}
-      progress={{ step, total: WIZARD_TOTAL }}
+      title={google ? "Isi data anak" : name ? `Data ${name}` : "Data anak baru"}
+      subtitle={`Langkah ${Math.min(step, total)} dari ${total}`}
+      progress={{ step: Math.min(step, total), total }}
       exit={KELUAR_WIZARD}
     />
   );

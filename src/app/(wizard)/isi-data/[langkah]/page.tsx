@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Alert, Button, ButtonGroup, PageHeader } from "@/components";
 import { getSession } from "@/lib/session";
 import { WizardForm } from "@/features/isi-data/WizardForm";
+import { WizardOrtu } from "@/features/ortu/WizardOrtu";
 import { StepTransition } from "@/components/motion/PageTransition";
 import {
   AFTER_LAST,
@@ -16,7 +17,7 @@ import {
 
 type Props = {
   params: Promise<{ langkah: string }>;
-  searchParams: Promise<{ terkunci?: string; dari?: string }>;
+  searchParams: Promise<{ terkunci?: string; dari?: string; baru?: string }>;
 };
 
 const LOCKED_LABEL: Record<string, string> = {
@@ -32,8 +33,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const found = getStep((await params).langkah);
   if (!found) return {};
-  const title = `Langkah ${found.n}: ${found.step.title}`;
-  return { title, description: found.step.desc };
+  // Judul netral: akun Google memakai 4 langkah dengan urutan berbeda dari wizard prototipe.
+  return { title: `Isi data anak, langkah ${found.n}`, description: "Isi data anak untuk menghitung peluang SPMB." };
 }
 
 // Seluruh isi bergantung pada langkah di URL, jadi dialirkan di balik Suspense.
@@ -48,6 +49,9 @@ export default function IsiDataPage({ params, searchParams }: Props) {
 async function IsiLangkah({ params, searchParams }: Props) {
   const found = getStep((await params).langkah);
   if (!found) notFound();
+  // Akun Google: isi data asli (4 langkah, tersambung ke API). Akun contoh tetap memakai wizard prototipe.
+  const session = await getSession();
+  if (session?.account === "google") return <WizardOrtu n={found.n} baru={(await searchParams).baru === "1"} />;
   const { n, step } = found;
   const isLast = n === TOTAL;
   const next = isLast ? AFTER_LAST : stepHref(n + 1);
@@ -55,7 +59,7 @@ async function IsiLangkah({ params, searchParams }: Props) {
   const query = await searchParams;
   const locked = LOCKED_LABEL[query.terkunci ?? ""];
   const fromQuick = query.dari === "cek-cepat";
-  const data = (await getSession())?.child?.data;
+  const data = session?.child?.data;
 
   return (
     <StepTransition>

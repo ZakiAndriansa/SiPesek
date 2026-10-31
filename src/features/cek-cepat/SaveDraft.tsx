@@ -5,7 +5,9 @@ import { Alert, Button, ButtonGroup, Choice, ChoiceGroup, Field, Form } from "@/
 import type { PermintaanSimpanCek, ResponsSimpanCek } from "@/lib/kontrak";
 import { toRequest, type QuickDraft } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
+import { simpanIsian } from "@/features/ortu/isian";
 import { tandaiUsang } from "@/features/ortu/store";
+import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
 import { clearDraft, getDraft, setBaruDisimpan } from "./draft-store";
 
 const JENJANG = { sma: "SMA", smk: "SMK", belum: "Belum tahu (SMA dan SMK)" } as const;
@@ -70,9 +72,25 @@ export function SaveDraft() {
         setGalat({ pesan: isi?.galat ?? "Hasil belum bisa disimpan. Coba lagi sebentar lagi." });
       } else {
         const hasil = isi as ResponsSimpanCek;
-        setBaruDisimpan({ result: hasil, input, anakBaru: hasil.anakBaru });
+        const nama = hasil.anak?.nama ?? "Anak";
+        setBaruDisimpan({
+          result: hasil,
+          input,
+          pesan: hasil.anakBaru
+            ? `${nama} sudah ditambahkan ke akun, dan hasil ini masuk ke riwayatnya.`
+            : `NISN ini sudah ada di akun, jadi hasil ini masuk ke riwayat ${nama}.`,
+        });
         // Navbar dan halaman tahap memuat ulang daftar anak, dengan anak ini sebagai anak aktif.
-        if (hasil.anak) tandaiUsang(hasil.anak.id);
+        if (hasil.anak) {
+          tandaiUsang(hasil.anak.id);
+          // Isian Cek Cepat jadi isian anak ini, agar "Cek lagi" membuka isi data yang sudah terisi.
+          // Titik rumah tidak ikut, sama seperti isian wizard.
+          const { jenjang, nilai, tkaBin, tkaMtk, mapel, ketm, disabilitas, pindahTugas, kecamatan } = input;
+          simpanIsian(hasil.anak.id, {
+            jenjang, nilai, tkaBin, tkaMtk, mapel, ketm, disabilitas, pindahTugas, kecamatan,
+            langkah: WIZARD_TOTAL_ORTU,
+          });
+        }
         clearDraft();
         router.push(`/hasil/${hasil.token}`);
         return;
@@ -100,8 +118,9 @@ export function SaveDraft() {
         <li>Hasil peluang di tiap sekolah beserta skor akhirnya</li>
       </ul>
       <p className="text-secondary">
-        NISN disimpan tersandi; yang bisa dibaca hanya 3 angka terakhirnya. Titik rumah dan nilai rapor{semester > 0 ? ` (${semester} semester)` : ""} tidak
-        disimpan.
+        NISN disimpan tersandi; yang bisa dibaca hanya 3 angka terakhirnya. Titik rumah tidak disimpan. Nilai rapor
+        {semester > 0 ? ` (${semester} semester)` : ""} tidak disimpan di server; isian ini hanya diingat di perangkat ini agar
+        cek berikutnya tidak perlu mengisi ulang, dan terhapus saat Bapak/Ibu keluar.
       </p>
       <Form id="simpan-form" onValid={submit}>
         <Field
