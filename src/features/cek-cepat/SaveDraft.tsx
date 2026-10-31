@@ -70,7 +70,14 @@ export function SaveDraft() {
         setGalat({ pesan: isi?.galat ?? "Hasil belum bisa disimpan. Coba lagi sebentar lagi." });
       } else {
         const hasil = isi as ResponsSimpanCek;
-        setBaruDisimpan({ result: hasil, input, anakBaru: hasil.anakBaru });
+        const nama = hasil.anak?.nama ?? "Anak";
+        setBaruDisimpan({
+          result: hasil,
+          input,
+          pesan: hasil.anakBaru
+            ? `${nama} sudah ditambahkan ke akun, dan hasil ini masuk ke riwayatnya.`
+            : `NISN ini sudah ada di akun, jadi hasil ini masuk ke riwayat ${nama}.`,
+        });
         // Navbar dan halaman tahap memuat ulang daftar anak, dengan anak ini sebagai anak aktif.
         if (hasil.anak) tandaiUsang(hasil.anak.id);
         clearDraft();

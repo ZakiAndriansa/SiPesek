@@ -4,6 +4,8 @@
 // modul supaya navbar dan halaman tahap memakai data yang sama tanpa mengambil ulang tiap pindah halaman.
 import { useEffect, useSyncExternalStore } from "react";
 import type { AnakRingkas, ResponsAnak, ResponsPeluang, ResponsRiwayat, RiwayatCek } from "@/lib/kontrak";
+import { lupakanIsian } from "./isian";
+import { lupakanPilihan } from "./pilihan";
 
 export type AnakOrtu = AnakRingkas & { riwayat: RiwayatCek[] };
 export type StatusOrtu = "memuat" | "ada" | "belum-masuk" | "galat";
@@ -87,10 +89,20 @@ function pastikanMuat() {
 /**
  * Lupakan data akun ini dari memori tab. Dipanggil saat keluar dan saat masuk, karena keduanya pindah halaman
  * tanpa memuat ulang tab: tanpa ini, akun berikutnya di tab yang sama sempat melihat anak akun sebelumnya.
+ * Saat keluar (`perangkat`), isian wizard, pilihan, dan centang berkas di perangkat ini ikut dihapus.
  */
-export function lupakanDataOrtu() {
+export function lupakanDataOrtu({ perangkat = false }: { perangkat?: boolean } = {}) {
   sudahMuat = false;
   tulisAktif(null);
+  lupakanIsian();
+  if (perangkat) {
+    lupakanPilihan();
+    try {
+      for (const k of Object.keys(localStorage)) if (k.startsWith("sipesek:")) localStorage.removeItem(k);
+    } catch {
+      // Penyimpanan browser diblokir: tidak ada yang tersimpan.
+    }
+  }
   ubah({ status: "memuat", anak: [], aktifId: null, hasil: {} });
 }
 

@@ -112,3 +112,6 @@ export function useBerkas(anakId: number | null) {
       kunci && tulis(kunci, JSON.stringify(centang ? [...new Set([...siap, nilai])] : siap.filter((x) => x !== nilai))),
   };
 }
+
+/** Kosongkan salinan memori (dipanggil setelah localStorage dibersihkan saat keluar). */
+export const lupakanPilihan = () => memori.clear();

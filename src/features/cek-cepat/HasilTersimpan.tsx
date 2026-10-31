@@ -94,9 +94,7 @@ export function HasilTersimpan({ token }: { token: string }) {
     <div className="stack">
       {baru && (
         <Alert kind="success" title="Hasil tersimpan">
-          {baru.anakBaru
-            ? `${nama} sudah ditambahkan ke akun, dan hasil ini masuk ke riwayatnya.`
-            : `NISN ini sudah ada di akun, jadi hasil ini masuk ke riwayat ${nama}.`}
+          {baru.pesan}
         </Alert>
       )}
       <div className="no-print">

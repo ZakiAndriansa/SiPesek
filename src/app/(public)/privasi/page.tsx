@@ -69,6 +69,11 @@ export default function PrivasiPage() {
             </li>
           </ol>
           <p className="card__text">
+            Isian di menu Isi data anak (nilai rapor, TKA, kondisi keluarga, dan kecamatan) disimpan di browser perangkat
+            Bapak/Ibu sendiri, bukan di server, agar pengisian bisa dilanjutkan nanti. NISN dan titik rumah tidak ikut
+            disimpan, dan semua isian itu terhapus dari perangkat saat Bapak/Ibu keluar.
+          </p>
+          <p className="card__text">
             Jalur afirmasi (KETM dan disabilitas), anak guru, dan perpindahan tugas orang tua hanya dihitung bila
             kondisinya dipilih. Artinya, riwayat cek juga menunjukkan kondisi tersebut. Data ini hanya terlihat oleh
             pemilik akun dan tidak ditampilkan di dashboard.

@@ -25,6 +25,8 @@ export type Session = {
 };
 
 export const WIZARD_TOTAL = 5;
+/** Jumlah langkah isi data untuk akun Google (features/ortu/WizardOrtu): tanpa langkah Prestasi lomba, yang tidak dihitung mesin. */
+export const WIZARD_TOTAL_ORTU = 4;
 
 export const COOKIE = {
   account: "sipesek_akun",

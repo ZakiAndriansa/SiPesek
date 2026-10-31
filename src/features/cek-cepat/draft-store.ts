@@ -17,7 +17,8 @@ export const clearDraft = () => {
 
 // Hasil yang baru disimpan, lengkap dengan rincian skor dan isian (keduanya tidak disimpan di server),
 // supaya halaman /hasil/[token] tepat setelah simpan tampil sama seperti di Cek Cepat.
-type BaruDisimpan = { result: ResponsPeluang; input: QuickCheckInput; anakBaru: boolean };
+/** `pesan`: kalimat sukses di atas hasil, mis. anak baru ditambahkan atau hasil masuk ke riwayat. */
+type BaruDisimpan = { result: ResponsPeluang; input: QuickCheckInput; pesan: string };
 let baruDisimpan: BaruDisimpan | null = null;
 
 export const setBaruDisimpan = (value: BaruDisimpan) => {

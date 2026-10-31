@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { Alert, Badge, Button, Dialog, Icon } from "@/components";
 import type { RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
+import { bacaIsian, hapusIsian, lanjutIsiHref } from "@/features/ortu/isian";
 import { pilihAnakAktif, segarkanOrtu, useOrtu, type AnakOrtu } from "@/features/ortu/store";
+import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
 
 const BATAS_ANAK = 5;
 const JENJANG: Record<RiwayatCek["jenjang"], string> = { SMA: "SMA", SMK: "SMK", SEMUA: "SMA dan SMK" };
@@ -25,6 +27,7 @@ export function RiwayatAnak() {
     setGalatHapus("");
     const res = await fetch(`/api/ortu/anak/${id}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) return setGalatHapus("Data anak belum bisa dihapus. Periksa internet, lalu coba lagi.");
+    hapusIsian(id);
     await segarkanOrtu();
   }
 
@@ -67,13 +70,19 @@ export function RiwayatAnak() {
   if (anak.length === 0) {
     return (
       <div className="card empty-state">
-        <h2 className="card__title">Belum ada hasil tersimpan</h2>
+        <h2 className="card__title">Belum ada data anak</h2>
         <p className="card__text">
-          Cek peluang anak lewat Cek Cepat, lalu tekan Simpan di akhir hasil. Anak dan hasilnya langsung muncul di sini.
+          Isi data anak dalam 4 langkah (sekitar 5 menit), atau coba Cek Cepat lalu tekan Simpan di akhir hasil. Anak dan
+          hasilnya langsung muncul di sini.
         </p>
-        <Button variant="primary" lg href="/cek-cepat" icon="arrow-right">
-          Mulai Cek Cepat
-        </Button>
+        <div className="button-group">
+          <Button variant="primary" lg href="/isi-data/1?baru=1" icon="arrow-right">
+            Isi data anak
+          </Button>
+          <Button variant="secondary" lg href="/cek-cepat">
+            Coba Cek Cepat
+          </Button>
+        </div>
       </div>
     );
   }
@@ -87,15 +96,15 @@ export function RiwayatAnak() {
           a={a}
           aktif={a.id === aktif?.id}
           onHapus={() => hapus(a.id)}
-          onLihat={() => {
+          onBuka={(tujuan) => {
             pilihAnakAktif(a.id);
-            router.push("/peta-sekolah");
+            router.push(tujuan);
           }}
         />
       ))}
       {anak.length < BATAS_ANAK ? (
-        <Button variant="secondary" block href="/cek-cepat" iconLeft="plus">
-          Cek anak lain
+        <Button variant="secondary" block href="/isi-data/1?baru=1" iconLeft="plus">
+          Tambah anak
         </Button>
       ) : (
         <p className="text-secondary">Satu akun paling banyak {BATAS_ANAK} anak. Hapus salah satu untuk menambah anak lain.</p>
@@ -104,7 +113,20 @@ export function RiwayatAnak() {
   );
 }
 
-function KartuAnak({ a, aktif, onHapus, onLihat }: { a: AnakOrtu; aktif: boolean; onHapus: () => void; onLihat: () => void }) {
+function KartuAnak({
+  a,
+  aktif,
+  onHapus,
+  onBuka,
+}: {
+  a: AnakOrtu;
+  aktif: boolean;
+  onHapus: () => void;
+  onBuka: (tujuan: string) => void;
+}) {
+  // Isian wizard di perangkat ini: dipakai untuk "Lanjutkan isi data" (langkah terakhir yang tersimpan).
+  const langkah = bacaIsian(a.id)?.langkah ?? 0;
+  const setengah = langkah > 0 && langkah < WIZARD_TOTAL_ORTU;
   const dialog = `dlg-hapus-anak-${a.id}`;
   return (
     <article className={`card riwayat-anak__kartu${aktif ? " child-card--active" : ""}`}>
@@ -155,9 +177,18 @@ function KartuAnak({ a, aktif, onHapus, onLihat }: { a: AnakOrtu; aktif: boolean
       )}
 
       <div className="button-group">
-        {a.riwayat.length > 0 && (
-          <Button variant="primary" icon="arrow-right" onClick={onLihat}>
+        {a.riwayat.length > 0 && !setengah ? (
+          <Button variant="primary" icon="arrow-right" onClick={() => onBuka("/peta-sekolah")}>
             Lihat hasil, strategi, dan dokumen
+          </Button>
+        ) : (
+          <Button variant="primary" icon="arrow-right" onClick={() => onBuka(lanjutIsiHref(a.id))}>
+            {setengah ? `Lanjutkan isi data (langkah ${langkah + 1} dari ${WIZARD_TOTAL_ORTU})` : "Isi data anak"}
+          </Button>
+        )}
+        {a.riwayat.length > 0 && (
+          <Button variant="secondary" onClick={() => onBuka(setengah ? "/peta-sekolah" : "/isi-data/1")}>
+            {setengah ? "Lihat hasil terakhir" : "Perbarui data dan cek lagi"}
           </Button>
         )}
         <Button variant="ghost" iconLeft="trash" opens={dialog}>
