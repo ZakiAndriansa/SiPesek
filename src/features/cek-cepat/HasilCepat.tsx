@@ -182,9 +182,10 @@ function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => 
   const utama = skor.find((s) => s.nilai !== null) ?? skor[0];
   const r = ringkasan(result.hasil);
   return (
-    <section className="card hasil-ringkas" aria-labelledby="q-ringkas">
+    <section className="card hasil-ringkas" aria-label="Skor akhir dan peluang">
+      {/* Judul bagian berukuran judul, bukan label kecil, agar angka di bawahnya jelas terbaca sebagai skor akhir. */}
       <div className="hasil-ringkas__kepala">
-        <p className="hasil-skor__langkah">{utama ? "Skor akhir anak" : "Peluang di sekolah negeri"}</p>
+        <h2 className="hasil-ringkas__bagian">{utama ? "Skor akhir anak" : "Peluang di sekolah negeri"}</h2>
         <HelpLink opens="dlg-baca-hasil">Cara membaca</HelpLink>
       </div>
 
@@ -208,9 +209,8 @@ function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => 
           </>
         ))}
 
-      {/* Skor dan peluang dipisah garis tipis agar angka di atas jelas terbaca sebagai skor akhir. */}
-      {utama && <p className="hasil-skor__langkah hasil-ringkas__pemisah">Peluang di sekolah negeri</p>}
-      <h2 className="hasil-ringkas__judul" id="q-ringkas">{r.judul}</h2>
+      {utama && <h2 className="hasil-ringkas__bagian hasil-ringkas__pemisah">Peluang di sekolah negeri</h2>}
+      <p className="hasil-ringkas__judul">{r.judul}</p>
       {r.jumlah.length > 0 && (
         <ul className="hasil-ringkas__jumlah" aria-label="Jumlah sekolah per label">
           {r.jumlah.map((j) => (

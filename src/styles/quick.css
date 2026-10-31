@@ -95,9 +95,9 @@
 .hasil-ringkas__judul {
   margin: 0;
   color: var(--color-ink);
-  font-family: var(--font-heading);
-  font-size: var(--text-heading-md);
-  line-height: 1.25;
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
 }
 .hasil-ringkas__jumlah {
   display: flex;
@@ -198,14 +198,13 @@
   }
 }
 
-/* Skor akhir anak: tampil sebelum peluang. */
-.hasil-skor__langkah {
+/* Judul bagian di kartu hasil: "Skor akhir anak" lalu "Peluang di sekolah negeri". */
+.hasil-ringkas__bagian {
   margin: 0;
-  color: var(--color-primary-text);
-  font-size: var(--text-caption);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-heading-md);
+  line-height: 1.25;
 }
 .hasil-skor__angka {
   display: flex;
