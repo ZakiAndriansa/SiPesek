@@ -27,3 +27,13 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/hasil/[t
     ...tersimpan,
   } satisfies ResponsPeluang);
 }
+
+// Menghapus satu hasil dari riwayat anak; anak dan hasil lainnya tetap. Hasil milik akun lain dijawab 404.
+export async function DELETE(request: NextRequest, ctx: RouteContext<"/api/hasil/[token]">) {
+  const ortu = await orangTuaMasuk(request);
+  if (!ortu) return tolakTanpaSesiOrtu();
+
+  const { token } = await ctx.params;
+  const { count } = await prisma.cekPeluang.deleteMany({ where: { token, anak: { orangTuaId: ortu.id } } });
+  return count ? Response.json({ ok: true }) : galat("Hasil tidak ditemukan.", 404);
+}

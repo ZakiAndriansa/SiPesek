@@ -168,6 +168,7 @@ export type ResponsPeluang = {
 
 // GET /api/hasil/[token] mengembalikan ResponsPeluang yang sama, hanya untuk orang tua pemiliknya
 // (404 bila milik akun lain). Ambil di klien dengan fetch("/api/hasil/...") agar cookie ikut terkirim.
+// DELETE /api/hasil/[token]: hapus satu hasil dari riwayat anak (200 { ok: true }, 401, atau 404).
 
 // ---------- Orang tua: masuk dengan Google dan data anak ----------
 // Semua rute di bawah (kecuali masuk dan keluar) membalas 401 bila belum masuk.

@@ -505,6 +505,34 @@
 .riwayat-anak__daftar li {
   border-bottom: 1px solid var(--color-border-subtle);
 }
+.riwayat-anak__baris {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.riwayat-anak__baris > .riwayat-anak__tautan {
+  flex: 1;
+  min-width: 0;
+}
+.riwayat-anak__baris > .alert {
+  flex-basis: 100%;
+  margin-bottom: var(--space-3);
+}
+.hasil-sekolah__sumber {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+.hasil-sekolah__sumber > .sumber-hasil {
+  flex: 1 1 20rem;
+  margin: 0;
+}
+.hasil-sekolah__sumber > .alert {
+  flex-basis: 100%;
+}
 .riwayat-anak__tautan {
   display: flex;
   align-items: center;

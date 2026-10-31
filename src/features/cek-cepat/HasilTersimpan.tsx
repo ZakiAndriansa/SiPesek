@@ -5,6 +5,7 @@ import { Alert, Button } from "@/components";
 import type { ResponsPeluang } from "@/lib/kontrak";
 import type { QuickCheckInput } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
+import { HapusHasil } from "@/features/ortu/HapusHasil";
 import { CEK_LAGI_HREF } from "@/features/ortu/isian";
 import { pilihAnakAktif } from "@/features/ortu/store";
 import { ambilBaruDisimpan } from "./draft-store";
@@ -126,6 +127,9 @@ export function HasilTersimpan({ token }: { token: string }) {
         <Button variant="ghost" href="/anak-saya">
           Semua riwayat
         </Button>
+        {anakId && (
+          <HapusHasil token={token} nama={nama} dibuatPada={result.dibuatPada} setelahHapus={() => router.push("/anak-saya")} />
+        )}
       </HasilCepat>
     </div>
   );
