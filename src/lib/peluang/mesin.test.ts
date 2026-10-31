@@ -148,3 +148,29 @@ describe("rumus skor juknis 2026 dengan nilai sempurna", () => {
     expect(hitungSkor(aturan.rumusSkor["SMK:PRESTASI_KELAS_INDUSTRI"], { mapel }, "BISNIS")).toBe(840);
   });
 });
+
+describe("mesin peluang: skor akhir anak", () => {
+  it("menghitung skor akhir, rinciannya, dan rentang skor terendah yang diterima", () => {
+    const [skor, ...lain] = hitungPeluang(minta({ nilai: { rataRapor: 90, tkaBin: 80, tkaMtk: 70 } }), data).skorAnak;
+    expect(lain).toEqual([]);
+    expect(skor).toMatchObject({
+      jenjang: "SMA",
+      subJalurKode: "PRESTASI_AKD_RAPOR",
+      nilai: 300,
+      maks: 350,
+      kurang: [],
+      rincian: [
+        { label: "Rapor", nilai: 225, maks: 250 },
+        { label: "TKA", nilai: 75, maks: 100 },
+      ],
+      terendahDiterima: { dari: 300.88, sampai: 300.88 },
+    });
+  });
+
+  it("menyebut isian yang kurang bila skor belum bisa dihitung", () => {
+    const [skor] = hitungPeluang(minta({ nilai: { rataRapor: 90 } }), data).skorAnak;
+    expect(skor.nilai).toBeNull();
+    expect(skor.rincian).toEqual([]);
+    expect(skor.kurang).toEqual(["TKA B. Indonesia", "TKA Matematika"]);
+  });
+});

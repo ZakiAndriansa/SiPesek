@@ -10,9 +10,10 @@ import type {
   LabelPeluang,
   PermintaanPeluang,
   SekolahRingkas,
+  SkorAnak,
 } from "@/lib/kontrak";
-import type { KodeSubJalur } from "@/lib/jalur";
-import type { Aturan } from "@/lib/validasi";
+import { SUB_JALUR, type KodeSubJalur } from "@/lib/jalur";
+import type { Aturan, RumusSkor } from "@/lib/validasi";
 import { bulat50, formatJarak, jarakMeter } from "./jarak";
 import { hitungSkor } from "./skor";
 
@@ -47,6 +48,7 @@ export type HasilMesin = {
   hasil: HasilSekolah[];
   swasta: { SMA: AlternatifSwasta[]; SMK: AlternatifSwasta[] };
   catatan: string;
+  skorAnak: SkorAnak[];
 };
 
 const URUTAN_LABEL: Record<LabelPeluang, number> = {
@@ -208,7 +210,96 @@ export function hitungPeluang(p: PermintaanPeluang, data: DataMesin): HasilMesin
     hasil,
     swasta: { SMA: swastaTerdekat("SMA"), SMK: swastaTerdekat("SMK") },
     catatan: `Perkiraan berdasarkan hasil SPMB ${data.tahun}. Bukan jaminan dan bukan aplikasi resmi.`,
+    skorAnak: skorAnak(p, data),
   };
+}
+
+const MAPEL_NAMA = { bin: "B. Indonesia", mtk: "Matematika", ipa: "IPA", ips: "IPS", bing: "B. Inggris" } as const;
+const desimal = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+const bulat2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Skor akhir anak per jalur skor yang dibuka jenjang tujuan, beserta rincian dan rentang skor terendah
+ * yang diterima antarsekolah. Rumusnya sama dengan yang dipakai untuk label (hitungSkor).
+ */
+function skorAnak(p: PermintaanPeluang, data: DataMesin): SkorAnak[] {
+  const jenjangSekolah = new Map(data.sekolah.map((s) => [s.id, s.jenjang]));
+  const nilai = p.nilai ?? {};
+  const hasil: SkorAnak[] = [];
+  for (const [kunci, rumus] of Object.entries(data.aturan.rumusSkor)) {
+    const [jenjang, kode] = kunci.split(":") as [Jenjang, KodeSubJalur];
+    if (!cocokJenjang(jenjang, p.jenjang)) continue;
+    const kelompokList = rumus.jenis === "RAPOR_BOBOT_MAPEL" ? Object.keys(rumus.bobot) : [null];
+    for (const kelompok of kelompokList) {
+      const stat = data.statistik.filter(
+        (s) =>
+          s.subJalurKode === kode &&
+          s.metrik === "SKOR" &&
+          s.diterima >= data.aturan.minDiterima &&
+          s.min !== null &&
+          jenjangSekolah.get(s.sekolahId) === jenjang &&
+          (kelompok === null || s.program?.kelompokBobot === kelompok),
+      );
+      if (stat.length === 0) continue;
+      const mins = stat.map((s) => s.min!);
+      const nilaiAnak = hitungSkor(rumus, p.nilai, kelompok);
+      hasil.push({
+        jenjang,
+        subJalurKode: kode,
+        namaJalur: SUB_JALUR.find((j) => j.kode === kode)?.namaTampilan ?? kode,
+        kelompok,
+        nilai: nilaiAnak === null ? null : bulat2(nilaiAnak),
+        maks: rumus.skorMaks,
+        ...uraian(rumus, nilai, kelompok),
+        rincian: nilaiAnak === null ? [] : rincian(rumus, nilai, kelompok),
+        terendahDiterima: { dari: Math.min(...mins), sampai: Math.max(...mins) },
+      });
+    }
+  }
+  return hasil;
+}
+
+function uraian(rumus: RumusSkor, n: NonNullable<PermintaanPeluang["nilai"]>, kelompok: string | null) {
+  switch (rumus.jenis) {
+    case "RAPOR_TKA":
+      return {
+        rumus: `${desimal(rumus.bobotRapor)} × 5 × rata-rata rapor + ${desimal(rumus.bobotTka)} × (TKA B. Indonesia + TKA Matematika)`,
+        kurang: [
+          n.rataRapor === undefined && "rata-rata rapor",
+          n.tkaBin === undefined && "TKA B. Indonesia",
+          n.tkaMtk === undefined && "TKA Matematika",
+        ].filter((x): x is string => !!x),
+      };
+    case "RAPOR":
+      return { rumus: "5 × rata-rata rapor", kurang: n.rataRapor === undefined ? ["rata-rata rapor"] : [] };
+    case "RAPOR_BOBOT_MAPEL": {
+      const bobot = rumus.bobot[kelompok ?? ""] ?? {};
+      return {
+        rumus: (Object.keys(MAPEL_NAMA) as (keyof typeof MAPEL_NAMA)[]).map((k) => `${bobot[k]} × ${MAPEL_NAMA[k]}`).join(" + "),
+        kurang: n.mapel ? [] : ["rata-rata 5 mapel"],
+      };
+    }
+  }
+}
+
+function rincian(rumus: RumusSkor, n: NonNullable<PermintaanPeluang["nilai"]>, kelompok: string | null): SkorAnak["rincian"] {
+  switch (rumus.jenis) {
+    case "RAPOR_TKA":
+      return [
+        { label: "Rapor", nilai: bulat2(rumus.bobotRapor * 5 * n.rataRapor!), maks: rumus.bobotRapor * 500 },
+        { label: "TKA", nilai: bulat2(rumus.bobotTka * (n.tkaBin! + n.tkaMtk!)), maks: rumus.bobotTka * 200 },
+      ];
+    case "RAPOR":
+      return [{ label: "Rapor", nilai: bulat2(5 * n.rataRapor!), maks: 500 }];
+    case "RAPOR_BOBOT_MAPEL": {
+      const bobot = rumus.bobot[kelompok ?? ""];
+      return (Object.keys(MAPEL_NAMA) as (keyof typeof MAPEL_NAMA)[]).map((k) => ({
+        label: MAPEL_NAMA[k],
+        nilai: bulat2(bobot[k] * n.mapel![k]),
+        maks: bobot[k] * 100,
+      }));
+    }
+  }
 }
 
 function tanpaBiaya({ id, npsn, nama, jenjang, status, kategori, alamat, kecamatan, lat, lng, akreditasi, rayonKode }: SekolahMesin): SekolahRingkas {

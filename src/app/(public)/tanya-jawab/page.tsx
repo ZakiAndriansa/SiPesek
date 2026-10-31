@@ -7,23 +7,28 @@ import {
   PageHeader,
   CtaBand,
   Badge,
+  MoreLink,
 } from "@/components";
+import { ctaUntuk } from "@/components/landing/cta";
 import { FAQ_GROUPS } from "@/data/faq";
+import { EMAIL_KONTAK } from "@/data/kontak";
+import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Tanya Jawab",
-  description: "Jawaban atas pertanyaan yang sering diajukan orang tua seputar SPMB dan SIPESEK.",
+  description: "Jawaban singkat seputar cara SiPesek menghitung peluang, keamanan data anak, dan akun.",
 };
 
-export default function TanyaJawabPage() {
+export default async function TanyaJawabPage() {
+  const cta = ctaUntuk(await getSession());
   return (
     <Container>
-      
+
       <PageHeader
         reveal
         art="faq"
-        title="Tanya Jawab & Bantuan"
-        desc="Temukan jawaban cepat seputar metodologi prediksi, keamanan data keluarga, dan panduan teknis pengisian."
+        title="Tanya Jawab"
+        desc="Jawaban singkat seputar cara SiPesek menghitung peluang, keamanan data anak, dan akun."
       />
 
       {/* Topic Chips */}
@@ -52,27 +57,26 @@ export default function TanyaJawabPage() {
                 <Badge kind="brand">{group.items.length} Pertanyaan</Badge>
               </div>
               <Accordion items={group.items} openFirst={i === 0} />
+              {group.link && (
+                <div style={{ marginTop: "16px" }}>
+                  <MoreLink href={group.link.href}>{group.link.label}</MoreLink>
+                </div>
+              )}
             </section>
           );
         })}
 
         <CtaBand
-          title="Masih Ada Pertanyaan yang Belum Terjawab?"
-          text="Tim pendamping orang tua kami siap membantu menjawab kebingungan seputar SPMB dengan ramah dan sabar."
+          title="Masih ada pertanyaan?"
+          text={`Kirim email ke ${EMAIL_KONTAK} dan ceritakan pertanyaan Bapak/Ibu.`}
         >
           <ButtonGroup>
-          <Button
-            variant="primary"
-            href="https://wa.me/"
-            iconLeft="message"
-            newTab
-          >
-            Chat Tim Bantuan (WhatsApp)
-            <span className="visually-hidden"> (membuka tab baru)</span>
-          </Button>
-          <Button variant="secondary" href="/cek-cepat">
-            Coba Cek Cepat
-          </Button>
+            <Button variant="primary" href={`mailto:${EMAIL_KONTAK}`} iconLeft="message">
+              Kirim Email
+            </Button>
+            <Button variant="secondary" href={cta.href}>
+              {cta.ctaLabel}
+            </Button>
           </ButtonGroup>
         </CtaBand>
       </div>

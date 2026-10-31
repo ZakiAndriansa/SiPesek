@@ -16,7 +16,7 @@ export function Brand({ href, small, lofi }: { href: string; small?: boolean; lo
         width={34}
         height={34}
       />
-      <span>Sipesek</span>
+      <span>SiPesek</span>
     </Link>
   );
 }

@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 import { Container, PageHeader, Section } from "@/components";
 import { MasukGoogle } from "@/components/masuk-google/MasukGoogle";
+import { EMAIL_KONTAK } from "@/data/kontak";
 
 export const metadata: Metadata = {
   title: "Kebijakan Privasi",
   description: "Data apa yang disimpan SiPesek, untuk apa dipakai, dan cara menghapusnya.",
 };
-
-// Ubah bila alamat dukungan berganti; samakan dengan "User support email" di Google Cloud Console.
-const EMAIL_KONTAK = "zandriansa@gmail.com";
 
 // Isi halaman ini harus sesuai dengan yang benar-benar disimpan di prisma/schema.prisma dan
 // src/app/api/peluang/route.ts. Ubah keduanya bersamaan.
@@ -36,8 +34,8 @@ export default function PrivasiPage() {
         <div className="card">
           <h2 className="card__title">Cek Cepat tanpa akun</h2>
           <p className="card__text">
-            NISN hanya diperiksa bentuknya (10 digit dan kewajaran tahun lahir), lalu dibuang. Isian formulir dan hasil
-            hitungan langsung ditampilkan tanpa disimpan.
+            Isian, termasuk NISN dan titik rumah, dikirim ke server SiPesek hanya untuk dihitung. NISN diperiksa bentuknya
+            (10 digit dan kewajaran tahun lahir), lalu semua isian dibuang. Hasil langsung ditampilkan tanpa disimpan.
           </p>
           <p className="card__text">
             Untuk mencegah penyalahgunaan, Cek Cepat dibatasi 10 kali per jam. Karena itu alamat IP perangkat dicatat di
@@ -98,7 +96,8 @@ export default function PrivasiPage() {
           </ol>
           <p className="card__text">
             Data tidak dibagikan ke pihak lain. Pihak yang ikut memproses: Google (proses masuk), Vercel (menyajikan
-            halaman), dan server pengelola SiPesek (menyimpan database).
+            halaman), server pengelola SiPesek (menghitung peluang dan menyimpan database), dan OpenStreetMap (gambar peta
+            di Cek Cepat; menerima alamat IP saat peta dimuat, tetapi tidak pernah menerima titik rumah).
           </p>
         </div>
       </Section>

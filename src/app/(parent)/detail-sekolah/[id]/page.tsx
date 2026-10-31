@@ -192,7 +192,7 @@ async function DetailSekolah({ params }: Props) {
                   {r.peluang}
                 </strong>
               ) : (
-                "—"
+                "-"
               ),
               r.eligible ? (
                 <Badge key="k" kind={r.kind!} />

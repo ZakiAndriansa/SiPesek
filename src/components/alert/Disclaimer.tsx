@@ -4,8 +4,7 @@ import { Alert } from "./Alert";
 export function Disclaimer() {
   return (
     <Alert kind="info" title="Perkiraan, bukan jaminan">
-      Hasil ini adalah perkiraan berdasarkan data tahun-tahun sebelumnya dan
-      bukan jaminan diterima. Keputusan akhir ada pada panitia SPMB.
+      Hasil ini adalah perkiraan berdasarkan hasil SPMB 2026 dan bukan jaminan diterima. Keputusan akhir ada pada panitia SPMB.
     </Alert>
   );
 }

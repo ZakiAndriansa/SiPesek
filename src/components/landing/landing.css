@@ -108,6 +108,11 @@
   line-height: 16px;
 }
 
+/* Keterangan NISN tetap berjarak 28px dari tombol; baris "Gratis" di bawahnya lebih rapat. */
+.landing-trust--hint + .landing-trust {
+  margin-top: 8px;
+}
+
 .landing-hero-visual {
   position: relative;
   width: 520px;
@@ -428,6 +433,8 @@
 
 .landing-path-visual {
   position: relative;
+  /* Panel turun ke dasar kartu agar sejajar walau panjang deskripsi berbeda. */
+  margin-top: auto;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -451,6 +458,41 @@
   font-weight: var(--weight-bold);
   letter-spacing: -0.03em;
   line-height: 76px;
+}
+
+/* Dua angka (SMA dan SMK) berdampingan; ukurannya lebih kecil dari satu angka agar muat di kartu. */
+.landing-path-porsi {
+  position: relative;
+  z-index: 1;
+  display: flex;
+}
+
+/* Garis pemisah SMA dan SMK, tipis dan samar agar angka tetap menonjol. */
+.landing-path-porsi span + span {
+  margin-left: 20px;
+  padding-left: 20px;
+  border-left: 1.5px solid rgba(4, 6, 19, 0.18);
+}
+
+.landing-path-porsi span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(4, 6, 19, 0.69);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+  line-height: 16px;
+}
+
+/* Mengikuti lebar panel: tetap 52px di panel lebar, mengecil di empat kolom yang sempit (sekitar 1024px). */
+.landing-path-visual:has(.landing-path-porsi) {
+  container-type: inline-size;
+}
+
+.landing-path-visual .landing-path-porsi strong {
+  font-size: clamp(36px, 20cqi, 52px);
+  line-height: 1.08;
 }
 
 .landing-path-visual small {

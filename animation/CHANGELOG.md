@@ -18,3 +18,11 @@ Permintaan: halaman `/panduan` dan `/tanya-jawab` belum terlihat beranimasi. Pen
 - `Section` dan `PageHeader` dapat prop `reveal` (muncul pelan, juga bila sudah di layar saat dibuka).
 - Panduan: header, tiap seksi, dan kartu di grid muncul berurutan.
 - Tanya Jawab: header, chip kategori, dan kartu kelompok muncul berurutan.
+
+## 2026-10-31 — Merge origin/main (81c4e5e) ke frontend/animation
+
+Konflik: `panduan/page.tsx`, `QuickCheck.tsx`, `quick.css`. Ketiganya diambil utuh dari main, lalu animasi dipasang ulang:
+- Panduan: `reveal` pada header dan `Section`, `data-reveal-group` pada grid kartu.
+- Cek Cepat: `.quick__card` memakai `rise-in` lagi (quick.css). Hasil ada di `HasilCepat.tsx` (komponen baru main): `data-reveal-live` pada wadah hasil, kartu rekomendasi berurutan, daftar sekolah muncul saat di-scroll.
+- Gauge skor akhir (baru di main): busur terisi sekali (`gauge-fill`), angka di tengah diam.
+- Tidak dipasang ulang: pop label peluang di `SchoolCard` tetap ada untuk halaman hasil sekolah, tetapi Cek Cepat tidak lagi memakai `SchoolCard`.

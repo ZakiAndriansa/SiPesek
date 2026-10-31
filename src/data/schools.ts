@@ -68,7 +68,7 @@ export const SCHOOLS: School[] = [
     kec: "Kec. Harapan Jaya",
     kind: "aman",
     jalur: "Jalur dekat rumah (Domisili)",
-    range: "80–92%",
+    range: "80-92%",
     facts: [
       ["Jarak rumah", "1,2 km"],
       ["Batas tahun lalu", "1,8 km"],
@@ -80,7 +80,7 @@ export const SCHOOLS: School[] = [
       distance: "1,2 km",
       summary:
         "Tahun lalu, anak dengan jarak sampai 1,8 km masih diterima. Jarak rumah Dimas 1,2 km, lebih dekat dari batas itu.",
-      routes: routes(["80–92%", "aman"], ["40–55%", "bersaing"]),
+      routes: routes(["80-92%", "aman"], ["40-55%", "bersaing"]),
       stats: stats("128", "342", "1,8 km", "88,2"),
       reliability: {
         years: 2,
@@ -94,7 +94,7 @@ export const SCHOOLS: School[] = [
     kec: "Kec. Mekar Sari",
     kind: "aman",
     jalur: "Jalur dekat rumah (Domisili)",
-    range: "75–88%",
+    range: "75-88%",
     facts: [
       ["Jarak rumah", "2,0 km"],
       ["Batas tahun lalu", "2,6 km"],
@@ -106,7 +106,7 @@ export const SCHOOLS: School[] = [
       distance: "2,0 km",
       summary:
         "Tahun lalu, anak dengan jarak sampai 2,6 km masih diterima. Jarak rumah Dimas 2,0 km, lebih dekat dari batas itu.",
-      routes: routes(["75–88%", "aman"], ["42–58%", "bersaing"]),
+      routes: routes(["75-88%", "aman"], ["42-58%", "bersaing"]),
       stats: stats("118", "276", "2,6 km", "86,9"),
       reliability: {
         years: 2,
@@ -120,7 +120,7 @@ export const SCHOOLS: School[] = [
     kec: "Kec. Sukamaju Utara",
     kind: "bersaing",
     jalur: "Jalur nilai dan prestasi (Prestasi)",
-    range: "45–60%",
+    range: "45-60%",
     facts: [
       ["Nilai rata-rata Dimas", "86,4"],
       ["Batas tahun lalu", "85,9"],
@@ -132,7 +132,7 @@ export const SCHOOLS: School[] = [
       distance: "3,4 km",
       summary:
         "Nilai rata-rata Dimas 86,4 sedikit di atas batas tahun lalu (85,9). Hasil tergantung jumlah pendaftar tahun ini.",
-      routes: routes(["20–35%", "berisiko"], ["45–60%", "bersaing"]),
+      routes: routes(["20-35%", "berisiko"], ["45-60%", "bersaing"]),
       stats: stats("112", "380", "2,2 km", "85,9"),
       reliability: {
         years: 2,
@@ -146,7 +146,7 @@ export const SCHOOLS: School[] = [
     kec: "Kec. Sukamaju Utara",
     kind: "berisiko",
     jalur: "Jalur nilai dan prestasi (Prestasi)",
-    range: "15–30%",
+    range: "15-30%",
     facts: [
       ["Nilai rata-rata Dimas", "86,4"],
       ["Batas tahun lalu", "91,2"],
@@ -158,7 +158,7 @@ export const SCHOOLS: School[] = [
       distance: "5,2 km",
       summary:
         "Nilai rata-rata Dimas 86,4 masih di bawah batas tahun lalu (91,2). Sebaiknya jadikan pilihan tambahan, bukan satu-satunya.",
-      routes: routes(["5–15%", "berisiko"], ["15–30%", "berisiko"]),
+      routes: routes(["5-15%", "berisiko"], ["15-30%", "berisiko"]),
       stats: stats("144", "640", "1,4 km", "91,2"),
       reliability: {
         years: 2,
@@ -172,7 +172,7 @@ export const SCHOOLS: School[] = [
     kec: "Kec. Tirta Indah",
     kind: "berisiko",
     jalur: "Jalur dekat rumah (Domisili)",
-    range: "10–25%",
+    range: "10-25%",
     facts: [
       ["Jarak rumah", "4,5 km"],
       ["Batas tahun lalu", "1,7 km"],
@@ -184,7 +184,7 @@ export const SCHOOLS: School[] = [
       distance: "4,5 km",
       summary:
         "Rumah Dimas 4,5 km, jauh melewati batas tahun lalu (1,7 km). Pertimbangkan sekolah yang lebih dekat.",
-      routes: routes(["10–25%", "berisiko"], ["25–40%", "berisiko"]),
+      routes: routes(["10-25%", "berisiko"], ["25-40%", "berisiko"]),
       stats: stats("96", "150", "1,7 km", "84,0"),
       reliability: {
         years: 1,

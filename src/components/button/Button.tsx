@@ -62,7 +62,7 @@ export function Button({
   );
 
   if (href) {
-    const external = /^https?:/.test(href);
+    const external = /^(https?|mailto):/.test(href);
     const props = {
       className: cls,
       ...(newTab ? { target: "_blank", rel: "noopener" } : {}),

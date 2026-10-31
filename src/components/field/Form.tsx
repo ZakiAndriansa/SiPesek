@@ -107,9 +107,11 @@ export function Form({
 
   return (
     <ErrorContext.Provider value={errors}>
+      {/* method="post": bila tombol ditekan sebelum JS siap, isian (mis. NISN) tidak ikut masuk URL dan log server. */}
       <form
         className="form"
         id={id}
+        method="post"
         data-validate=""
         data-next={next}
         data-toast={toast}

@@ -60,7 +60,7 @@ export default async function StrategiPage() {
               </h2>
             </div>
             <Badge kind="aman" lg>
-              Peluang 80–92%
+              Peluang 80-92%
             </Badge>
           </div>
           <p style={{ color: "var(--color-ink-soft)", fontSize: "15px", lineHeight: "1.6" }}>
@@ -140,7 +140,7 @@ export default async function StrategiPage() {
                 </>,
                 <>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                    <Badge kind="aman" /> <strong style={{ color: "var(--color-success-text)" }}>80–92%</strong>
+                    <Badge kind="aman" /> <strong style={{ color: "var(--color-success-text)" }}>80-92%</strong>
                     <Badge kind="brand">Sangat Disarankan</Badge>
                   </div>
                   <span className="table__muted">
@@ -159,7 +159,7 @@ export default async function StrategiPage() {
                 </>,
                 <>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                    <Badge kind="bersaing" /> <strong style={{ color: "var(--color-warning-text)" }}>45–60%</strong>
+                    <Badge kind="bersaing" /> <strong style={{ color: "var(--color-warning-text)" }}>45-60%</strong>
                   </div>
                   <span className="table__muted">
                     Bagus untuk satu pilihan ambisius di sekolah favorit tanpa membebani pilihan kedua dan ketiga.

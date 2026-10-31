@@ -210,9 +210,9 @@
     "semantic_hash": ""
   },
   "src/app/(public)/panduan/page.tsx": {
-    "mtime": 1793363294.6039634,
-    "seen": 1793375760.1223638,
-    "ast_hash": "7cd26be85309c5d65d07e1e185fa4545",
+    "mtime": 1793426546.1854692,
+    "seen": 1793426816.8497045,
+    "ast_hash": "f7d170ef168fa5cd089fc3732ce28628",
     "semantic_hash": ""
   },
   "src/app/(public)/privasi/page.tsx": {
@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "src/app/(public)/tanya-jawab/page.tsx": {
-    "mtime": 1793363294.6039634,
-    "seen": 1793375760.1223667,
-    "ast_hash": "694927d8f58750bc3dd1aee35f2da694",
+    "mtime": 1793426546.1864734,
+    "seen": 1793426816.8497112,
+    "ast_hash": "206d859a0dc10f09dc94896382340a5a",
     "semantic_hash": ""
   },
   "src/app/(quick)/cek-cepat/page.tsx": {
@@ -534,9 +534,9 @@
     "semantic_hash": ""
   },
   "src/components/page/Page.tsx": {
-    "mtime": 1793351398.1300657,
-    "seen": 1793375760.1224482,
-    "ast_hash": "fddb9b668f0867250b972aa628261c53",
+    "mtime": 1793426546.1847482,
+    "seen": 1793426816.8498435,
+    "ast_hash": "a66c89b08b60dbf2be23885242c8b183",
     "semantic_hash": ""
   },
   "src/components/page/RankList.tsx": {
@@ -1044,9 +1044,9 @@
     "semantic_hash": ""
   },
   "animation/CHANGELOG.md": {
-    "mtime": 1793425993.3396778,
-    "seen": 1793426009.6448963,
-    "ast_hash": "663dac6bf21c05c1f47174ca96ab7db8",
+    "mtime": 1793426809.6252797,
+    "seen": 1793426816.8500118,
+    "ast_hash": "e348b28e4f89b1aad54b771ce4c097c9",
     "semantic_hash": ""
   },
   "animation/PROPOSAL.md": {
