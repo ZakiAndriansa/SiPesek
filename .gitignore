@@ -52,4 +52,6 @@ next-env.d.ts
 /.windsurf/
 /skills-lock.json
 graphify-out/
-graphify-out/
+
+# laporan JSON hasil tes (dibuat saat vitest dijalankan)
+/.vitest/

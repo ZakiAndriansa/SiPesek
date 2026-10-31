@@ -15,7 +15,7 @@ Yang tersisa ada di bagian "Sisa sebelum pengumpulan". Aturan dan alur kerja set
 
 ## Halaman per peran
 
-**Aturan penting untuk semua halaman:** ambil data hanya lewat `/api/...`. Jangan mengimpor `src/lib/db.ts`, `src/lib/dashboard.ts`, `src/lib/peluang/muat.ts`, atau Prisma dari halaman dan komponen. Halaman di-deploy di Vercel yang tidak punya database; hanya `/api` yang diteruskan ke homeserver. Di komponen klien pakai `fetch("/api/...")`; di server component pakai `fetch(urlApi("/api/..."))` dari `src/lib/api.ts`.
+**Aturan penting untuk semua halaman:** ambil data hanya lewat `/api/...`. Jangan mengimpor `src/lib/db.ts`, `src/lib/dashboard.ts`, `src/lib/peluang/muat.ts`, atau Prisma dari halaman dan komponen. Halaman dan API sama-sama berjalan di Vercel, dan hanya route `/api` yang menyentuh database (Neon). Di komponen klien pakai `fetch("/api/...")`; di server component pakai `fetch(urlApi("/api/..."))` dari `src/lib/api.ts`.
 
 ### Orang tua
 
@@ -31,7 +31,7 @@ Tampilan dari prototipe Aqil, disambungkan ke API oleh Zaki.
 | `/hasil/[token]` | Hasil tersimpan, hanya untuk pemiliknya | `GET /api/hasil/[token]` |
 | `/peta-sekolah`, `/detail-sekolah/[id]`, `/strategi`, `/cadangan`, `/unduhan` | Hasil Sekolah, Detail Sekolah, Strategi, Cadangan swasta, dan Dokumen, dari hasil terakhir anak yang dipilih | `GET /api/hasil/[token]` |
 
-Data orang tua diambil di komponen klien agar cookie sesi `sipesek_ortu` ikut terkirim; server component di Vercel tidak meneruskan cookie ke homeserver. Respons 401 menampilkan tombol "Masuk lagi". Tanpa `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, halaman Masuk menampilkan akun contoh yang masih memakai halaman prototipe.
+Data orang tua diambil di komponen klien agar cookie sesi `sipesek_ortu` ikut terkirim; server component tidak meneruskan cookie ke `/api`. Respons 401 menampilkan tombol "Masuk lagi". Tanpa `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, halaman Masuk menampilkan akun contoh yang masih memakai halaman prototipe.
 
 ### Pembuat kebijakan
 
@@ -78,12 +78,12 @@ Masukan dari uji coba prototipe (sudah diterapkan):
 
 ## Sisa sebelum pengumpulan
 
-1. Gabungkan PR dashboard kebijakan dan panel admin (branch `frontend/dashboard-kebijakan`) ke `main`.
-2. Deploy ulang homeserver (ada endpoint baru `GET /api/admin/sekolah`) dan Vercel.
-3. Pastikan `NEXT_PUBLIC_GOOGLE_CLIENT_ID` dan `JWT_SECRET` terisi di Vercel, lalu coba masuk dengan akun Google yang bukan test user.
-4. Coba masuk admin di `/masuk-petugas` dengan akun dari `ADMIN_EMAIL`.
-5. Hapus cek uji coba dan akun uji di database produksi, agar sinyal minat di dashboard bersih.
-6. Uji ujung ke ujung di HP: Cek Cepat, simpan, isi data, hasil, dashboard, dan admin.
+Sudah selesai: semua PR digabung, aplikasi ter-deploy di Vercel, database Neon terisi (migrasi dan seed), dan Client ID Google sudah mengizinkan domain Vercel.
+
+1. Coba masuk dengan akun Google yang bukan test user di domain Vercel.
+2. Coba masuk admin di `/masuk-petugas` dengan akun dari `ADMIN_EMAIL`.
+3. Uji ujung ke ujung di HP: Cek Cepat, simpan, isi data, hasil, dashboard, dan admin.
+4. Sebelum demo, hapus cek uji coba dan akun uji di Neon, agar sinyal minat di dashboard bersih.
 
 Setelah itu kode dibekukan; hanya perbaikan bug sampai pengumpulan.
 
@@ -97,14 +97,17 @@ Setelah itu kode dibekukan; hanya perbaikan bug sampai pengumpulan.
 
 ## Menyiapkan proyek (Aqil)
 
-Tidak perlu Docker dan tidak perlu database. Saat development, `/api` diteruskan ke backend di homeserver.
+Butuh Docker untuk database lokal. Data seed sudah ada di repo, jadi tidak perlu CSV mentah.
 
 ```bash
 git clone https://github.com/ZakiAndriansa/SiPesek.git
 cd SiPesek
 npm install
-cp .env.example .env      # isi BACKEND_URL dengan alamat homeserver dari Zaki; DATABASE_URL biarkan
-npm run dev               # http://localhost:3000, data diambil dari homeserver
+cp .env.example .env      # isi JWT_SECRET, NISN_PEPPER, dan Client ID Google; BACKEND_URL biarkan kosong
+npm run db:up             # Postgres lokal di Docker
+npx prisma migrate deploy
+npm run db:seed
+npm run dev               # http://localhost:3000
 ```
 
 Catatan: hasil cek yang dibuat saat mencoba ikut tercatat di sinyal minat dashboard. Zaki membersihkannya sebelum demo.
@@ -113,23 +116,15 @@ Catatan: hasil cek yang dibuat saat mencoba ikut tercatat di sinyal minat dashbo
 
 | Bagian | Tempat | Isi |
 |---|---|---|
-| Halaman | Vercel | Proyek Next.js yang sama. Variabel: `BACKEND_URL` (alamat homeserver, https), `JWT_SECRET` (sama persis dengan di homeserver, dipakai `src/proxy.ts` untuk menjaga halaman `/admin-*`), dan `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (deploy ulang setelah diisi, karena nilainya ditanam saat build). |
-| API dan database | Homeserver | `docker-compose.server.yml`: aplikasi lengkap dan Postgres. Port Postgres tidak dibuka ke luar. |
+| Halaman dan API | Vercel, project `si-pesek` | Diimpor dari GitHub; setiap merge ke `main` otomatis ter-deploy. Pengaturan build bawaan (`postinstall` menjalankan `prisma generate`). |
+| Database | Neon (Free, Singapore), lewat Vercel Marketplace | Terhubung ke project untuk Production, Preview, dan Development dengan prefix `DATABASE`, sehingga `DATABASE_URL` (pooled, dipakai aplikasi) dan `DATABASE_URL_UNPOOLED` (koneksi langsung, untuk migrasi) terisi otomatis. |
 
-`next.config.ts` meneruskan semua `/api/*` ke `BACKEND_URL` bila variabel itu diisi. Karena diteruskan dari server Vercel, tidak perlu pengaturan CORS, dan cookie admin tetap berada di domain Vercel.
+Variabel lain di Vercel: `JWT_SECRET`, `NISN_PEPPER` (jangan pernah diganti setelah ada data anak; simpan cadangannya), `GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (deploy ulang setelah diubah, karena nilainya ditanam saat build), dan `BATAS_TAMU_PER_JAM`. **`BACKEND_URL` jangan diisi**: bila terisi, semua `/api/*` diteruskan ke alamat itu dan Neon tidak dipakai. Setiap perubahan variabel butuh Redeploy.
 
-Di homeserver (butuh Docker), buat `.env.server` berisi `POSTGRES_PASSWORD`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `GOOGLE_CLIENT_ID`, dan `NISN_PEPPER` (simpan cadangannya; jangan pernah diganti setelah ada data anak), lalu:
+Migrasi dan seed dijalankan dari laptop ke Neon memakai koneksi langsung (`DATABASE_URL_UNPOOLED`, tanpa `-pooler`). Simpan nilainya di `.env.neon` (sudah diabaikan git) sebagai `DATABASE_URL=...`, muat sebagai variabel lingkungan, lalu jalankan `npx prisma migrate deploy` dan `npx prisma db seed`. Seed juga butuh `ADMIN_EMAIL` dan `ADMIN_PASSWORD` untuk membuat akun admin. Jangan muat `.env.neon` dengan `source` di bash, karena connection string mengandung `&`. Hapus `.env.neon` setelah selesai.
 
-```bash
-docker compose -f docker-compose.server.yml --env-file .env.server up -d --build
-docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma migrate deploy
-docker compose -f docker-compose.server.yml --env-file .env.server run --rm alat npx prisma db seed
-```
+Seed mengisi statistik SPMB 2026 dari `data/statistik-2026.json` (agregat, tanpa nama dan NISN), jadi CSV mentah tidak pernah keluar dari laptop. Statistik baru bisa diimpor lewat `/admin-impor`, atau dari laptop dengan `SIPESEK_URL=https://domain-vercel npm run data:kirim`.
 
-Seed sudah mengisi statistik SPMB 2026 dari `data/statistik-2026.json` (agregat, tanpa nama dan NISN), jadi CSV mentah tidak pernah disalin ke homeserver dan tidak perlu impor terpisah. Kalau statistik perlu diperbarui tanpa menunggu deploy ulang, Zaki bisa mengirim agregat langsung dari laptopnya:
+Login Google: domain Vercel harus ada di Authorized JavaScript origins pada Client di Google Cloud Console, dan aplikasi harus berstatus In production agar akun selain test user bisa masuk.
 
-```bash
-SIPESEK_URL=https://alamat-homeserver npm run data:kirim
-```
-
-Homeserver harus bisa dijangkau Vercel lewat https, misalnya dengan Cloudflare Tunnel atau reverse proxy (Caddy, Nginx) dengan domain. Kalau homeserver mati, aplikasi tidak bisa menghitung peluang, jadi pastikan menyala selama masa penilaian.
+Topologi lama dengan homeserver (`docker-compose.server.yml`) tidak dipakai lagi, tetapi berkasnya dibiarkan sebagai cadangan.
