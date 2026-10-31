@@ -133,7 +133,7 @@ export function QuickChrome({ children }: { children: ReactNode }) {
       <SkipLink />
       <FocusBar
         title="Cek Cepat"
-        subtitle="Tidak disimpan"
+        subtitle="Tidak disimpan otomatis"
         brandHref="/"
         exit={{ href: "/", label: "Selesai" }}
       />

@@ -73,7 +73,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  // NISN hanya di memori tab sampai dikirim untuk diperiksa server; tidak masuk state, draf, atau akun.
+  // NISN hanya di memori tab: dikirim untuk diperiksa server, dan ikut draf simpan bila orang tua menekan Simpan.
   const nisn = useRef("");
   const focusRef = useRef<HTMLDivElement>(null);
   const first = useRef(true);
@@ -141,7 +141,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   }
 
   function save() {
-    setDraft({ input: { ...input, lokasi: null } });
+    // Titik rumah ikut draf karena server menghitung ulang hasilnya saat menyimpan (titiknya tetap tidak disimpan).
+    setDraft({ input: { ...input, lokasi }, nisn: nisn.current });
     setLeaving(true);
     router.push(canSave ? "/cek-cepat/simpan" : "/masuk?next=%2Fcek-cepat%2Fsimpan");
   }
@@ -172,7 +173,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
       )}
       {canSave && phase !== "hasil" && (
         <Alert kind="info" title={`Anda masuk sebagai ${parentName ?? "orang tua"}`}>
-          Cek Cepat tidak menambah data anak. Bila ingin menyimpan hasilnya, tekan Simpan di akhir.
+          Hasil Cek Cepat tidak otomatis tersimpan. Bila ingin menyimpannya ke riwayat anak, tekan Simpan di akhir.
         </Alert>
       )}
 
@@ -198,7 +199,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
                 name="mengerti"
                 value="ya"
                 title="Saya mengerti hasil ini hanya perkiraan dan tidak disimpan"
-                desc="NISN dan titik rumah dikirim ke server SiPesek hanya untuk dihitung, lalu dibuang. Tidak ada yang disimpan."
+                desc="NISN dan titik rumah dikirim ke server SiPesek hanya untuk dihitung, lalu dibuang. Tidak ada yang disimpan, kecuali Bapak/Ibu memilih menyimpan hasilnya ke akun."
                 required
                 errorRequired="Centang ini untuk melanjutkan."
               />

@@ -18,6 +18,7 @@ import {
   WIZARD_TOTAL,
   type Child,
 } from "@/lib/accounts";
+import { RiwayatAnak } from "@/features/riwayat/RiwayatAnak";
 import { HELP_URL } from "@/lib/nav";
 import { getSession } from "@/lib/session";
 import { addChild, selectChild } from "@/lib/session-actions";
@@ -76,6 +77,8 @@ function ChildCard({ child, active }: { child: Child; active: boolean }) {
 export default async function AnakSayaPage() {
   const session = await getSession();
   const kids = session?.children ?? [];
+  // Akun Google: anak dan riwayat cek asli dari database. Kartu prototipe hanya untuk anak yang diisi lewat wizard.
+  const akunGoogle = session?.account === "google";
   return (
     <>
       <Container>
@@ -84,7 +87,8 @@ export default async function AnakSayaPage() {
           title="Data Anak"
           desc="Pilih anak yang ingin dilihat. Data dan hasil tiap anak tersimpan terpisah."
         />
-        {kids.length === 0 ? (
+        {akunGoogle && <RiwayatAnak />}
+        {akunGoogle && kids.length === 0 ? null : kids.length === 0 ? (
           <div className="card empty-state">
             <h2 className="card__title">Belum ada data anak</h2>
             <p className="card__text">Mulai dengan mengisi data singkat anak. Sekitar 8 menit, dan isian tersimpan otomatis.</p>

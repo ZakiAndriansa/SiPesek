@@ -55,7 +55,7 @@ async function PesanLanjut({ searchParams }: Pick<PageProps<"/masuk">, "searchPa
   if (next === "/cek-cepat/simpan") {
     return (
       <Alert kind="info" title="Masuk untuk menyimpan hasil Cek Cepat">
-        Setelah masuk, Bapak/Ibu bisa memindahkan isian tadi ke akun. Jangan tutup atau muat ulang tab ini, karena hasil Cek Cepat belum tersimpan di mana pun.
+        Setelah masuk, hasil tadi bisa langsung disimpan tanpa mengisi ulang. Jangan tutup atau muat ulang tab ini, karena hasil Cek Cepat belum tersimpan di mana pun.
       </Alert>
     );
   }

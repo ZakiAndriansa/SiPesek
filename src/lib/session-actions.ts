@@ -38,6 +38,16 @@ export async function signOut() {
   redirect("/");
 }
 
+/**
+ * Sesi Google di API sudah habis (401) tetapi sesi prototipe masih ada: hapus keduanya tanpa pindah halaman,
+ * supaya /masuk bisa dibuka lagi dan draf Cek Cepat di memori tab tidak hilang.
+ */
+export async function lupakanSesi() {
+  const store = await cookies();
+  for (const name of Object.values(COOKIE)) store.delete(name);
+  store.delete(NAMA_COOKIE_ORTU);
+}
+
 /** Ganti anak aktif lalu kembali ke halaman yang sama (proxy mengalihkan bila tahap terkunci). */
 export async function selectChild(formData: FormData) {
   const id = String(formData.get("anak") ?? "");
