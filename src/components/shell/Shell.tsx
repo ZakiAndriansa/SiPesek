@@ -161,7 +161,8 @@ export async function DashChrome({
   children: ReactNode;
 }) {
   const session = await getSession();
-  const role = session ? ROLE_LABEL[session.role] : menu.role;
+  // Dashboard kebijakan terbuka untuk umum; pengunjung tanpa sesi melihatnya sebagai "Dashboard Kebijakan".
+  const role = session ? ROLE_LABEL[session.role] : menu === POLICY ? "Dashboard Kebijakan" : menu.role;
   // Admin yang membuka dashboard kebijakan tetap punya jalan kembali ke panel admin.
   const items =
     session?.role === "admin" && menu === POLICY
@@ -170,10 +171,10 @@ export async function DashChrome({
   return (
     <>
       <SkipLink />
-      <DashBar home={session ? homeFor(session) : menu.home} user={session?.name ?? "Petugas"} role={role} />
+      <DashBar home={session ? homeFor(session) : menu.home} user={session?.name} role={role} />
       <main id="konten">
         <div className="container dash">
-          <Sidebar menu={{ ...menu, role: menu === POLICY && session?.role === "admin" ? "Dashboard Kebijakan (Admin)" : menu.role, items }} />
+          <Sidebar menu={{ ...menu, role: menu !== POLICY ? menu.role : session?.role === "admin" ? "Dashboard Kebijakan (Admin)" : "Dashboard Kebijakan", items }} />
           <div className="dash__main">{children}</div>
         </div>
       </main>

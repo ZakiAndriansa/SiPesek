@@ -172,7 +172,7 @@ const underAny = (pathname: string, prefixes: string[]) =>
 export function rolesFor(pathname: string): Role[] | null {
   if (pathname === "/cek-cepat/simpan") return ["orang-tua"];
   if (underAny(pathname, PARENT_PREFIXES)) return ["orang-tua"];
-  if (pathname.startsWith("/kebijakan-")) return ["kebijakan", "admin"];
+  // Dashboard kebijakan terbuka untuk umum: isinya agregat SPMB tanpa data pribadi (lihat GET /api/dashboard).
   if (pathname.startsWith("/admin-")) return ["admin"];
   return null;
 }

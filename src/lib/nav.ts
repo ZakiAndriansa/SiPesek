@@ -16,10 +16,10 @@ export const POLICY = {
   home: "/kebijakan-ringkasan",
   items: [
     ["/kebijakan-ringkasan", "Ringkasan", "bar-chart"],
-    ["/kebijakan-rasio", "Rasio Kursi", "map"],
-    ["/kebijakan-blank-spot", "Peta Blank Spot", "map-pin"],
-    ["/kebijakan-pendaftar", "Pendaftar Sekolah", "school"],
-    ["/kebijakan-ekspor", "Ekspor Laporan", "download"],
+    ["/kebijakan-rasio", "Peluang per Kecamatan", "map"],
+    ["/kebijakan-blank-spot", "Rayon dan Sekolah", "map-pin"],
+    ["/kebijakan-pendaftar", "Tekanan Pendaftar", "school"],
+    ["/kebijakan-ekspor", "Ekspor Data", "download"],
   ] as DashItem[],
 };
 

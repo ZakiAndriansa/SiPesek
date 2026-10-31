@@ -851,3 +851,88 @@ body:has(.dash)::before {
   display: grid;
   gap: var(--space-3);
 }
+
+/* Dashboard kebijakan (data asli dari GET /api/dashboard) */
+.kebijakan-temuan {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kebijakan-daftar {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.kebijakan-batang {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 8rem;
+  min-height: 1.5rem;
+}
+.kebijakan-batang__isi {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-tint);
+}
+.kebijakan-batang__angka {
+  position: relative;
+  padding-inline: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+.kebijakan-sekolah {
+  display: grid;
+  gap: 2px;
+  min-width: 10rem;
+}
+.kebijakan-sekolah small {
+  color: var(--color-ink-soft);
+}
+.kebijakan-tekanan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+.kebijakan-peta.leaflet-container {
+  height: 440px;
+  cursor: grab;
+}
+.kebijakan-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kebijakan-legenda li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.kebijakan-legenda__titik {
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--color-border-subtle);
+}
+/* Warna sama dengan WARNA_JENJANG di PetaKebijakan.tsx. */
+.kebijakan-legenda__titik--sma {
+  background: #c2410c;
+}
+.kebijakan-legenda__titik--smk {
+  background: #1d4ed8;
+}
+@media (max-width: 40rem) {
+  .kebijakan-peta.leaflet-container {
+    height: 340px;
+  }
+}
