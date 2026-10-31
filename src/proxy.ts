@@ -11,21 +11,20 @@ import {
 } from "@/lib/accounts";
 
 // Dua penjaga dalam satu proxy (Next 16 hanya mengizinkan satu berkas):
-// 1. /admin dan /api/admin: sesi admin asli (JWT), milik Zaki.
-// 2. Halaman orang tua: login, peran, dan tahap terkunci (sesi tiruan berbasis cookie dari prototipe).
-//    Saat disambungkan ke login Google, ganti sesi tiruan dengan verifikasiTokenOrtu(cookie NAMA_COOKIE_ORTU).
+// 1. Halaman /admin-* dan /api/admin: sesi admin asli (JWT dari POST /api/admin/masuk).
+// 2. Halaman orang tua: login, peran, dan tahap terkunci (sesi berbasis cookie; data asli dijaga API).
 
 // Penjaga lapis pertama untuk halaman admin. API admin tetap memeriksa sesi sendiri.
 async function penjagaAdmin(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  if (pathname === "/admin/masuk" || pathname === "/api/admin/masuk") return NextResponse.next();
+  const { pathname, search } = request.nextUrl;
+  if (pathname === "/api/admin/masuk") return NextResponse.next();
   const sesi = await verifikasiTokenSesi(request.cookies.get(NAMA_COOKIE)?.value);
   if (sesi) return NextResponse.next();
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ galat: "Silakan masuk sebagai admin." }, { status: 401 });
   }
-  const masuk = new URL("/admin/masuk", request.url);
-  masuk.searchParams.set("lanjut", pathname);
+  const masuk = new URL("/masuk-petugas", request.url);
+  masuk.searchParams.set("next", pathname + search);
   return NextResponse.redirect(masuk);
 }
 
@@ -65,8 +64,12 @@ function penjagaOrangTua(request: NextRequest) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/api/admin/")) {
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin/")) {
     return penjagaAdmin(request);
+  }
+  // Admin yang sudah masuk tidak perlu melihat halaman masuk petugas lagi.
+  if (pathname === "/masuk-petugas" && (await verifikasiTokenSesi(request.cookies.get(NAMA_COOKIE)?.value))) {
+    return NextResponse.redirect(new URL("/admin-sekolah", request.url));
   }
   return penjagaOrangTua(request);
 }

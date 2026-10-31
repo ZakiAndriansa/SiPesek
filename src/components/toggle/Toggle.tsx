@@ -1,9 +1,12 @@
 /** Switch dengan status teks "Aktif / Nonaktif" agar tidak bergantung warna. */
 export function Toggle({
+  id,
   label,
   checked,
   disabled,
 }: {
+  /** Untuk membedakan toggle saat perubahannya ditangkap di elemen induk. */
+  id?: string;
   label: string;
   checked?: boolean;
   disabled?: boolean;
@@ -12,6 +15,7 @@ export function Toggle({
     <label className="toggle">
       <input
         className="toggle__input"
+        id={id}
         type="checkbox"
         role="switch"
         defaultChecked={checked}

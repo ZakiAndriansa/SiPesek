@@ -296,6 +296,26 @@ export type ResponsDashboard = {
   };
 };
 
+// ---------- GET /api/admin/sekolah (admin) ----------
+
+/**
+ * Semua sekolah untuk halaman Data Sekolah admin, termasuk biaya swasta dan daya tampung tahun acuan.
+ * Ubah lewat PATCH /api/admin/sekolah/[id] (koordinat, alamat, biaya) dan PUT /api/admin/daya-tampung.
+ */
+export type ResponsAdminSekolah = {
+  /** Tahun acuan mesin peluang; daya tampung di bawah untuk tahun ini. */
+  tahun: number | null;
+  sekolah: Array<
+    SekolahRingkas & {
+      biayaRingkas: string | null;
+      biayaResmi: boolean | null;
+      biayaUrl: string | null;
+      /** Jumlah daya tampung tahun acuan; null bila belum diisi. */
+      dayaTampung: number | null;
+    }
+  >;
+};
+
 // ---------- POST /api/admin/impor ----------
 
 /** Satu baris agregat hasil src/lib/etl/agregasi.ts. Tidak memuat data pribadi. */

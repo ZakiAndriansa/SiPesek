@@ -296,8 +296,29 @@ export function Navbar(props: NavbarProps) {
   );
 }
 
-/** Bar atas dashboard: merek, label peran + nama, dan menu akun berisi Keluar. */
-export function DashBar({ home, user, role }: { home: string; user: string; role: string }) {
+/**
+ * Bar atas dashboard: merek, label peran + nama, dan menu akun berisi Keluar. Tanpa `user` (pengunjung
+ * dashboard kebijakan yang publik): tautan ke Beranda dan masuk petugas.
+ */
+export function DashBar({ home, user, role }: { home: string; user?: string; role: string }) {
+  if (!user) {
+    return (
+      <header className="navbar">
+        <div className="navbar__inner">
+          <Brand href="/" />
+          <div className="navbar__actions">
+            {/* navbar__signin: disembunyikan di layar sempit; logo sudah mengarah ke Beranda. */}
+            <Button variant="ghost" sm href="/" className="navbar__signin">
+              Beranda
+            </Button>
+            <Button variant="secondary" sm href="/masuk-petugas">
+              Masuk petugas
+            </Button>
+          </div>
+        </div>
+      </header>
+    );
+  }
   return (
     <header className="navbar">
       <div className="navbar__inner">
