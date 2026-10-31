@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, type ReactNode } from "react";
 import { Alert, Button, ButtonGroup } from "@/components";
-import { lanjutIsiHref } from "./isian";
+import { CEK_LAGI_HREF, lanjutIsiHref } from "./isian";
 import type { ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
 import { useHasilAktif, type AnakOrtu } from "./store";
@@ -70,10 +70,10 @@ export function SumberHasil({ terakhir, hasil }: { terakhir: RiwayatCek; hasil: 
   return (
     <p className="text-secondary sumber-hasil">
       Dari cek {tanggalCek(terakhir.dibuatPada)} (acuan SPMB {hasil.tahunAcuan}). Data anak berubah?{" "}
-      <Link className="link" href="/cek-cepat">
-        Cek lagi
-      </Link>{" "}
-      lalu simpan; halaman ini memakai hasil terbaru.
+      <Link className="link" href={CEK_LAGI_HREF}>
+        Perbarui data dan cek lagi
+      </Link>
+      ; halaman ini memakai hasil terbaru.
     </p>
   );
 }

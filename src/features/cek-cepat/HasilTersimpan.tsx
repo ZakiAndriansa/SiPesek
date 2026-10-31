@@ -5,6 +5,8 @@ import { Alert, Button } from "@/components";
 import type { ResponsPeluang } from "@/lib/kontrak";
 import type { QuickCheckInput } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
+import { CEK_LAGI_HREF } from "@/features/ortu/isian";
+import { pilihAnakAktif } from "@/features/ortu/store";
 import { ambilBaruDisimpan } from "./draft-store";
 import { HasilCepat } from "./HasilCepat";
 
@@ -90,6 +92,7 @@ export function HasilTersimpan({ token }: { token: string }) {
   }
 
   const nama = result.anak?.nama ?? "anak";
+  const anakId = result.anak?.id;
   return (
     <div className="stack">
       {baru && (
@@ -104,9 +107,22 @@ export function HasilTersimpan({ token }: { token: string }) {
         </p>
       </div>
       <HasilCepat result={result} input={input} date={tanggal(new Date().toISOString())}>
-        <Button variant="ghost" href="/cek-cepat">
-          Cek lagi
-        </Button>
+        {anakId ? (
+          // Cek ulang anak ini lewat isi data (isian terakhir sudah terisi), bukan Cek Cepat yang meminta NISN lagi.
+          <Button
+            variant="ghost"
+            onClick={() => {
+              pilihAnakAktif(anakId);
+              router.push(CEK_LAGI_HREF);
+            }}
+          >
+            Cek lagi
+          </Button>
+        ) : (
+          <Button variant="ghost" href="/cek-cepat">
+            Cek lagi
+          </Button>
+        )}
         <Button variant="ghost" href="/anak-saya">
           Semua riwayat
         </Button>

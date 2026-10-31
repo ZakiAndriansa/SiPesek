@@ -65,6 +65,9 @@ export function hapusIsian(anakId: number) {
 /** Hapus semua isian di memori (localStorage dibersihkan oleh lupakanDataOrtu). */
 export const lupakanIsian = () => memori.clear();
 
+/** Isi data ulang dari langkah 1 untuk anak aktif, dengan isian terakhir sudah terisi. */
+export const CEK_LAGI_HREF = "/isi-data/1";
+
 /** Langkah isi data berikutnya untuk anak ini (langkah 1 bila belum ada isian). */
 export function lanjutIsiHref(anakId: number) {
   const langkah = bacaIsian(anakId)?.langkah ?? 0;
