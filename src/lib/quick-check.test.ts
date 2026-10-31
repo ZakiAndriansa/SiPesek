@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { HasilJalur, HasilSekolah, LabelPeluang } from "./kontrak";
-import { diWilayah, ringkasJalur, strategi, toRequest, validateInput, type QuickCheckInput } from "./quick-check";
+import { diWilayah, ringkasan, ringkasJalur, strategi, toRequest, validateInput, type QuickCheckInput } from "./quick-check";
 
 const RUMAH = { lat: -6.3831, lng: 106.8191 };
 const ISIAN: QuickCheckInput = {
@@ -84,5 +84,20 @@ describe("Cek Cepat", () => {
       ["Sekolah 1", "Pilihan aman"],
       ["Sekolah 2", "Pilihan aman"],
     ]);
+  });
+  it("ringkasan menjawab lebih dulu, sesuai label terbaik", () => {
+    const besar = sekolah(1, "PELUANG_BESAR", jalur("DOMISILI", "PELUANG_BESAR"));
+    const mungkin = sekolah(2, "MASIH_MUNGKIN", jalur("DOMISILI", "MASIH_MUNGKIN"));
+    const kecil = sekolah(3, "PELUANG_KECIL", jalur("DOMISILI", "PELUANG_KECIL"));
+    expect(ringkasan([besar, mungkin, kecil])).toEqual({
+      sorotan: { label: "PELUANG_BESAR", n: 1, total: 3 },
+      jumlah: [
+        { label: "PELUANG_BESAR", n: 1 },
+        { label: "MASIH_MUNGKIN", n: 1 },
+        { label: "PELUANG_KECIL", n: 1 },
+      ],
+    });
+    expect(ringkasan([mungkin, kecil]).sorotan).toEqual({ label: "MASIH_MUNGKIN", n: 1, total: 2 });
+    expect(ringkasan([kecil]).sorotan).toBeNull();
   });
 });
