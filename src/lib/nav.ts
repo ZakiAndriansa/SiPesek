@@ -25,13 +25,12 @@ export const POLICY = {
 
 export const ADMIN = {
   role: "Admin",
-  home: "/admin-aturan",
+  home: "/admin-sekolah",
   items: [
-    ["/admin-aturan", "Aturan SPMB", "clipboard"],
     ["/admin-sekolah", "Data Sekolah", "school"],
     ["/admin-impor", "Impor Data Seleksi", "upload"],
-    ["/admin-model", "Model Peluang", "settings"],
-    ["/admin-pengguna", "Pengguna", "users"],
+    ["/admin-aturan", "Aturan SPMB", "clipboard"],
+    ["/admin-rencana", "Rencana Pengembangan", "settings"],
     ["/kebijakan-ringkasan", "Dashboard Kebijakan", "bar-chart"],
   ] as DashItem[],
 };

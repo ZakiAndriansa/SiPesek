@@ -1,36 +1,61 @@
 "use client";
 
-import { Alert, Button, Choice, ChoiceGroup, Form } from "@/components";
-import { ACCOUNTS } from "@/lib/accounts";
-import { signIn } from "@/lib/session-actions";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Alert, Button, Field, Form } from "@/components";
 
-const tujuan = () => new URLSearchParams(window.location.search).get("next") ?? undefined;
+const FORM = "masuk-petugas";
 
-/**
- * Masuk petugas (mode demo): memilih akun contoh Pembuat Kebijakan atau Admin.
- * shortcut: ganti dengan sesi petugas asli (admin memakai /api/admin/masuk) saat dashboard disambungkan ke API.
- */
+/** Tujuan setelah masuk: hanya halaman admin di situs ini, bukan alamat luar. */
+function tujuan() {
+  const next = new URLSearchParams(window.location.search).get("next") ?? "";
+  return next.startsWith("/admin-") ? next : "/admin-sekolah";
+}
+
+/** Masuk admin dinas dengan email dan kata sandi (POST /api/admin/masuk, sesi JWT 8 jam). */
 export function MasukPetugas() {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [galat, setGalat] = useState("");
+
+  async function masuk() {
+    if (busy) return;
+    const f = new FormData(document.getElementById(FORM) as HTMLFormElement);
+    setBusy(true);
+    setGalat("");
+    try {
+      const res = await fetch("/api/admin/masuk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: String(f.get("email") ?? "").trim(), password: String(f.get("password") ?? "") }),
+      });
+      if (res.ok) {
+        router.replace(tujuan());
+        router.refresh();
+        return;
+      }
+      setGalat(res.status === 401 ? "Email atau kata sandi salah." : "Belum bisa masuk. Coba lagi sebentar lagi.");
+    } catch {
+      setGalat("Tidak tersambung ke server SiPesek. Periksa internet, lalu coba lagi.");
+    }
+    setBusy(false);
+  }
+
   return (
     <div className="card">
-      <Alert kind="warning" title="Mode demo">
-        Belum ada akun petugas sungguhan. Pilih akun contoh untuk melihat dashboard.
-      </Alert>
-      <Form
-        onValid={() => {
-          const picked = document.querySelector<HTMLInputElement>('input[name="akun"]:checked');
-          void signIn(picked?.value ?? "kebijakan", tujuan());
-        }}
-      >
-        <ChoiceGroup legend="Masuk sebagai">
-          {Object.entries(ACCOUNTS)
-            .filter(([, a]) => a.role !== "orang-tua")
-            .map(([key, a], i) => (
-              <Choice key={key} type="radio" name="akun" value={key} title={a.label} desc={a.name} checked={i === 0} />
-            ))}
-        </ChoiceGroup>
+      <Form id={FORM} onValid={masuk}>
+        <Field id="email" label="Email" type="email" autoComplete="username" required errorRequired="Isi email akun admin." />
+        <Field
+          id="password"
+          label="Kata sandi"
+          type="password"
+          autoComplete="current-password"
+          required
+          errorRequired="Isi kata sandi."
+        />
+        {galat && <Alert kind="danger">{galat}</Alert>}
         <Button variant="primary" block type="submit">
-          Masuk (demo)
+          {busy ? "Memeriksa…" : "Masuk"}
         </Button>
       </Form>
     </div>

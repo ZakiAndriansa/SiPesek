@@ -936,3 +936,10 @@ body:has(.dash)::before {
     height: 340px;
   }
 }
+
+/* Admin: bobot mapel per bidang di Aturan SPMB */
+.aturan-bobot {
+  width: 4.5rem;
+  min-height: 2.5rem;
+  text-align: right;
+}

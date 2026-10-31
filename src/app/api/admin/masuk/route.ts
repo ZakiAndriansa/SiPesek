@@ -15,6 +15,6 @@ export async function POST(request: Request) {
   const admin = await prisma.admin.findUnique({ where: { email: masukan.data.email } });
   if (!admin || !(await bcrypt.compare(masukan.data.password, admin.passwordHash))) return galat(PESAN_GAGAL, 401);
 
-  (await cookies()).set(NAMA_COOKIE, await buatTokenSesi(admin.id), opsiCookieSesi);
+  (await cookies()).set(NAMA_COOKIE, await buatTokenSesi(admin.id, admin.nama), opsiCookieSesi);
   return Response.json({ nama: admin.nama });
 }

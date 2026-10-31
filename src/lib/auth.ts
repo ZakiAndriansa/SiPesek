@@ -47,7 +47,9 @@ async function verifikasiToken(peran: Peran, token: string | undefined): Promise
 
 // ---------- Admin ----------
 
-export const buatTokenSesi = (adminId: number) => buatToken("admin", adminId, UMUR_SESI_DETIK);
+/** Nama admin ikut ditandatangani agar header dashboard (tanpa akses database) bisa menampilkannya. */
+export const buatTokenSesi = (adminId: number, nama?: string) =>
+  buatToken("admin", adminId, UMUR_SESI_DETIK, nama ? { nama } : {});
 
 export async function verifikasiTokenSesi(token: string | undefined): Promise<{ adminId: number } | null> {
   const sesi = await verifikasiToken("admin", token);
@@ -58,6 +60,22 @@ export async function verifikasiTokenSesi(token: string | undefined): Promise<{ 
 export const sesiAdmin = (request: NextRequest) => verifikasiTokenSesi(request.cookies.get(NAMA_COOKIE)?.value);
 
 export const tolakTanpaSesi = () => galat("Silakan masuk sebagai admin.", 401);
+
+/**
+ * Nama admin untuk header halaman, hanya membaca isi token tanpa memeriksa tanda tangan maupun masa berlaku
+ * (sama seperti bacaProfilOrtu; cookie-nya sendiri berumur sama dengan token). Halaman /admin-* tetap dijaga
+ * proxy dengan verifikasiTokenSesi, dan API admin memeriksa sendiri.
+ */
+export function bacaProfilAdmin(token: string | undefined): { nama: string } | null {
+  if (!token) return null;
+  try {
+    const payload = decodeJwt(token);
+    if (payload.aud !== "admin") return null;
+    return { nama: teks(payload.nama) ?? "Admin" };
+  } catch {
+    return null;
+  }
+}
 
 export const opsiCookieSesi = {
   httpOnly: true,

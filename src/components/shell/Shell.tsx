@@ -166,7 +166,7 @@ export async function DashChrome({
   // Admin yang membuka dashboard kebijakan tetap punya jalan kembali ke panel admin.
   const items =
     session?.role === "admin" && menu === POLICY
-      ? [...menu.items, ["/admin-aturan", "Kembali ke Panel Admin", "settings"] as const]
+      ? [...menu.items, ["/admin-sekolah", "Kembali ke Panel Admin", "settings"] as const]
       : menu.items;
   return (
     <>

@@ -180,7 +180,7 @@ export function rolesFor(pathname: string): Role[] | null {
 /** Beranda tiap peran setelah login. */
 export function homeFor(session: Session): string {
   if (session.role === "kebijakan") return "/kebijakan-ringkasan";
-  if (session.role === "admin") return "/admin-aturan";
+  if (session.role === "admin") return "/admin-sekolah";
   // Akun Google: data anak dan riwayat cek asli ada di Data Anak, bukan di wizard prototipe.
   if (session.account === "google" && session.children.length === 0) return "/anak-saya";
   if (session.children.length === 0) return "/isi-data/1";

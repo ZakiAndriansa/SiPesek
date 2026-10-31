@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
 import { buildSession, COOKIE, type Session } from "./accounts";
-import { bacaProfilOrtu, NAMA_COOKIE_ORTU } from "./auth";
+import { bacaProfilAdmin, bacaProfilOrtu, NAMA_COOKIE, NAMA_COOKIE_ORTU } from "./auth";
 
 /** Sesi dari cookie untuk Server Component. Null = tamu. */
 export async function getSession(): Promise<Session | null> {
   const store = await cookies();
+  // Admin asli (email dan kata sandi, JWT) didahulukan dari sesi prototipe.
+  const admin = bacaProfilAdmin(store.get(NAMA_COOKIE)?.value);
+  if (admin) return { account: "admin", role: "admin", name: admin.nama, photo: null, children: [], child: null };
   const session = buildSession(
     store.get(COOKIE.account)?.value,
     store.get(COOKIE.child)?.value,
