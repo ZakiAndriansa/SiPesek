@@ -10,6 +10,7 @@ import {
   type LabelPeluang,
   type PermintaanPeluang,
   type ResponsPeluang,
+  type SkorAnak,
 } from "@/lib/kontrak";
 import { formatJarak } from "@/lib/peluang/jarak";
 
@@ -237,6 +238,25 @@ export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput): string[
 }
 
 export const namaLabel = (l: LabelPeluang) => NAMA_LABEL[l];
+
+/** Nama skor untuk orang tua, mis. "Jalur Prestasi SMA (rapor dan TKA)". */
+export function judulSkor(s: SkorAnak): string {
+  if (s.kelompok) return `Kelas Industri SMK, program ${s.kelompok.toLowerCase()}`;
+  return `Jalur Prestasi ${s.jenjang} (${s.rumus.includes("TKA") ? "rapor dan TKA" : "rapor"})`;
+}
+
+/** Di berapa sekolah skor anak sudah mencapai skor terendah yang diterima (label Peluang besar atau Masih mungkin). */
+export function posisiSkor(s: SkorAnak, hasil: HasilSekolah[]): { atas: number; total: number } | null {
+  if (s.nilai === null || s.kelompok) return null;
+  const jalur = hasil
+    .filter((h) => h.sekolah.jenjang === s.jenjang)
+    .map((h) => h.jalur.find((j) => j.subJalurKode === s.subJalurKode && j.label !== "TIDAK_DIHITUNG"))
+    .filter((j): j is HasilJalur => !!j);
+  if (jalur.length === 0) return null;
+  return { atas: jalur.filter((j) => j.label === "PELUANG_BESAR" || j.label === "MASIH_MUNGKIN").length, total: jalur.length };
+}
+
+export const angkaSkor = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 1 });
 
 /** Pemetaan isian Cek Cepat ke isian wizard (id field wizard). NISN dan titik rumah tidak pernah ikut. */
 export function draftToWizard(input: QuickCheckInput, nama: string): Record<string, string> {

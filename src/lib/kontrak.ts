@@ -126,6 +126,26 @@ export type AlternatifSwasta = {
   biaya: { ringkas: string; resmi: boolean; url: string } | null;
 };
 
+/** Skor akhir anak untuk satu jalur skor (mis. Prestasi rapor SMA), dihitung dengan rumus juknis yang berlaku. */
+export type SkorAnak = {
+  jenjang: Jenjang;
+  subJalurKode: string;
+  namaJalur: string;
+  /** Kelompok bobot program SMK (mis. TEKNOLOGI, BISNIS); null bila rumusnya tidak bergantung program. */
+  kelompok: string | null;
+  /** null bila nilai yang dibutuhkan belum diisi (lihat `kurang`). */
+  nilai: number | null;
+  maks: number;
+  /** Rumus dalam kata-kata, mis. "0,5 × 5 × rata-rata rapor + 0,5 × (TKA B. Indonesia + TKA Matematika)". */
+  rumus: string;
+  /** Bagian penyusun skor; kosong bila `nilai` null. */
+  rincian: { label: string; nilai: number; maks: number }[];
+  /** Isian yang belum ada, mis. ["TKA Matematika"]; kosong bila skor terhitung. */
+  kurang: string[];
+  /** Skor terendah yang diterima di sekolah negeri jenjang ini: paling rendah dan paling tinggi antarsekolah. */
+  terendahDiterima: { dari: number; sampai: number } | null;
+};
+
 export type ResponsPeluang = {
   /** null di mode tamu: hasil tidak disimpan, jadi tidak ada /hasil/<token>. */
   token: string | null;
@@ -138,6 +158,11 @@ export type ResponsPeluang = {
   hasil: HasilSekolah[];
   swasta: { SMA: AlternatifSwasta[]; SMK: AlternatifSwasta[] };
   catatan: string;
+  /**
+   * Skor akhir anak per jalur skor. Hanya ada di balasan POST /api/peluang; tidak disimpan, jadi tidak
+   * ada di GET /api/hasil/[token] (riwayat hanya menyimpan rentang skor per 10 poin).
+   */
+  skorAnak?: SkorAnak[];
 };
 
 // GET /api/hasil/[token] mengembalikan ResponsPeluang yang sama, hanya untuk orang tua pemiliknya
