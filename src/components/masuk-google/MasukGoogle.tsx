@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useRef, useState } from "react";
 import { Alert, Button, Choice, ChoiceGroup, Form } from "@/components";
 import { ACCOUNTS } from "@/lib/accounts";
+import { lupakanDataOrtu } from "@/features/ortu/store";
 import { signIn } from "@/lib/session-actions";
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -53,6 +54,8 @@ export function MasukGoogle() {
       setGalat("Tidak bisa terhubung ke server. Periksa koneksi internet, lalu coba lagi.");
     }
     if (!berhasil) return setMemproses(false);
+    // Data anak akun sebelumnya (bila ada di tab ini) tidak boleh terbawa ke akun yang baru masuk.
+    lupakanDataOrtu();
     // shortcut: pasang sesi prototipe juga, sampai halaman orang tua membaca sesi Google langsung.
     await signIn("google", tujuan());
   }

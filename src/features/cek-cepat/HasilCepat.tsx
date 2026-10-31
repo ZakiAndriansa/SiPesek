@@ -32,6 +32,8 @@ const TAMPIL_AWAL = 5;
 /**
  * Hasil Cek Cepat, disusun "ringkasan dulu": satu kalimat jawaban, 3 rekomendasi, lalu daftar sekolah
  * berupa baris ringkas yang rinciannya baru muncul saat diketuk. Swasta dan penjelasan dilipat.
+ * Dipakai juga untuk hasil tersimpan (/hasil/[token]): `input` null bila isiannya tidak ada di tab ini,
+ * dan tombol simpan, ubah, serta cek ulang hanya tampil bila handlernya diberikan.
  */
 export function HasilCepat({
   result,
@@ -42,15 +44,18 @@ export function HasilCepat({
   onEdit,
   onRestart,
   date,
+  children,
 }: {
   result: ResponsPeluang;
-  input: QuickCheckInput;
-  loggedIn: boolean;
-  canSave: boolean;
-  onSave: () => void;
-  onEdit: () => void;
-  onRestart: () => void;
+  input: QuickCheckInput | null;
+  loggedIn?: boolean;
+  canSave?: boolean;
+  onSave?: () => void;
+  onEdit?: () => void;
+  onRestart?: () => void;
   date: string;
+  /** Tombol tambahan di baris tombol bawah. */
+  children?: ReactNode;
 }) {
   const [semua, setSemua] = useState(false);
   const pilihan = strategi(result.hasil);
@@ -141,15 +146,15 @@ export function HasilCepat({
           </Lipat>
         </div>
 
-        {canSave && (
-          <CtaBand title="Mau menyimpan hasil ini?" text="Isian dipindahkan ke akun Bapak/Ibu sebagai data anak baru, setelah Bapak/Ibu setuju di langkah berikutnya.">
+        {onSave && canSave && (
+          <CtaBand title="Mau menyimpan hasil ini?" text="Hasil ini masuk ke riwayat anak di akun Bapak/Ibu, jadi bisa dibuka lagi kapan saja tanpa mengisi ulang.">
             <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
               Simpan hasil ini ke akun
             </Button>
           </CtaBand>
         )}
-        {!loggedIn && (
-          <CtaBand title="Mau menyimpan hasil ini?" text="Masuk dulu. Setelah masuk, Bapak/Ibu bisa memindahkan isian ini ke akun. Tanpa masuk, hasil tidak tersimpan.">
+        {onSave && !loggedIn && (
+          <CtaBand title="Mau menyimpan hasil ini?" text="Masuk dulu dengan Google. Setelah masuk, hasil ini langsung bisa disimpan tanpa mengisi ulang. Tanpa masuk, hasil tidak tersimpan.">
             <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
               Masuk & simpan hasil ini
             </Button>
@@ -161,12 +166,17 @@ export function HasilCepat({
             <Button variant="secondary" print iconLeft="download">
               Cetak
             </Button>
-            <Button variant="ghost" onClick={onEdit}>
-              Ubah isian
-            </Button>
-            <Button variant="ghost" onClick={onRestart}>
-              Cek anak lain
-            </Button>
+            {onEdit && (
+              <Button variant="ghost" onClick={onEdit}>
+                Ubah isian
+              </Button>
+            )}
+            {onRestart && (
+              <Button variant="ghost" onClick={onRestart}>
+                Cek anak lain
+              </Button>
+            )}
+            {children}
           </ButtonGroup>
         </div>
       </div>
@@ -179,7 +189,7 @@ export function HasilCepat({
  * Kartu jawaban dengan gauge setengah lingkaran: skor akhir anak di tengah busur dengan labelnya tepat di bawah
  * angka, lalu peluang di sekolah negeri. Rincian skor dan arti label ada di dialog "Cara membaca".
  */
-function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => void }) {
+function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit?: () => void }) {
   const skor = result.skorAnak ?? [];
   const utama = skor.find((s) => s.nilai !== null) ?? skor[0];
   const r = ringkasan(result.hasil);
@@ -190,13 +200,19 @@ function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => 
         <HelpLink opens="dlg-baca-hasil">Cara membaca</HelpLink>
       </div>
 
+      {/* Cek lama yang disimpan sebelum skor akhir ikut disimpan: jelaskan alih-alih diam. */}
+      {result.token && !result.skorAnak && (
+        <p className="hasil-skor__kosong">Skor akhir tidak tersimpan untuk hasil ini. Label tiap sekolah di bawah tetap sama seperti saat dicek.</p>
+      )}
       {utama &&
         (utama.nilai === null ? (
           <p className="hasil-skor__kosong">
             Skor akhir belum dihitung: isi {gabung(utama.kurang)}.{" "}
-            <button type="button" className="link" onClick={onEdit}>
-              Lengkapi nilai
-            </button>
+            {onEdit && (
+              <button type="button" className="link" onClick={onEdit}>
+                Lengkapi nilai
+              </button>
+            )}
           </p>
         ) : (
           <Gauge nilai={utama.nilai} maks={utama.maks} />
@@ -222,7 +238,9 @@ function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => 
             ))}
           </ul>
         )}
-        <p className="hasil-ringkas__catatan">Perkiraan dari SPMB {result.tahunAcuan}, bukan jaminan. Hasil tidak disimpan.</p>
+        <p className="hasil-ringkas__catatan">
+          Perkiraan dari SPMB {result.tahunAcuan}, bukan jaminan. {result.token ? "Tersimpan di riwayat anak." : "Hasil tidak disimpan."}
+        </p>
       </div>
 
       <DialogBaca skor={skor} utama={utama} hasil={result.hasil} tahun={result.tahunAcuan} />

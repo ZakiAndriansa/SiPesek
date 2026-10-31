@@ -152,7 +152,7 @@ export function continueTarget(child: Child | null): { label: string; href: stri
 export function stageOf(pathname: string): StageKey | null {
   const under = (p: string) => pathname === p || pathname.startsWith(`${p}/`);
   if (under("/anak-saya") || under("/isi-data")) return "data";
-  if (under("/peta-sekolah") || under("/detail-sekolah")) return "hasil";
+  if (under("/peta-sekolah") || under("/detail-sekolah") || under("/hasil")) return "hasil";
   if (under("/strategi") || under("/cadangan")) return "strategi";
   if (under("/unduhan")) return "dokumen";
   return null;
@@ -161,7 +161,7 @@ export function stageOf(pathname: string): StageKey | null {
 // ---------- Akses dan routing ----------
 
 export const PUBLIC_PATHS = ["/", "/panduan", "/tanya-jawab", "/privasi", "/masuk", "/masuk-petugas", "/akses-ditolak", "/cek-cepat"];
-const PARENT_PREFIXES = ["/anak-saya", "/isi-data", "/peta-sekolah", "/detail-sekolah", "/strategi", "/cadangan", "/unduhan"];
+const PARENT_PREFIXES = ["/anak-saya", "/hasil", "/isi-data", "/peta-sekolah", "/detail-sekolah", "/strategi", "/cadangan", "/unduhan"];
 
 const underAny = (pathname: string, prefixes: string[]) =>
   prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -179,6 +179,8 @@ export function rolesFor(pathname: string): Role[] | null {
 export function homeFor(session: Session): string {
   if (session.role === "kebijakan") return "/kebijakan-ringkasan";
   if (session.role === "admin") return "/admin-aturan";
+  // Akun Google: data anak dan riwayat cek asli ada di Data Anak, bukan di wizard prototipe.
+  if (session.account === "google" && session.children.length === 0) return "/anak-saya";
   if (session.children.length === 0) return "/isi-data/1";
   if (session.children.length === 1 && !isComplete(session.child)) return nextWizardHref(session.child);
   return "/anak-saya";

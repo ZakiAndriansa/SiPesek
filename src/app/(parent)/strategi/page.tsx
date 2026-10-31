@@ -14,6 +14,7 @@ import {
   Disclaimer,
 } from "@/components";
 import { strategySchools } from "@/data/schools";
+import { StrategiOrtu } from "@/features/ortu/StrategiOrtu";
 import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -23,6 +24,14 @@ export const metadata: Metadata = {
 
 export default async function StrategiPage() {
   const session = await getSession();
+  // Akun Google: strategi dari hasil cek tersimpan. Akun contoh tetap memakai data prototipe.
+  if (session?.account === "google") {
+    return (
+      <Container>
+        <StrategiOrtu />
+      </Container>
+    );
+  }
   const first = (session?.child?.name ?? "anak").split(" ")[0];
   return (
     <Container>

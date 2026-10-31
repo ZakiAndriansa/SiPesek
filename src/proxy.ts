@@ -53,7 +53,8 @@ function penjagaOrangTua(request: NextRequest) {
   if (!session) return go(`${roles.includes("orang-tua") ? "/masuk" : "/masuk-petugas"}?next=${encodeURIComponent(pathname + search)}`);
   if (!roles.includes(session.role)) return go(`/akses-ditolak?dari=${encodeURIComponent(pathname)}`);
   // Orang tua: Hasil, Strategi, Dokumen hanya terbuka bila data anak aktif sudah lengkap.
-  if (session.role === "orang-tua") {
+  // Akun Google tidak dikunci di sini: datanya ada di API, dan tiap halaman menangani anak yang belum punya hasil.
+  if (session.role === "orang-tua" && session.account !== "google") {
     const stage = stageOf(pathname);
     if (stage && stage !== "data" && stageStatus(session.child)[stage] === "terkunci") {
       return go(`${nextWizardHref(session.child)}?terkunci=${stage}`);

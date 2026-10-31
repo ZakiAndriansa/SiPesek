@@ -38,6 +38,10 @@ export default function PrivasiPage() {
             (10 digit dan kewajaran tahun lahir), lalu semua isian dibuang. Hasil langsung ditampilkan tanpa disimpan.
           </p>
           <p className="card__text">
+            Hasil baru disimpan bila Bapak/Ibu masuk dengan Google lalu menekan Simpan dan menyetujuinya. Yang disimpan
+            sama dengan daftar di bawah; titik rumah dan nilai rapor tetap tidak disimpan.
+          </p>
+          <p className="card__text">
             Untuk mencegah penyalahgunaan, Cek Cepat dibatasi 10 kali per jam. Karena itu alamat IP perangkat dicatat di
             memori server paling lama satu jam, tidak ditulis ke database, dan hilang saat server dimulai ulang.
           </p>

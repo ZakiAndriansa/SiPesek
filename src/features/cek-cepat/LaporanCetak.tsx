@@ -20,19 +20,15 @@ const satu = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 2
 /**
  * Laporan hasil Cek Cepat untuk dicetak: tersusun seperti dokumen satu sampai dua halaman A4, bukan cetakan
  * halaman layar. Hanya tampil saat mencetak (lihat .laporan-cetak di quick.css). NISN dan titik rumah tidak dicetak.
+ * `input` null untuk hasil tersimpan yang dibuka ulang: isiannya tidak disimpan, jadi tabel data diganti catatan.
  */
-export function LaporanCetak({ result, input, date }: { result: ResponsPeluang; input: QuickCheckInput; date: string }) {
+export function LaporanCetak({ result, input, date }: { result: ResponsPeluang; input: QuickCheckInput | null; date: string }) {
   const skor = result.skorAnak ?? [];
   const utama = skor.find((s) => s.nilai !== null) ?? skor[0];
   const posisi = utama ? posisiSkor(utama, result.hasil) : null;
   const r = ringkasan(result.hasil);
   const pilihan = strategi(result.hasil);
   const swasta = [...result.swasta.SMA, ...result.swasta.SMK].sort((a, b) => (a.jarakMeter ?? Infinity) - (b.jarakMeter ?? Infinity));
-  const semester = input.nilai.filter((v): v is number => v !== null);
-  const kondisi = [KETM[input.ketm], input.disabilitas && "anak penyandang disabilitas", input.pindahTugas && "orang tua pindah tugas"]
-    .filter(Boolean)
-    .join(", ");
-  const mapelLengkap = MAPEL.every(([k]) => input.mapel[k] !== null);
 
   return (
     <article className="laporan-cetak" aria-hidden="true">
@@ -40,43 +36,22 @@ export function LaporanCetak({ result, input, date }: { result: ResponsPeluang; 
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo/logo-lofi.svg" alt="" width={36} height={36} />
         <div>
-          <h1>Hasil Cek Cepat SiPesek</h1>
+          <h1>{result.anak ? `Hasil cek peluang ${result.anak.nama}` : "Hasil Cek Cepat SiPesek"}</h1>
           <p>
             Dicetak {date} · Acuan: hasil SPMB {result.tahunAcuan} Kota Depok · Perkiraan, bukan keputusan resmi
           </p>
         </div>
       </header>
 
-      <section>
-        <h2>Data yang diisi</h2>
-        <table className="laporan-cetak__data">
-          <tbody>
-            <tr>
-              <th>Jenjang tujuan</th>
-              <td>{JENJANG[input.jenjang]}</td>
-              <th>Kecamatan sesuai KK</th>
-              <td>{input.kecamatan}</td>
-            </tr>
-            <tr>
-              <th>Rata-rata rapor</th>
-              <td>{semester.length ? `${satu(semester.reduce((a, b) => a + b, 0) / semester.length)} (${semester.length} semester)` : "Tidak diisi"}</td>
-              <th>Kondisi keluarga</th>
-              <td>{kondisi}</td>
-            </tr>
-            <tr>
-              <th>TKA</th>
-              <td>
-                {input.tkaBin !== null || input.tkaMtk !== null
-                  ? `B. Indonesia ${input.tkaBin ?? "-"}, Matematika ${input.tkaMtk ?? "-"}`
-                  : "Tidak diisi"}
-              </td>
-              <th>Nilai 5 mapel</th>
-              <td>{mapelLengkap ? MAPEL.map(([k, nama]) => `${nama} ${input.mapel[k]}`).join(", ") : "Tidak diisi"}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p className="laporan-cetak__kecil">NISN dan titik rumah tidak dicetak. Jarak dihitung garis lurus dari titik rumah.</p>
-      </section>
+      {input ? (
+        <DataIsian input={input} />
+      ) : (
+        <section>
+          <p className="laporan-cetak__kecil">
+            Isian nilai, NISN, dan titik rumah tidak disimpan di akun, jadi tidak ikut dicetak. Cek ulang untuk mencetak beserta datanya.
+          </p>
+        </section>
+      )}
 
       <section className="laporan-cetak__ringkas">
         <div className="laporan-cetak__kotak">
@@ -100,7 +75,13 @@ export function LaporanCetak({ result, input, date }: { result: ResponsPeluang; 
               )}
             </>
           ) : (
-            <p>{utama ? `Belum dihitung: ${utama.kurang.join(", ")} belum diisi.` : "Jenjang ini tidak memakai skor."}</p>
+            <p>
+              {utama
+                ? `Belum dihitung: ${utama.kurang.join(", ")} belum diisi.`
+                : result.token && !result.skorAnak
+                  ? "Skor akhir tidak tersimpan untuk hasil ini."
+                  : "Jenjang ini tidak memakai skor."}
+            </p>
           )}
         </div>
         <div className="laporan-cetak__kotak">
@@ -218,3 +199,43 @@ export function LaporanCetak({ result, input, date }: { result: ResponsPeluang; 
   );
 }
 
+/** Tabel data yang diisi orang tua di Cek Cepat (tanpa NISN dan titik rumah). */
+function DataIsian({ input }: { input: QuickCheckInput }) {
+  const semester = input.nilai.filter((v): v is number => v !== null);
+  const kondisi = [KETM[input.ketm], input.disabilitas && "anak penyandang disabilitas", input.pindahTugas && "orang tua pindah tugas"]
+    .filter(Boolean)
+    .join(", ");
+  const mapelLengkap = MAPEL.every(([k]) => input.mapel[k] !== null);
+  return (
+    <section>
+      <h2>Data yang diisi</h2>
+      <table className="laporan-cetak__data">
+        <tbody>
+          <tr>
+            <th>Jenjang tujuan</th>
+            <td>{JENJANG[input.jenjang]}</td>
+            <th>Kecamatan sesuai KK</th>
+            <td>{input.kecamatan}</td>
+          </tr>
+          <tr>
+            <th>Rata-rata rapor</th>
+            <td>{semester.length ? `${satu(semester.reduce((a, b) => a + b, 0) / semester.length)} (${semester.length} semester)` : "Tidak diisi"}</td>
+            <th>Kondisi keluarga</th>
+            <td>{kondisi}</td>
+          </tr>
+          <tr>
+            <th>TKA</th>
+            <td>
+              {input.tkaBin !== null || input.tkaMtk !== null
+                ? `B. Indonesia ${input.tkaBin ?? "-"}, Matematika ${input.tkaMtk ?? "-"}`
+                : "Tidak diisi"}
+            </td>
+            <th>Nilai 5 mapel</th>
+            <td>{mapelLengkap ? MAPEL.map(([k, nama]) => `${nama} ${input.mapel[k]}`).join(", ") : "Tidak diisi"}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="laporan-cetak__kecil">NISN dan titik rumah tidak dicetak. Jarak dihitung garis lurus dari titik rumah.</p>
+    </section>
+  );
+}

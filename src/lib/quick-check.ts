@@ -55,8 +55,11 @@ export type QuickCheckInput = {
   lokasi: Titik | null;
 };
 
-/** Draf di memori tab untuk dipindahkan ke akun. Tidak pernah memuat NISN maupun titik rumah. */
-export type QuickDraft = { input: QuickCheckInput };
+/**
+ * Draf di memori tab untuk disimpan ke akun lewat POST /api/ortu/simpan-cek. Memuat NISN dan titik rumah
+ * karena server menghitung ulang hasilnya, tetapi tidak pernah ditulis ke cookie, penyimpanan browser, atau URL.
+ */
+export type QuickDraft = { input: QuickCheckInput; nisn: string };
 
 export const isValidNisn = (value: string) => /^\d{10}$/.test(value);
 
@@ -129,8 +132,7 @@ const angka = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 
 export const namaJalur = (j: HasilJalur) => (j.programKeahlian ? `${j.namaJalur}, jurusan ${j.programKeahlian}` : j.namaJalur);
 
 /** Fakta singkat di kartu sekolah untuk jalur terbaik. */
-export function faktaSekolah(h: HasilSekolah): [string, string][] {
-  const j = h.jalur[0];
+export function faktaSekolah(h: HasilSekolah, j: HasilJalur = h.jalur[0]): [string, string][] {
   const fakta: [string, string][] = [];
   if (h.jarakMeter !== null) fakta.push(["Jarak rumah (garis lurus)", formatJarak(h.jarakMeter)]);
   const p = j.pembanding;
@@ -150,7 +152,8 @@ export const jalurLain = (h: HasilSekolah) => h.jalur.slice(1).map((j) => `${nam
 
 export type RingkasJalur = { kode: string; nama: string; teks: string; terhitung: boolean };
 
-const JALUR_UTAMA = [
+/** Jalur utama (Domisili, Afirmasi, Prestasi, Mutasi) beserta namanya. */
+export const JALUR_UTAMA = [
   ["DOMISILI", "Jalur Domisili"],
   ["AFIRMASI", "Jalur Afirmasi"],
   ["PRESTASI", "Jalur Prestasi"],
@@ -158,8 +161,11 @@ const JALUR_UTAMA = [
 ] as const;
 const KE_JALUR = new Map<string, string>(SUB_JALUR.map((s) => [s.kode, s.jalurKode]));
 
+/** Kode jalur utama dari kode sub-jalur, mis. "PRESTASI_AKD_RAPOR" menjadi "PRESTASI". */
+export const jalurUtama = (subJalurKode: string) => KE_JALUR.get(subJalurKode) ?? null;
+
 /** Ringkasan per jalur utama: berapa sekolah per label, atau alasan jalur itu belum dihitung. */
-export function ringkasJalur(hasil: HasilSekolah[], input: QuickCheckInput): RingkasJalur[] {
+export function ringkasJalur(hasil: HasilSekolah[], input: QuickCheckInput | null): RingkasJalur[] {
   return JALUR_UTAMA.map(([kode, nama]) => {
     const semua = hasil.flatMap((h) => h.jalur).filter((j) => KE_JALUR.get(j.subJalurKode) === kode);
     const hitung = new Map<LabelPeluang, number>();
@@ -177,12 +183,12 @@ export function ringkasJalur(hasil: HasilSekolah[], input: QuickCheckInput): Rin
   });
 }
 
-function alasanTertutup(kode: string, input: QuickCheckInput): string {
+function alasanTertutup(kode: string, input: QuickCheckInput | null): string {
   switch (kode) {
     case "DOMISILI":
       return "Kecamatan di KK tidak masuk rayon SMA negeri Depok, dan belum ada SMK negeri yang cocok dengan jenjang tujuan.";
     case "AFIRMASI":
-      return input.ketm === "ragu"
+      return input?.ketm === "ragu"
         ? "Belum dihitung karena status KETM belum pasti. Cek dulu apakah keluarga terdaftar di DTSEN."
         : "Dihitung bila keluarga termasuk KETM atau anak penyandang disabilitas.";
     case "PRESTASI":
@@ -192,7 +198,22 @@ function alasanTertutup(kode: string, input: QuickCheckInput): string {
   }
 }
 
-export type PilihanStrategi = { name: string; role: string; jalur: string; kind: string; label: LabelPeluang; jarakMeter: number | null };
+export type PilihanStrategi = {
+  sekolahId: number;
+  name: string;
+  role: string;
+  jalur: string;
+  kind: string;
+  label: LabelPeluang;
+  jarakMeter: number | null;
+};
+
+const PERAN: Record<LabelPeluang, string> = {
+  PELUANG_BESAR: "Pilihan aman",
+  MASIH_MUNGKIN: "Pilihan ambisius",
+  PELUANG_KECIL: "Pilihan tambahan",
+  TIDAK_DIHITUNG: "Pilihan tambahan",
+};
 
 /** Strategi 3 pilihan: satu ambisius (Masih mungkin), dua aman (Peluang besar), dari hasil yang sudah terurut. */
 export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
@@ -201,20 +222,20 @@ export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
   const aman = terhitung.filter((h) => h.labelTerbaik === "PELUANG_BESAR");
   const pilih = [ambisius, aman[0], aman[1]].filter((h): h is HasilSekolah => !!h);
   for (const h of terhitung) if (pilih.length < 3 && !pilih.includes(h)) pilih.push(h);
-  const peran: Record<LabelPeluang, string> = {
-    PELUANG_BESAR: "Pilihan aman",
-    MASIH_MUNGKIN: "Pilihan ambisius",
-    PELUANG_KECIL: "Pilihan tambahan",
-    TIDAK_DIHITUNG: "Pilihan tambahan",
-  };
-  return pilih.map((h) => ({
+  return pilih.map((h) => keStrategi(h));
+}
+
+/** Satu sekolah sebagai baris pilihan; `role` mengikuti label terbaiknya bila tidak diberikan. */
+export function keStrategi(h: HasilSekolah, role = PERAN[h.labelTerbaik]): PilihanStrategi {
+  return {
+    sekolahId: h.sekolah.id,
     name: h.sekolah.nama,
-    role: peran[h.labelTerbaik],
+    role,
     jalur: namaJalur(h.jalur[0]),
     kind: KIND[h.labelTerbaik],
     label: h.labelTerbaik,
     jarakMeter: h.jarakMeter,
-  }));
+  };
 }
 
 export type Ringkasan = {
@@ -234,12 +255,13 @@ export function ringkasan(hasil: HasilSekolah[]): Ringkasan {
   };
 }
 
-/** Catatan yang perlu diperhatikan di atas hasil (hanya bila ada). */
-export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput): string[] {
+/** Catatan yang perlu diperhatikan di atas hasil (hanya bila ada). `input` null untuk hasil tersimpan. */
+export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput | null): string[] {
   const catatan: string[] = [];
   if (r.nisnLazim === false) catatan.push("NISN ini tidak lazim untuk calon siswa SMA atau SMK. Pastikan NISN sudah benar di situs resmi.");
-  if (isi(input.nilai).length > 0 && isi(input.nilai).length < SEMESTER_COUNT) {
-    catatan.push(`Rata-rata rapor dihitung dari ${isi(input.nilai).length} semester yang diisi. Lengkapi 5 semester agar perkiraan Jalur Prestasi lebih tepat.`);
+  const semester = isi(input?.nilai ?? []).length;
+  if (semester > 0 && semester < SEMESTER_COUNT) {
+    catatan.push(`Rata-rata rapor dihitung dari ${semester} semester yang diisi. Lengkapi 5 semester agar perkiraan Jalur Prestasi lebih tepat.`);
   }
   return catatan;
 }
@@ -274,11 +296,3 @@ export function pembandingSingkat(j: HasilJalur): string {
     : `Skor ${angkaSkor(j.nilaiAnak)}; terendah diterima ${p.min === null ? "-" : angkaSkor(p.min)}`;
 }
 
-/** Pemetaan isian Cek Cepat ke isian wizard (id field wizard). NISN dan titik rumah tidak pernah ikut. */
-export function draftToWizard(input: QuickCheckInput, nama: string): Record<string, string> {
-  const data: Record<string, string> = { nama, jenjang: input.jenjang, ketm: input.ketm, kec: input.kecamatan };
-  input.nilai.forEach((v, i) => {
-    if (v !== null) data[`nilai-${i + 1}`] = String(v).replace(".", ",");
-  });
-  return data;
-}

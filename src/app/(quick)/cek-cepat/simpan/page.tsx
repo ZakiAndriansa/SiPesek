@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function SimpanPage() {
   return (
     <Container reading>
-      <PageHeader title="Simpan hasil ke akun" desc="Isian Cek Cepat dipindahkan sekali ke akun Bapak/Ibu, lalu pengisian dilanjutkan." />
+      <PageHeader title="Simpan hasil ke akun" desc="Hasil Cek Cepat tadi masuk ke riwayat anak di akun Bapak/Ibu, jadi bisa dibuka lagi kapan saja tanpa mengisi ulang." />
       <SaveDraft />
     </Container>
   );

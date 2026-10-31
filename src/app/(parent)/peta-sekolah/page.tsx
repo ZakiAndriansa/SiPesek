@@ -18,6 +18,7 @@ import {
 import { SCHOOLS } from "@/data/schools";
 import { getSession } from "@/lib/session";
 import { SchoolResultCard } from "@/features/sekolah/SchoolResultCard";
+import { HasilSekolahOrtu } from "@/features/ortu/HasilSekolahOrtu";
 
 export const metadata: Metadata = {
   title: "Hasil Sekolah",
@@ -30,6 +31,14 @@ export default async function PetaSekolahPage({
   searchParams: Promise<{ selesai?: string }>;
 }) {
   const session = await getSession();
+  // Akun Google: hasil asli dari cek yang tersimpan. Akun contoh (mode demo) tetap memakai data prototipe.
+  if (session?.account === "google") {
+    return (
+      <Container>
+        <HasilSekolahOrtu />
+      </Container>
+    );
+  }
   const name = session?.child?.name ?? "anak";
   const first = name.split(" ")[0];
   const pins = SCHOOLS.map((s) => ({

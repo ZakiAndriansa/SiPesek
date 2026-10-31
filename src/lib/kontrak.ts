@@ -159,8 +159,9 @@ export type ResponsPeluang = {
   swasta: { SMA: AlternatifSwasta[]; SMK: AlternatifSwasta[] };
   catatan: string;
   /**
-   * Skor akhir anak per jalur skor. Hanya ada di balasan POST /api/peluang; tidak disimpan, jadi tidak
-   * ada di GET /api/hasil/[token] (riwayat hanya menyimpan rentang skor per 10 poin).
+   * Skor akhir anak per jalur skor. Di balasan POST /api/peluang lengkap. Di hasil tersimpan
+   * (GET /api/hasil/[token]) `rincian` selalu kosong, karena rinciannya membuka rata-rata rapor dan nilai TKA;
+   * cek yang disimpan sebelum skor ikut disimpan tidak punya field ini.
    */
   skorAnak?: SkorAnak[];
 };
@@ -215,6 +216,19 @@ export type RiwayatCek = {
   /** Jumlah sekolah negeri per label terbaik. */
   ringkas: { jumlahSekolah: number; peluangBesar: number; masihMungkin: number; peluangKecil: number };
 };
+
+/**
+ * POST /api/ortu/simpan-cek: simpan hasil Cek Cepat ke akun dalam satu permintaan. Isinya sama dengan
+ * permintaan peluang mode tamu (NISN wajib) ditambah nama anak dan persetujuan. Bila NISN belum ada di akun,
+ * anak baru dibuat (201); bila sudah ada, cek ditambahkan ke anak itu tanpa mengubah namanya (200).
+ * Galat: 400 isian atau NISN tidak sah; 401 belum masuk; 409 NISN milik akun lain; 422 sudah 5 anak;
+ * 429 lewat 20 cek per 24 jam. Hasil dihitung ulang di server, jadi titik rumah (`lokasi`) tetap wajib
+ * walau tidak disimpan.
+ */
+export type PermintaanSimpanCek = Omit<PermintaanPeluang, "anakId" | "nisn"> & PermintaanTambahAnak;
+
+/** Balasan POST /api/ortu/simpan-cek: hasil yang sudah tersimpan (ada `token` dan `anak`), termasuk `skorAnak`. */
+export type ResponsSimpanCek = ResponsPeluang & { anakBaru: boolean };
 
 /** GET /api/ortu/riwayat?anakId= (404 bila anak bukan milik akun ini). */
 export type ResponsRiwayat = { anak: AnakRingkas; riwayat: RiwayatCek[] };

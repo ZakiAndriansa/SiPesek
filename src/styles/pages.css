@@ -389,6 +389,154 @@
   align-items: flex-start;
 }
 
+/* Halaman tahap akun Google (features/ortu): sumber data, peta hasil, arti label, dokumen. */
+.sumber-hasil {
+  margin: 0;
+}
+.hasil-sekolah {
+  margin-top: var(--space-6);
+}
+.hasil-sekolah__legenda {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.hasil-sekolah__legenda p {
+  margin: 0;
+}
+.arti-label {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.arti-label li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.arti-label .badge {
+  flex-shrink: 0;
+}
+.dokumen__kepala {
+  padding-bottom: var(--space-4);
+  border-bottom: 2px solid var(--color-border-subtle);
+}
+.dokumen__kepala p,
+.dokumen p {
+  margin: 0;
+}
+.dokumen__judul {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-heading-sm);
+}
+.dokumen__data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+}
+.dokumen__data dt {
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+}
+.dokumen__data dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+.dokumen__subjudul {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--text-body-md);
+}
+.dokumen__daftar {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-5);
+}
+@media print {
+  .dokumen {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+  .dokumen::before {
+    display: none;
+  }
+}
+
+/* Riwayat cek tersimpan per anak (akun Google) di halaman Data Anak. */
+.riwayat-anak {
+  display: grid;
+  gap: var(--space-4);
+}
+.riwayat-anak__nisn {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-body-sm);
+}
+.riwayat-anak__daftar {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.riwayat-anak__daftar li {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.riwayat-anak__tautan {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  color: inherit;
+  text-decoration: none;
+}
+.riwayat-anak__tautan:hover .riwayat-anak__judul {
+  text-decoration: underline;
+}
+.riwayat-anak__tautan:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.riwayat-anak__tautan > .icon {
+  flex-shrink: 0;
+  color: var(--color-ink-soft);
+}
+.riwayat-anak__isi {
+  display: grid;
+  flex: 1;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.riwayat-anak__judul {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+.riwayat-anak__waktu {
+  color: var(--color-ink-soft);
+  font-size: var(--text-body-sm);
+}
+.riwayat-anak__label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .journey {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -84,6 +84,8 @@ describe("Cek Cepat", () => {
       ["Sekolah 1", "Pilihan aman"],
       ["Sekolah 2", "Pilihan aman"],
     ]);
+    // Pilihan dibawa ke Strategi dan Dokumen lewat id sekolah, jadi id harus ikut.
+    expect(strategi(hasil).map((s) => s.sekolahId)).toEqual([3, 1, 2]);
   });
   it("ringkasan menjawab lebih dulu, sesuai label terbaik", () => {
     const besar = sekolah(1, "PELUANG_BESAR", jalur("DOMISILI", "PELUANG_BESAR"));
