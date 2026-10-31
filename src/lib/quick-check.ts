@@ -125,7 +125,7 @@ const NAMA_LABEL: Record<LabelPeluang, string> = {
   TIDAK_DIHITUNG: "Belum dihitung",
 };
 const angka = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 2 });
-export const namaJalur = (j: HasilJalur) => (j.programKeahlian ? `${j.namaJalur} (${j.programKeahlian})` : j.namaJalur);
+export const namaJalur = (j: HasilJalur) => (j.programKeahlian ? `${j.namaJalur}, jurusan ${j.programKeahlian}` : j.namaJalur);
 
 /** Fakta singkat di kartu sekolah untuk jalur terbaik. */
 export function faktaSekolah(h: HasilSekolah): [string, string][] {
@@ -187,7 +187,7 @@ function alasanTertutup(kode: string, input: QuickCheckInput): string {
     case "PRESTASI":
       return "Isi nilai rapor untuk menghitung jalur ini.";
     default:
-      return "Dihitung bila orang tua pindah tugas. Jalur anak guru bisa dicek setelah masuk.";
+      return "Dihitung bila orang tua pindah tugas ke Depok. Jalur anak guru belum bisa dicek di Cek Cepat.";
   }
 }
 
