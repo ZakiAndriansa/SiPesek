@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Alert, Badge, Button, ButtonGroup, CtaBand, Dialog, HelpLink, Icon } from "@/components";
 import type { HasilSekolah, ResponsPeluang, SkorAnak } from "@/lib/kontrak";
 import { formatJarak } from "@/lib/peluang/jarak";
@@ -21,6 +21,7 @@ import {
   type PilihanStrategi,
   type QuickCheckInput,
 } from "@/lib/quick-check";
+import { LaporanCetak } from "./LaporanCetak";
 
 /** ["a", "b", "c"] menjadi "a, b dan c". */
 const gabung = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} dan ${xs[xs.length - 1]}`);
@@ -57,124 +58,120 @@ export function HasilCepat({
   const sisa = result.hasil.length - TAMPIL_AWAL;
   const swasta = [...result.swasta.SMA, ...result.swasta.SMK].sort((a, b) => (a.jarakMeter ?? Infinity) - (b.jarakMeter ?? Infinity));
 
-  // Saat dicetak, semua rincian dibuka agar kertasnya lengkap.
-  useEffect(() => {
-    const buka = () => {
-      setSemua(true);
-      document.querySelectorAll<HTMLDetailsElement>(".quick__result details").forEach((d) => (d.open = true));
-    };
-    window.addEventListener("beforeprint", buka);
-    return () => window.removeEventListener("beforeprint", buka);
-  }, []);
-
   return (
-    <div className="stack quick__result">
-      <p className="print-only quick__print-head">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo/logo-lofi.svg" alt="" width={32} height={32} />
-        SiPesek · Cek Cepat · {date}. {result.catatan}
-      </p>
+    <>
+      {/* Tampilan layar tidak ikut dicetak; yang dicetak adalah LaporanCetak di bawah. */}
+      <div className="stack quick__result no-print">
+        <KartuHasil result={result} onEdit={onEdit} />
 
-      <KartuHasil result={result} onEdit={onEdit} />
+        {catatanHasil(result, input).map((note) => (
+          <Alert key={note} kind="info">
+            {note}
+          </Alert>
+        ))}
 
-      {catatanHasil(result, input).map((note) => (
-        <Alert key={note} kind="info">
-          {note}
-        </Alert>
-      ))}
+        {pilihan.length > 0 && (
+          <section className="stack" aria-labelledby="q-strategi">
+            <div>
+              <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
+              <p className="text-secondary">Satu ambisius, dua aman.</p>
+            </div>
+            <ol className="hasil-pilihan">
+              {pilihan.map((p, i) => (
+                <KartuPilihan key={p.name} p={p} no={i + 1} />
+              ))}
+            </ol>
+          </section>
+        )}
 
-      {pilihan.length > 0 && (
-        <section className="stack" aria-labelledby="q-strategi">
+        <section className="stack" aria-labelledby="q-sekolah">
           <div>
-            <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
-            <p className="text-secondary">Satu ambisius, dua aman.</p>
+            <h2 className="text-heading-md" id="q-sekolah">Semua sekolah negeri ({result.hasil.length})</h2>
+            <p className="text-secondary">Ketuk sekolah untuk melihat alasannya.</p>
           </div>
-          <ol className="hasil-pilihan">
-            {pilihan.map((p, i) => (
-              <KartuPilihan key={p.name} p={p} no={i + 1} />
-            ))}
-          </ol>
+          {result.hasil.length === 0 ? (
+            <p className="text-secondary">Belum ada sekolah negeri yang bisa dihitung untuk isian ini.</p>
+          ) : (
+            <div className="hasil-daftar">
+              {sekolah.map((h) => (
+                <BarisSekolah key={h.sekolah.id} h={h} />
+              ))}
+            </div>
+          )}
+          {sisa > 0 && (
+            <Button
+              variant="secondary"
+              block
+              onClick={() => {
+                // Saat menutup, kembali ke judul daftar agar tidak tertinggal jauh di bawah.
+                if (semua) document.getElementById("q-sekolah")?.scrollIntoView({ block: "start" });
+                setSemua(!semua);
+              }}
+            >
+              {semua ? "Sembunyikan sekolah lainnya" : `Tampilkan ${sisa} sekolah lainnya`}
+            </Button>
+          )}
         </section>
-      )}
 
-      <section className="stack" aria-labelledby="q-sekolah">
-        <div>
-          <h2 className="text-heading-md" id="q-sekolah">Semua sekolah negeri ({result.hasil.length})</h2>
-          <p className="text-secondary">Ketuk sekolah untuk melihat alasannya.</p>
-        </div>
-        {result.hasil.length === 0 ? (
-          <p className="text-secondary">Belum ada sekolah negeri yang bisa dihitung untuk isian ini.</p>
-        ) : (
-          <div className="hasil-daftar">
-            {sekolah.map((h) => (
-              <BarisSekolah key={h.sekolah.id} h={h} />
-            ))}
-          </div>
-        )}
-        {!semua && sisa > 0 && (
-          <Button variant="secondary" block onClick={() => setSemua(true)}>
-            Tampilkan {sisa} sekolah lainnya
-          </Button>
-        )}
-      </section>
-
-      <div className="hasil-daftar">
-        {swasta.length > 0 && (
-          <Lipat judul={`Sekolah swasta terdekat (${swasta.length})`}>
+        <div className="hasil-daftar">
+          {swasta.length > 0 && (
+            <Lipat judul={`Sekolah swasta terdekat (${swasta.length})`}>
+              <ul className="hasil-lipat__daftar">
+                {swasta.map((s) => (
+                  <li key={s.sekolah.id}>
+                    <strong>{s.sekolah.nama}</strong>
+                    <span>
+                      {s.sekolah.jenjang} · {s.sekolah.kecamatan}
+                      {s.jarakMeter !== null && ` · ${formatJarak(s.jarakMeter)}`} · Biaya: {s.biaya?.ringkas ?? "tanyakan ke sekolah"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Lipat>
+          )}
+          <Lipat judul="Ringkasan per jalur">
             <ul className="hasil-lipat__daftar">
-              {swasta.map((s) => (
-                <li key={s.sekolah.id}>
-                  <strong>{s.sekolah.nama}</strong>
-                  <span>
-                    {s.sekolah.jenjang} · {s.sekolah.kecamatan}
-                    {s.jarakMeter !== null && ` · ${formatJarak(s.jarakMeter)}`} · Biaya: {s.biaya?.ringkas ?? "tanyakan ke sekolah"}
-                  </span>
+              {ringkasJalur(result.hasil, input).map((j) => (
+                <li key={j.kode}>
+                  <strong>{j.nama}</strong>
+                  <span>{j.teks}</span>
                 </li>
               ))}
             </ul>
           </Lipat>
+        </div>
+
+        {canSave && (
+          <CtaBand title="Mau menyimpan hasil ini?" text="Isian dipindahkan ke akun Bapak/Ibu sebagai data anak baru, setelah Bapak/Ibu setuju di langkah berikutnya.">
+            <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
+              Simpan hasil ini ke akun
+            </Button>
+          </CtaBand>
         )}
-        <Lipat judul="Ringkasan per jalur">
-          <ul className="hasil-lipat__daftar">
-            {ringkasJalur(result.hasil, input).map((j) => (
-              <li key={j.kode}>
-                <strong>{j.nama}</strong>
-                <span>{j.teks}</span>
-              </li>
-            ))}
-          </ul>
-        </Lipat>
-      </div>
+        {!loggedIn && (
+          <CtaBand title="Mau menyimpan hasil ini?" text="Masuk dulu. Setelah masuk, Bapak/Ibu bisa memindahkan isian ini ke akun. Tanpa masuk, hasil tidak tersimpan.">
+            <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
+              Masuk & simpan hasil ini
+            </Button>
+          </CtaBand>
+        )}
 
-      {canSave && (
-        <CtaBand title="Mau menyimpan hasil ini?" text="Isian dipindahkan ke akun Bapak/Ibu sebagai data anak baru, setelah Bapak/Ibu setuju di langkah berikutnya.">
-          <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
-            Simpan hasil ini ke akun
-          </Button>
-        </CtaBand>
-      )}
-      {!loggedIn && (
-        <CtaBand title="Mau menyimpan hasil ini?" text="Masuk dulu. Setelah masuk, Bapak/Ibu bisa memindahkan isian ini ke akun. Tanpa masuk, hasil tidak tersimpan.">
-          <Button variant="primary" lg icon="arrow-right" onClick={onSave}>
-            Masuk & simpan hasil ini
-          </Button>
-        </CtaBand>
-      )}
-
-      <div className="no-print">
-        <ButtonGroup>
-          <Button variant="secondary" print iconLeft="download">
-            Cetak
-          </Button>
-          <Button variant="ghost" onClick={onEdit}>
-            Ubah isian
-          </Button>
-          <Button variant="ghost" onClick={onRestart}>
-            Cek anak lain
-          </Button>
-        </ButtonGroup>
+        <div className="no-print">
+          <ButtonGroup>
+            <Button variant="secondary" print iconLeft="download">
+              Cetak
+            </Button>
+            <Button variant="ghost" onClick={onEdit}>
+              Ubah isian
+            </Button>
+            <Button variant="ghost" onClick={onRestart}>
+              Cek anak lain
+            </Button>
+          </ButtonGroup>
+        </div>
       </div>
-    </div>
+      <LaporanCetak result={result} input={input} date={date} />
+    </>
   );
 }
 

@@ -380,3 +380,113 @@
     padding-left: calc(40px + var(--space-4));
   }
 }
+
+/* Laporan cetak Cek Cepat: tersembunyi di layar; saat mencetak, menggantikan tampilan layar. */
+.laporan-cetak {
+  display: none;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+  .quick__focus {
+    display: none !important;
+  }
+  /* Laporan memakai lebar penuh kertas, bukan lebar kolom baca layar. */
+  .container:has(.laporan-cetak) {
+    max-width: none;
+    padding: 0;
+  }
+  .laporan-cetak {
+    display: block;
+    color: #000;
+    font-family: var(--font-sans);
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+  .laporan-cetak section {
+    margin-top: 12pt;
+  }
+  .laporan-cetak h1,
+  .laporan-cetak h2 {
+    margin: 0 0 4pt;
+    font-family: var(--font-heading);
+  }
+  .laporan-cetak h1 {
+    font-size: 16pt;
+  }
+  .laporan-cetak h2 {
+    font-size: 11.5pt;
+  }
+  .laporan-cetak p,
+  .laporan-cetak ul {
+    margin: 0;
+  }
+  .laporan-cetak__kepala {
+    display: flex;
+    align-items: center;
+    gap: 10pt;
+    padding-bottom: 8pt;
+    border-bottom: 1.5pt solid #000;
+  }
+  .laporan-cetak__kepala p,
+  .laporan-cetak__kecil {
+    color: #444;
+    font-size: 8.5pt;
+  }
+  .laporan-cetak__ringkas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt;
+  }
+  .laporan-cetak__kotak {
+    display: grid;
+    align-content: start;
+    gap: 3pt;
+    padding: 8pt 10pt;
+    border: 1pt solid #999;
+    border-radius: 6pt;
+    break-inside: avoid;
+  }
+  .laporan-cetak__angka {
+    font-family: var(--font-heading);
+    font-size: 22pt;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .laporan-cetak__angka span {
+    font-family: var(--font-sans);
+    font-size: 10pt;
+    font-weight: 400;
+  }
+  .laporan-cetak table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .laporan-cetak th,
+  .laporan-cetak td {
+    padding: 3pt 5pt;
+    border: 0.75pt solid #bbb;
+    text-align: left;
+    vertical-align: top;
+  }
+  .laporan-cetak thead th {
+    background: #f0f0f0;
+    font-size: 8.5pt;
+  }
+  .laporan-cetak tr {
+    break-inside: avoid;
+  }
+  .laporan-cetak__data th {
+    width: 18%;
+    background: #f7f7f7;
+    font-weight: 600;
+  }
+  .laporan-cetak__catatan {
+    break-inside: avoid;
+  }
+  .laporan-cetak__catatan ul {
+    padding-left: 14pt;
+  }
+}

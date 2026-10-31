@@ -192,7 +192,7 @@ function alasanTertutup(kode: string, input: QuickCheckInput): string {
   }
 }
 
-export type PilihanStrategi = { name: string; role: string; jalur: string; kind: string; jarakMeter: number | null };
+export type PilihanStrategi = { name: string; role: string; jalur: string; kind: string; label: LabelPeluang; jarakMeter: number | null };
 
 /** Strategi 3 pilihan: satu ambisius (Masih mungkin), dua aman (Peluang besar), dari hasil yang sudah terurut. */
 export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
@@ -212,6 +212,7 @@ export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
     role: peran[h.labelTerbaik],
     jalur: namaJalur(h.jalur[0]),
     kind: KIND[h.labelTerbaik],
+    label: h.labelTerbaik,
     jarakMeter: h.jarakMeter,
   }));
 }
@@ -263,6 +264,15 @@ export function posisiSkor(s: SkorAnak, hasil: HasilSekolah[]): { atas: number; 
 }
 
 export const angkaSkor = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 1 });
+
+/** Satu baris pembanding untuk laporan cetak, mis. "Rumah 3,5 km; terjauh diterima 4,1 km". */
+export function pembandingSingkat(j: HasilJalur): string {
+  const p = j.pembanding;
+  if (j.label === "TIDAK_DIHITUNG" || !p || j.nilaiAnak === null) return "Belum dihitung";
+  return j.satuan === "meter"
+    ? `Rumah ${formatJarak(j.nilaiAnak)}; terjauh diterima ${p.maks === null ? "-" : formatJarak(p.maks)}`
+    : `Skor ${angkaSkor(j.nilaiAnak)}; terendah diterima ${p.min === null ? "-" : angkaSkor(p.min)}`;
+}
 
 /** Pemetaan isian Cek Cepat ke isian wizard (id field wizard). NISN dan titik rumah tidak pernah ikut. */
 export function draftToWizard(input: QuickCheckInput, nama: string): Record<string, string> {
