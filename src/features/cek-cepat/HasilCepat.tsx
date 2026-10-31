@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { Alert, Badge, Button, ButtonGroup, CtaBand, Icon, RankList } from "@/components";
+import { Alert, Badge, Button, ButtonGroup, CtaBand, Dialog, HelpLink, Icon, RankList } from "@/components";
 import type { HasilSekolah, ResponsPeluang, SkorAnak } from "@/lib/kontrak";
 import { formatJarak } from "@/lib/peluang/jarak";
 import {
@@ -51,7 +51,6 @@ export function HasilCepat({
   date: string;
 }) {
   const [semua, setSemua] = useState(false);
-  const r = ringkasan(result.hasil);
   const pilihan = strategi(result.hasil);
   const sekolah = semua ? result.hasil : result.hasil.slice(0, TAMPIL_AWAL);
   const sisa = result.hasil.length - TAMPIL_AWAL;
@@ -75,26 +74,7 @@ export function HasilCepat({
         SiPesek · Cek Cepat · {date}. {result.catatan}
       </p>
 
-      {result.skorAnak && result.skorAnak.length > 0 && (
-        <SkorAkhir skor={result.skorAnak} hasil={result.hasil} tahun={result.tahunAcuan} onEdit={onEdit} />
-      )}
-
-      <section className="card hasil-ringkas" aria-labelledby="q-ringkas">
-        <p className="hasil-skor__langkah">Peluang di sekolah negeri</p>
-        <h2 className="hasil-ringkas__judul" id="q-ringkas">{r.judul}</h2>
-        {r.jumlah.length > 0 && (
-          <ul className="hasil-ringkas__jumlah" aria-label="Jumlah sekolah per label">
-            {r.jumlah.map((j) => (
-              <li key={j.label}>
-                <Badge kind={KIND[j.label]}>{`${namaLabel(j.label)}: ${j.n}`}</Badge>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="hasil-ringkas__catatan">
-          Perkiraan dari hasil SPMB {result.tahunAcuan}, bukan jaminan diterima. Hasil tidak disimpan; cetak bila ingin menyimpannya.
-        </p>
-      </section>
+      <KartuHasil result={result} onEdit={onEdit} />
 
       {catatanHasil(result, input).map((note) => (
         <Alert key={note} kind="info">
@@ -106,7 +86,7 @@ export function HasilCepat({
         <section className="stack" aria-labelledby="q-strategi">
           <div>
             <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
-            <p className="text-secondary">Satu pilihan ambisius dan dua pilihan aman. Urutannya bisa digeser.</p>
+            <p className="text-secondary">Satu ambisius, dua aman.</p>
           </div>
           <RankList items={pilihan} />
         </section>
@@ -115,7 +95,7 @@ export function HasilCepat({
       <section className="stack" aria-labelledby="q-sekolah">
         <div>
           <h2 className="text-heading-md" id="q-sekolah">Semua sekolah negeri ({result.hasil.length})</h2>
-          <p className="text-secondary">Ketuk nama sekolah untuk melihat alasannya.</p>
+          <p className="text-secondary">Ketuk sekolah untuk melihat alasannya.</p>
         </div>
         {result.hasil.length === 0 ? (
           <p className="text-secondary">Belum ada sekolah negeri yang bisa dihitung untuk isian ini.</p>
@@ -159,26 +139,6 @@ export function HasilCepat({
             ))}
           </ul>
         </Lipat>
-        <Lipat judul="Cara membaca hasil ini">
-          <ul className="hasil-lipat__daftar">
-            <li>
-              <strong>Peluang besar</strong>
-              <span>Jarak atau nilai anak sama atau lebih baik dari separuh siswa yang diterima tahun {result.tahunAcuan}. Cocok sebagai pilihan aman.</span>
-            </li>
-            <li>
-              <strong>Masih mungkin</strong>
-              <span>Masih di dalam rentang siswa yang diterima, tapi di bawah separuhnya. Cocok untuk satu pilihan ambisius.</span>
-            </li>
-            <li>
-              <strong>Peluang kecil</strong>
-              <span>Di luar rentang siswa yang diterima. Sebaiknya bukan satu-satunya pilihan.</span>
-            </li>
-          </ul>
-          <p>
-            Jarak dihitung garis lurus dari titik rumah. Keputusan akhir ada pada panitia SPMB.{" "}
-            <Link href="/panduan#cara-hitung">Baca cara SiPesek menghitung peluang</Link>.
-          </p>
-        </Lipat>
       </div>
 
       {canSave && (
@@ -214,109 +174,58 @@ export function HasilCepat({
 }
 
 /**
- * Skor akhir anak ditampilkan sebelum peluang: angka, bagian penyusunnya, posisinya terhadap skor terendah
- * yang diterima, dan cara membacanya. Skor lain (mis. Kelas Industri SMK) tampil sebagai baris ringkas.
+ * Satu kartu jawaban: skor akhir anak (bila jenjangnya punya jalur skor) dan peluangnya di sekolah negeri.
+ * Rincian skor, rentang yang diterima, dan arti label ada di dialog "Cara membaca".
  */
-function SkorAkhir({ skor, hasil, tahun, onEdit }: { skor: SkorAnak[]; hasil: HasilSekolah[]; tahun: number; onEdit: () => void }) {
+function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => void }) {
+  const skor = result.skorAnak ?? [];
   const utama = skor.find((s) => s.nilai !== null) ?? skor[0];
-  const lain = skor.filter((s) => s !== utama);
-  const posisi = posisiSkor(utama, hasil);
+  const r = ringkasan(result.hasil);
   return (
-    <section className="card hasil-skor" aria-labelledby="q-skor">
-      <p className="hasil-skor__langkah">Skor akhir anak</p>
-      <h2 className="hasil-skor__jalur" id="q-skor">{judulSkor(utama)}</h2>
+    <section className="card hasil-ringkas" aria-labelledby="q-ringkas">
+      <div className="hasil-ringkas__kepala">
+        <p className="hasil-skor__langkah">{utama ? "Skor akhir dan peluang" : "Peluang di sekolah negeri"}</p>
+        <HelpLink opens="dlg-baca-hasil">Cara membaca</HelpLink>
+      </div>
 
-      {utama.nilai === null ? (
-        <>
+      {utama &&
+        (utama.nilai === null ? (
           <p className="hasil-skor__kosong">
-            Skor belum bisa dihitung karena {gabung(utama.kurang)} belum diisi. Peluang di bawah dihitung dari jarak rumah dan kondisi keluarga.
-          </p>
-          <div>
-            <Button variant="secondary" sm onClick={onEdit}>
+            Skor belum dihitung: isi {gabung(utama.kurang)}.{" "}
+            <button type="button" className="link" onClick={onEdit}>
               Lengkapi nilai
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="hasil-skor__angka">
-            <strong>{angkaSkor(utama.nilai)}</strong>
-            <span>dari {angkaSkor(utama.maks)}</span>
+            </button>
           </p>
-          {utama.terendahDiterima && (
-            <SkalaSkor nilai={utama.nilai} rentang={utama.terendahDiterima} />
-          )}
-          <ul className="hasil-skor__rincian">
-            {utama.rincian.map((b) => (
-              <li key={b.label}>
-                {b.label} <strong>{angkaSkor(b.nilai)}</strong> dari {angkaSkor(b.maks)}
-              </li>
-            ))}
-          </ul>
-          <div className="hasil-skor__baca">
-            <p className="hasil-skor__baca-judul">Cara membaca</p>
-            {utama.terendahDiterima && (
-              <p>
-                Skor terendah yang diterima tahun {tahun} di {utama.jenjang} negeri Depok berkisar{" "}
-                <strong>
-                  {angkaSkor(utama.terendahDiterima.dari)} sampai {angkaSkor(utama.terendahDiterima.sampai)}
-                </strong>
-                , tergantung sekolahnya (bagian hijau pada garis di atas).
-                {posisi && ` Skor anak sudah mencapai batas itu di ${posisi.atas} dari ${posisi.total} sekolah.`}
-              </p>
-            )}
-            <p>Makin jauh skor anak di atas batas terendah, makin besar peluangnya. Skor ini hanya dipakai di Jalur Prestasi; Jalur Domisili memakai jarak rumah.</p>
-          </div>
-        </>
-      )}
-
-      {lain.length > 0 && (
-        <ul className="hasil-lipat__daftar hasil-skor__lain">
-          {lain.map((s) => (
-            <li key={`${s.jenjang}-${s.subJalurKode}-${s.kelompok}`}>
-              <strong>
-                {judulSkor(s)}: {s.nilai === null ? "belum dihitung" : `${angkaSkor(s.nilai)} dari ${angkaSkor(s.maks)}`}
-              </strong>
+        ) : (
+          <>
+            <p className="hasil-skor__angka">
+              <strong>{angkaSkor(utama.nilai)}</strong>
               <span>
-                {s.nilai === null
-                  ? `Isi ${gabung(s.kurang)} untuk menghitungnya.`
-                  : s.terendahDiterima && `Skor terendah yang diterima ${angkaSkor(s.terendahDiterima.dari)} sampai ${angkaSkor(s.terendahDiterima.sampai)}.`}
+                dari {angkaSkor(utama.maks)} · {judulSkor(utama)}
               </span>
+            </p>
+            {utama.terendahDiterima && <SkalaSkor nilai={utama.nilai} rentang={utama.terendahDiterima} />}
+          </>
+        ))}
+
+      <h2 className="hasil-ringkas__judul" id="q-ringkas">{r.judul}</h2>
+      {r.jumlah.length > 0 && (
+        <ul className="hasil-ringkas__jumlah" aria-label="Jumlah sekolah per label">
+          {r.jumlah.map((j) => (
+            <li key={j.label}>
+              <Badge kind={KIND[j.label]}>{`${namaLabel(j.label)}: ${j.n}`}</Badge>
             </li>
           ))}
         </ul>
       )}
+      <p className="hasil-ringkas__catatan">Perkiraan dari SPMB {result.tahunAcuan}, bukan jaminan. Hasil tidak disimpan.</p>
 
-      <details className="hasil-baris hasil-lipat hasil-skor__rumus">
-        <summary className="hasil-baris__ringkas">
-          <strong>Cara skor dihitung</strong>
-          <Icon name="chevron-down" className="icon icon--sm hasil-baris__panah" />
-        </summary>
-        <div className="hasil-baris__isi">
-          <ul className="hasil-lipat__daftar">
-            {skor.map((s) => (
-              <li key={`${s.jenjang}-${s.subJalurKode}-${s.kelompok}`}>
-                <strong>{judulSkor(s)}</strong>
-                <span>
-                  {s.rumus}, paling tinggi {angkaSkor(s.maks)}.
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p>
-            Rumus mengikuti juknis SPMB Jawa Barat. Di tiap sekolah, skor anak dibandingkan dengan siswa yang diterima tahun {tahun}: sama atau di atas
-            separuh mereka berarti Peluang besar, di atas skor terendah berarti Masih mungkin, di bawahnya Peluang kecil.
-          </p>
-        </div>
-      </details>
+      <DialogBaca skor={skor} utama={utama} hasil={result.hasil} tahun={result.tahunAcuan} />
     </section>
   );
 }
 
-/**
- * Garis posisi skor, diperbesar di sekitar rentang skor terendah yang diterima agar perbedaannya terlihat.
- * Hijau = rentang skor terendah antarsekolah, titik = skor anak.
- */
+/** Garis posisi skor, diperbesar di sekitar rentang skor terendah yang diterima. */
 function SkalaSkor({ nilai, rentang }: { nilai: number; rentang: { dari: number; sampai: number } }) {
   const lebar = Math.max(rentang.sampai - rentang.dari, 1);
   const bawah = Math.min(rentang.dari, nilai) - lebar * 0.6;
@@ -331,14 +240,79 @@ function SkalaSkor({ nilai, rentang }: { nilai: number; rentang: { dari: number;
       <ul className="hasil-skor__legenda">
         <li>
           <span className="hasil-skor__tanda hasil-skor__tanda--titik" aria-hidden="true" />
-          Skor anak {angkaSkor(nilai)}
+          Skor anak
         </li>
         <li>
           <span className="hasil-skor__tanda hasil-skor__tanda--rentang" aria-hidden="true" />
-          Skor terendah yang diterima di tiap sekolah
+          Skor terendah yang diterima
         </li>
       </ul>
     </div>
+  );
+}
+
+/** Semua penjelasan dalam satu dialog: rincian dan rumus skor, rentang yang diterima, dan arti label. */
+function DialogBaca({ skor, utama, hasil, tahun }: { skor: SkorAnak[]; utama?: SkorAnak; hasil: HasilSekolah[]; tahun: number }) {
+  const posisi = utama ? posisiSkor(utama, hasil) : null;
+  const lain = skor.filter((s) => s !== utama);
+  return (
+    <Dialog id="dlg-baca-hasil" title="Cara membaca hasil">
+      <div className="hasil-baca">
+        {utama && utama.nilai !== null && (
+          <section>
+            <h3>Skor akhir</h3>
+            <p>
+              {judulSkor(utama)}: {utama.rumus}, paling tinggi {angkaSkor(utama.maks)}.
+              {utama.rincian.length > 1 && ` Rinciannya ${utama.rincian.map((b) => `${b.label} ${angkaSkor(b.nilai)}`).join(" dan ")}.`}
+            </p>
+            {utama.terendahDiterima && (
+              <p>
+                Bagian hijau pada garis adalah skor terendah yang diterima tahun {tahun} di {utama.jenjang} negeri Depok, yaitu{" "}
+                {angkaSkor(utama.terendahDiterima.dari)} sampai {angkaSkor(utama.terendahDiterima.sampai)} tergantung sekolahnya. Titik oranye adalah
+                skor anak{posisi && `, yang sudah mencapai batas itu di ${posisi.atas} dari ${posisi.total} sekolah`}.
+              </p>
+            )}
+          </section>
+        )}
+        {lain.length > 0 && (
+          <section>
+            <h3>Skor lain</h3>
+            <ul>
+              {lain.map((s) => (
+                <li key={`${s.jenjang}-${s.subJalurKode}-${s.kelompok}`}>
+                  {judulSkor(s)}:{" "}
+                  {s.nilai === null
+                    ? `belum dihitung, isi ${gabung(s.kurang)}.`
+                    : `${angkaSkor(s.nilai)} dari ${angkaSkor(s.maks)}${
+                        s.terendahDiterima
+                          ? `; skor terendah yang diterima ${angkaSkor(s.terendahDiterima.dari)} sampai ${angkaSkor(s.terendahDiterima.sampai)}`
+                          : ""
+                      }.`}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        <section>
+          <h3>Arti label</h3>
+          <ul>
+            <li>
+              <strong>Peluang besar:</strong> jarak atau skor anak sama atau lebih baik dari separuh siswa yang diterima. Cocok sebagai pilihan aman.
+            </li>
+            <li>
+              <strong>Masih mungkin:</strong> masih di dalam rentang siswa yang diterima. Cocok untuk satu pilihan ambisius.
+            </li>
+            <li>
+              <strong>Peluang kecil:</strong> di luar rentang itu. Sebaiknya bukan satu-satunya pilihan.
+            </li>
+          </ul>
+          <p>
+            Skor hanya dipakai di Jalur Prestasi; Jalur Domisili memakai jarak garis lurus dari titik rumah.{" "}
+            <Link href="/panduan#cara-hitung">Selengkapnya di Panduan</Link>.
+          </p>
+        </section>
+      </div>
+    </Dialog>
   );
 }
 

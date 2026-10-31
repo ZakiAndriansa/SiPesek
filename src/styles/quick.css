@@ -199,10 +199,6 @@
 }
 
 /* Skor akhir anak: tampil sebelum peluang. */
-.hasil-skor {
-  display: grid;
-  gap: var(--space-3);
-}
 .hasil-skor__langkah {
   margin: 0;
   color: var(--color-primary-text);
@@ -210,12 +206,6 @@
   font-weight: var(--weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-.hasil-skor__jalur {
-  margin: 0;
-  color: var(--color-ink);
-  font-family: var(--font-heading);
-  font-size: var(--text-heading-sm);
 }
 .hasil-skor__angka {
   display: flex;
@@ -294,50 +284,51 @@
   background: var(--color-success-text);
   opacity: 0.35;
 }
-.hasil-skor__rincian {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--color-ink-soft);
-  font-size: var(--text-body-sm);
-}
-.hasil-skor__rincian strong {
-  color: var(--color-ink);
-}
-.hasil-skor__baca {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-muted);
-}
-.hasil-skor__baca p {
-  margin: 0;
-}
-.hasil-skor__baca-judul {
-  font-weight: var(--weight-semibold);
-}
 .hasil-skor__kosong {
   margin: 0;
   color: var(--color-ink-soft);
 }
-.hasil-skor__lain {
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border-subtle);
+
+.hasil-ringkas__kepala {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
-.hasil-skor__rumus {
-  border-top: 1px solid var(--color-border-subtle);
-  border-bottom: none;
+.hasil-ringkas__kepala .link--help {
+  font-size: var(--text-body-sm);
 }
-.hasil-skor__rumus .hasil-baris__ringkas {
-  padding-bottom: 0;
+.hasil-skor__angka span {
+  font-size: var(--text-body-sm);
 }
-.hasil-skor__rumus[open] .hasil-baris__ringkas {
-  padding-bottom: var(--space-3);
+.hasil-skor__kosong .link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
 }
-.hasil-ringkas .hasil-skor__langkah + .hasil-ringkas__judul {
-  margin-top: calc(-1 * var(--space-2));
+/* Isi dialog "Cara membaca hasil". */
+.hasil-baca {
+  display: grid;
+  gap: var(--space-5);
+}
+.hasil-baca section {
+  display: grid;
+  gap: var(--space-2);
+}
+.hasil-baca h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-heading-sm);
+}
+.hasil-baca p,
+.hasil-baca ul {
+  margin: 0;
+}
+.hasil-baca ul {
+  display: grid;
+  gap: var(--space-2);
+  padding-left: var(--space-5);
 }
