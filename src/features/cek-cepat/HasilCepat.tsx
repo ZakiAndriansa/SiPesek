@@ -88,7 +88,7 @@ export function HasilCepat({
             <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
             <p className="text-secondary">Satu ambisius, dua aman.</p>
           </div>
-          <RankList items={pilihan} />
+          <RankList items={pilihan} tetap />
         </section>
       )}
 

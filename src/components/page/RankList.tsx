@@ -6,8 +6,11 @@ import { Icon } from "../icon/Icon";
 
 type Item = { name: string; role: string; jalur: string; kind: string };
 
-/** Urutan pilihan sekolah. Tombol panah menukar posisi; fokus tetap di tombol yang ditekan. */
-export function RankList({ items }: { items: Item[] }) {
+/**
+ * Urutan pilihan sekolah. Tombol panah menukar posisi; fokus tetap di tombol yang ditekan.
+ * `tetap`: tanpa tombol panah, untuk daftar rekomendasi yang urutannya tidak bisa disimpan (Cek Cepat).
+ */
+export function RankList({ items, tetap = false }: { items: Item[]; tetap?: boolean }) {
   const [order, setOrder] = useState(items);
   const buttons = useRef<Record<string, HTMLButtonElement | null>>({});
   const refocus = useRef<string | null>(null);
@@ -39,28 +42,30 @@ export function RankList({ items }: { items: Item[] }) {
             <span className="card__text">{item.jalur}</span>
             <Badge kind={item.kind} />
           </div>
-          <div className="rank__moves">
-            {(
-              [
-                [-1, "up", "Naikkan"],
-                [1, "down", "Turunkan"],
-              ] as const
-            ).map(([dir, name, verb]) => (
-              <button
-                key={name}
-                ref={(el) => {
-                  buttons.current[`${item.name}:${dir}`] = el;
-                }}
-                className="button button--ghost button--icon"
-                type="button"
-                aria-label={`${verb} ${item.name}`}
-                data-move={name}
-                onClick={() => move(i, dir)}
-              >
-                <Icon name={`arrow-${name}`} className="icon button__icon" />
-              </button>
-            ))}
-          </div>
+          {!tetap && (
+            <div className="rank__moves">
+              {(
+                [
+                  [-1, "up", "Naikkan"],
+                  [1, "down", "Turunkan"],
+                ] as const
+              ).map(([dir, name, verb]) => (
+                <button
+                  key={name}
+                  ref={(el) => {
+                    buttons.current[`${item.name}:${dir}`] = el;
+                  }}
+                  className="button button--ghost button--icon"
+                  type="button"
+                  aria-label={`${verb} ${item.name}`}
+                  data-move={name}
+                  onClick={() => move(i, dir)}
+                >
+                  <Icon name={`arrow-${name}`} className="icon button__icon" />
+                </button>
+              ))}
+            </div>
+          )}
         </li>
       ))}
     </ol>
