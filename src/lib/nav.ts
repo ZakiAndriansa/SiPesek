@@ -9,7 +9,8 @@ export const PUBLIC_NAV: NavItem[] = [
   ["/tanya-jawab", "Tanya Jawab"],
 ];
 
-export const HELP_URL = "https://wa.me/";
+/** WhatsApp tim pendamping SiPesek (format internasional, tanpa awalan 0), dengan pesan pembuka. */
+export const HELP_URL = `https://wa.me/6289628303327?text=${encodeURIComponent("Halo SiPesek, saya butuh bantuan.")}`;
 
 export const POLICY = {
   role: "Pembuat Kebijakan",

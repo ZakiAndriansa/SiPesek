@@ -130,8 +130,16 @@ export default function PrivasiPage() {
           </p>
           <ol className="privasi__daftar">
             <li>Melihat data anak dan riwayat cek kapan saja setelah masuk.</li>
+            <li>
+              Mengunduh salinan data akun lewat Unduh Salinan Data di halaman Data Anak, berupa berkas JSON untuk arsip yang tidak
+              bisa diimpor kembali.
+            </li>
+            <li>Menghapus satu hasil cek dari riwayat anak.</li>
             <li>Menghapus satu anak; seluruh riwayat cek anak itu ikut terhapus.</li>
-            <li>Menghapus akun; semua data anak dan riwayatnya ikut terhapus dari database saat itu juga.</li>
+            <li>
+              Menghapus akun lewat Hapus Akun dan Seluruh Data; semua data anak dan riwayatnya ikut terhapus dari database saat
+              itu juga.
+            </li>
             <li>Menarik persetujuan, dengan cara menghapus data anak atau akun.</li>
           </ol>
           <p className="card__text">

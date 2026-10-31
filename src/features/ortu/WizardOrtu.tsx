@@ -85,6 +85,7 @@ function Kerangka({
   n,
   anak,
   onValid,
+  onUbah,
   galat,
   busy,
   children,
@@ -92,6 +93,8 @@ function Kerangka({
   n: number;
   anak?: AnakOrtu;
   onValid: () => void;
+  /** Dipanggil tiap isian berubah, agar isian tersimpan walau orang tua keluar sebelum menekan Lanjut. */
+  onUbah?: () => void;
   galat: string;
   busy: boolean;
   children: ReactNode;
@@ -110,7 +113,9 @@ function Kerangka({
       )}
       <div className="card wizard__card">
         <Form id={FORM} onValid={onValid}>
-          {children}
+          <div className="wizard-ortu__isian" onChange={onUbah}>
+            {children}
+          </div>
           {galat && (
             <Alert kind="danger" title="Belum bisa disimpan">
               {galat}
@@ -129,8 +134,8 @@ function Kerangka({
         </Form>
       </div>
       <p className="text-caption text-secondary wizard-ortu__catatan">
-        Isian tersimpan di perangkat ini agar bisa dilanjutkan nanti, dan terhapus saat Bapak/Ibu keluar. NISN dan titik rumah
-        tidak ikut disimpan.
+        Isian tersimpan otomatis di perangkat ini agar bisa dilanjutkan nanti, dan terhapus saat Bapak/Ibu keluar. NISN dan
+        titik rumah tidak ikut disimpan.
       </p>
     </>
   );
@@ -235,31 +240,49 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
     router.push(href(n + 1));
   };
 
+  /** Isian langkah ini dari form. Langkah (progres) tidak ikut; hanya naik saat menekan Lanjut. */
+  function bacaLangkah(): Partial<Isian> {
+    const f = bacaForm();
+    if (n === 1) return f.get("jenjang") ? { jenjang: String(f.get("jenjang")) as Isian["jenjang"] } : {};
+    if (n === 2) {
+      return {
+        nilai: Array.from({ length: SEMESTER_COUNT }, (_, i) => angka(f.get(`nilai-${i + 1}`))),
+        tkaBin: isian.jenjang === "smk" ? isian.tkaBin : angka(f.get("tka-bin")),
+        tkaMtk: isian.jenjang === "smk" ? isian.tkaMtk : angka(f.get("tka-mtk")),
+        mapel:
+          isian.jenjang === "sma"
+            ? isian.mapel
+            : (Object.fromEntries(MAPEL.map(([k]) => [k, angka(f.get(`mapel-${k}`))])) as Isian["mapel"]),
+      };
+    }
+    if (n === 3) {
+      return {
+        ...(f.get("ketm") ? { ketm: String(f.get("ketm")) as Isian["ketm"] } : {}),
+        disabilitas: f.get("disabilitas") === "ya",
+        pindahTugas: f.get("pindah-tugas") === "ya",
+      };
+    }
+    return { kecamatan: String(f.get("kecamatan") ?? "") };
+  }
+
+  // Simpan diam-diam tiap isian berubah, sehingga "Simpan & keluar" di header tidak membuang ketikan.
+  const simpanSementara = () => simpanIsian(anak.id, bacaLangkah());
+
   function simpanLangkah1() {
-    lanjut({ jenjang: String(bacaForm().get("jenjang")) as Isian["jenjang"] });
+    lanjut(bacaLangkah());
   }
 
   function simpanNilai() {
-    const f = bacaForm();
-    const nilai = Array.from({ length: SEMESTER_COUNT }, (_, i) => angka(f.get(`nilai-${i + 1}`)));
-    const tkaBin = isian.jenjang === "smk" ? isian.tkaBin : angka(f.get("tka-bin"));
-    const tkaMtk = isian.jenjang === "smk" ? isian.tkaMtk : angka(f.get("tka-mtk"));
-    const mapel =
-      isian.jenjang === "sma"
-        ? isian.mapel
-        : (Object.fromEntries(MAPEL.map(([k]) => [k, angka(f.get(`mapel-${k}`))])) as Isian["mapel"]);
-    const semua = [...nilai, tkaBin, tkaMtk, ...Object.values(mapel)].filter((v): v is number => v !== null);
+    const ubah = bacaLangkah();
+    const semua = [...(ubah.nilai ?? []), ubah.tkaBin, ubah.tkaMtk, ...Object.values(ubah.mapel ?? {})].filter(
+      (v): v is number => typeof v === "number",
+    );
     if (semua.some((v) => v < 0 || v > 100)) return setGalat("Nilai ditulis 0 sampai 100, misalnya 85,5.");
-    lanjut({ nilai, tkaBin, tkaMtk, mapel });
+    lanjut(ubah);
   }
 
   function simpanKondisi() {
-    const f = bacaForm();
-    lanjut({
-      ketm: String(f.get("ketm")) as Isian["ketm"],
-      disabilitas: f.get("disabilitas") === "ya",
-      pindahTugas: f.get("pindah-tugas") === "ya",
-    });
+    lanjut(bacaLangkah());
   }
 
   async function hitung() {
@@ -306,7 +329,7 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
 
   if (n === 1) {
     return (
-      <Kerangka n={1} anak={anak} onValid={simpanLangkah1} galat={galat} busy={busy}>
+      <Kerangka n={1} anak={anak} onValid={simpanLangkah1} onUbah={simpanSementara} galat={galat} busy={busy}>
         <PilihJenjang nilai={isian.jenjang} />
         <p className="text-secondary">
           Mau mengisi untuk anak lain?{" "}
@@ -320,7 +343,7 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
 
   if (n === 2) {
     return (
-      <Kerangka n={2} anak={anak} onValid={simpanNilai} galat={galat} busy={busy}>
+      <Kerangka n={2} anak={anak} onValid={simpanNilai} onUbah={simpanSementara} galat={galat} busy={busy}>
         <fieldset className="quick__nilai">
           <legend className="choice-group__legend">Rata-rata nilai rapor per semester</legend>
           <p>
@@ -369,7 +392,7 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
 
   if (n === 3) {
     return (
-      <Kerangka n={3} anak={anak} onValid={simpanKondisi} galat={galat} busy={busy}>
+      <Kerangka n={3} anak={anak} onValid={simpanKondisi} onUbah={simpanSementara} galat={galat} busy={busy}>
         <ChoiceGroup legend="Apakah keluarga termasuk kurang mampu (KETM)?" hint={<HelpLink opens="dlg-ketm-isi">Apa ini?</HelpLink>} errorName="ketm">
           {(
             [
@@ -409,7 +432,7 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
   }
 
   return (
-    <Kerangka n={4} anak={anak} onValid={hitung} galat={galat} busy={busy}>
+    <Kerangka n={4} anak={anak} onValid={hitung} onUbah={simpanSementara} galat={galat} busy={busy}>
       <Select
         id="kecamatan"
         label="Kecamatan sesuai Kartu Keluarga"

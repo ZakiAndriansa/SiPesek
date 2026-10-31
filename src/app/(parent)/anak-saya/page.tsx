@@ -18,6 +18,7 @@ import {
   WIZARD_TOTAL,
   type Child,
 } from "@/lib/accounts";
+import { HakDataOrtu } from "@/features/ortu/HakDataOrtu";
 import { RiwayatAnak } from "@/features/riwayat/RiwayatAnak";
 import { HELP_URL } from "@/lib/nav";
 import { getSession } from "@/lib/session";
@@ -117,23 +118,27 @@ export default async function AnakSayaPage() {
             title="Hak & Privasi Akun Keluarga"
             desc="Bapak/Ibu memegang kendali penuh atas data yang telah dimasukkan."
           />
-          <div className="card">
-            <p className="card__text">
-              Semua perhitungan peluang disimpan secara privat. Bapak/Ibu bisa mengunduh salinan data atau menghapus seluruh data kapan saja.
-            </p>
-            <ButtonGroup>
-              <Button
-                variant="secondary"
-                iconLeft="download"
-                toast={{ message: "Salinan data keluarga sedang disiapkan untuk diunduh.", variant: "info" }}
-              >
-                Unduh Salinan Data
-              </Button>
-              <Button variant="ghost" iconLeft="trash" opens="dlg-hapus">
-                Hapus Seluruh Data
-              </Button>
-            </ButtonGroup>
-          </div>
+          {akunGoogle ? (
+            <HakDataOrtu />
+          ) : (
+            <div className="card">
+              <p className="card__text">
+                Semua perhitungan peluang disimpan secara privat. Bapak/Ibu bisa mengunduh salinan data atau menghapus seluruh data kapan saja.
+              </p>
+              <ButtonGroup>
+                <Button
+                  variant="secondary"
+                  iconLeft="download"
+                  toast={{ message: "Salinan data keluarga sedang disiapkan untuk diunduh.", variant: "info" }}
+                >
+                  Unduh Salinan Data
+                </Button>
+                <Button variant="ghost" iconLeft="trash" opens="dlg-hapus">
+                  Hapus Seluruh Data
+                </Button>
+              </ButtonGroup>
+            </div>
+          )}
         </Section>
         <Section>
           <CtaBand
@@ -146,30 +151,32 @@ export default async function AnakSayaPage() {
           </CtaBand>
         </Section>
       </Container>
-      <Dialog
-        id="dlg-hapus"
-        title="Hapus seluruh data?"
-        footer={
-          <>
-            <Button variant="secondary" closes>
-              Batal
-            </Button>
-            <Button
-              variant="primary"
-              closes
-              toast={{ message: "Seluruh data anak sudah dihapus.", variant: "info" }}
-            >
-              Ya, hapus permanen
-            </Button>
-          </>
-        }
-      >
-        <p>
-          {kids.length > 0
-            ? `Profil ${kids.map((k) => k.name).join(" dan ")} beserta hasil peluang dan strategi yang tersimpan akan terhapus permanen.`
-            : "Seluruh data akun akan terhapus permanen."}
-        </p>
-      </Dialog>
+      {!akunGoogle && (
+        <Dialog
+          id="dlg-hapus"
+          title="Hapus seluruh data?"
+          footer={
+            <>
+              <Button variant="secondary" closes>
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                closes
+                toast={{ message: "Seluruh data anak sudah dihapus.", variant: "info" }}
+              >
+                Ya, hapus permanen
+              </Button>
+            </>
+          }
+        >
+          <p>
+            {kids.length > 0
+              ? `Profil ${kids.map((k) => k.name).join(" dan ")} beserta hasil peluang dan strategi yang tersimpan akan terhapus permanen.`
+              : "Seluruh data akun akan terhapus permanen."}
+          </p>
+        </Dialog>
+      )}
     </>
   );
 }
