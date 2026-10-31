@@ -492,8 +492,8 @@
     "semantic_hash": ""
   },
   "src/components/landing/LandingPage.tsx": {
-    "mtime": 1793426986.9373653,
-    "seen": 1793427684.799275,
+    "mtime": 1793429999.8096817,
+    "seen": 1793430478.9320025,
     "ast_hash": "940f933016ece057fab4ea40c8b09cdc",
     "semantic_hash": ""
   },
@@ -1020,9 +1020,9 @@
     "semantic_hash": ""
   },
   "src/components/motion/RevealObserver.tsx": {
-    "mtime": 1793381465.8579516,
-    "seen": 1793426009.6448033,
-    "ast_hash": "959a7467a34082e54e25cfc765dc5004",
+    "mtime": 1793430412.6260314,
+    "seen": 1793430478.9320207,
+    "ast_hash": "012ccdc6ba0c8a394dc7921031c28539",
     "semantic_hash": ""
   },
   "src/components/motion/features.ts": {
@@ -1044,9 +1044,9 @@
     "semantic_hash": ""
   },
   "animation/CHANGELOG.md": {
-    "mtime": 1793427680.2016578,
-    "seen": 1793427684.799461,
-    "ast_hash": "12b0ce73bdb0ac6cf36affecc7ceb424",
+    "mtime": 1793430475.4584498,
+    "seen": 1793430478.9321766,
+    "ast_hash": "8e327e14f9c1be056a9bfa68a5aac958",
     "semantic_hash": ""
   },
   "animation/PROPOSAL.md": {

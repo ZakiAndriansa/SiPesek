@@ -26,3 +26,8 @@ Konflik: `panduan/page.tsx`, `QuickCheck.tsx`, `quick.css`. Ketiganya diambil ut
 - Cek Cepat: `.quick__card` memakai `rise-in` lagi (quick.css). Hasil ada di `HasilCepat.tsx` (komponen baru main): `data-reveal-live` pada wadah hasil, kartu rekomendasi berurutan, daftar sekolah muncul saat di-scroll.
 - Gauge skor akhir (baru di main): busur terisi sekali (`gauge-fill`), angka di tengah diam.
 - Tidak dipasang ulang: pop label peluang di `SchoolCard` tetap ada untuk halaman hasil sekolah, tetapi Cek Cepat tidak lagi memakai `SchoolCard`.
+
+## 2026-10-31 — Perbaikan hydration mismatch dan pemulihan beranda
+
+- **Hydration mismatch** ("A tree hydrated but some attributes of the server rendered HTML didn't match"): `RevealObserver` memberi `style` inline (opacity, transform) pada elemen HTML hasil server sebelum React selesai hydrate batas Suspense-nya. Direproduksi di dev server (1 sampai 3 peringatan per kunjungan). Sekarang keadaan awal "tersembunyi" dibuat dengan Web Animations API yang dijeda, jadi atribut DOM tidak pernah berubah. Peringatan hilang di 9 halaman yang diuji.
+- **Beranda dikembalikan ke main:** `LandingPage.tsx` dan `landing.css` berisi percobaan varian porsi SMA/SMK (cincin, bar) yang belum di-commit dan tidak ada di main. Dikembalikan ke commit terakhir (main + animasi). Cadangan percobaan: `/tmp/landing-variants-backup.patch`.

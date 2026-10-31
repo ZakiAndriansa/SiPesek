@@ -1,28 +1,28 @@
 # Graph Report - SiPesek  (2026-10-31)
 
 ## Corpus Check
-- 180 files · ~57,056 words
+- 180 files · ~57,227 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 40 file(s) not represented in the graph (top: .css 32, (none) 5, .example 1)
 
 ## Summary
-- 1082 nodes · 2606 edges · 104 communities (52 shown, 52 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 41 edges (avg confidence: 0.91)
+- 1084 nodes · 2607 edges · 100 communities (47 shown, 53 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 42 edges (avg confidence: 0.91)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ce36ff41`
+- Built from commit: `5358706b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- agregasi.ts
+- seed.ts
 - LandingPage.tsx
 - mesin.ts
-- next
-- anak-saya/page.tsx
+- components/index.ts
+- SaveDraft.tsx
 - anak/route.ts
-- Shell.tsx
+- nav.ts
 - [langkah]/page.tsx
 - Pembagian Tugas SiPesek
 - quick-check.ts
@@ -32,10 +32,10 @@
 - HasilCepat.tsx
 - react
 - galat
-- Usulan Animasi SiPesek (versi 2: dengan library pihak ketiga)
-- Toast.tsx
-- Select
-- kebijakan-rasio/page.tsx
+- Shell.tsx
+- A. Global
+- MasukGoogle.tsx
+- Alert
 - getSession
 - Navbar.tsx
 - compilerOptions
@@ -45,58 +45,48 @@
 - scripts
 - db.ts
 - HomePicker.tsx
-- PageHeader
-- app/layout.tsx
-- src_components_index_choice
+- MasukPetugas.tsx
+- Toast.tsx
+- Usulan Animasi SiPesek (versi 2: dengan library pihak ketiga)
 - QuickCheck.tsx
-- PageTransition.tsx
-- styles/index.ts
-- session-actions.ts
-- A. Global
-- Button.tsx
-- validasi.ts
-- peluang/route.ts
-- akses-ditolak/page.tsx
+- onBlur
 - C. Cek Cepat dan Isi Data
+- validasi.ts
+- 4. Item animasi, lengkap dengan opsi
+- Dialog
+- src_components_index_breadcrumb
+- peluang/route.ts
 - accounts.ts
-- SaveDraft.tsx
+- src_components_index_buttongroup
+- src_components_index_checklist
+- src_components_index_button
 - eslint.config.mjs
 - next.config.ts
 - src_components_index_dialog
 - AGENTS.md
-- Form.tsx
+- next
 - Map.tsx
 - src_components_index_accordion
 - state.md
-- google.ts
-- src_components_index_button
-- components/index.ts
-- 4. Item animasi, lengkap dengan opsi
-- Footer.tsx
-- D. Halaman hasil dan strategi
-- B. Beranda (`/`)
-- G. Dashboard
-- 1. Katalog library yang boleh dipakai komersial
-- src_components_index_alert
-- src_components_index_breadcrumb
-- src_components_index_buttongroup
-- src_components_index_card
+- src_components_index_choice
 - src_components_index_choicegroup
-- src_components_index_container
 - src_components_index_ctaband
 - src_components_index_dashsection
+- Footer.tsx
 - src_components_index_disclaimer
 - src_components_index_field
 - src_components_index_form
 - src_components_index_helplink
+- src_components_index_alert
 - src_components_index_icon
 - src_components_index_maplegend
+- src_components_index_card
 - src_components_index_mapschools
+- src_components_index_container
 - src_components_index_morelink
 - src_components_index_nextstep
 - src_components_index_pageheader
 - src_components_index_ranklist
-- src_components_index_schoolcard
 - src_components_index_section
 - src_components_index_sectionheading
 - src_components_index_select
@@ -104,7 +94,13 @@
 - src_components_index_stepper
 - src_components_index_table
 - src_components_index_tabs
+- src_components_index_toggle
 - src_components_index_toolbar
+- src_components_index_schoolcard
+- B. Beranda (`/`)
+- D. Halaman hasil dan strategi
+- G. Dashboard
+- 1. Katalog library yang boleh dipakai komersial
 - src_data_geo
 - src_data_geo_bounds
 - src_data_geo_distancekm
@@ -137,49 +133,49 @@
   animation/PROPOSAL.md → src/components/alert/Alert.tsx
 - `A-01 — Umpan balik tombol, tautan, kartu` --references--> `Button()`  [INFERRED]
   animation/PROPOSAL.md → src/components/button/Button.tsx
-- `D-03 — Peta sekolah` --references--> `MapSchools()`  [INFERRED]
-  animation/PROPOSAL.md → src/components/map/Map.tsx
 - ``/admin/*` (Zaki)` --references--> `agregasi()`  [INFERRED]
   PEMBAGIAN-TUGAS.md → src/lib/etl/agregasi.ts
 - ``/cek` Formulir 3 langkah (Aqil)` --references--> `galat()`  [INFERRED]
   PEMBAGIAN-TUGAS.md → src/lib/http.ts
+- ``/hasil/[token]` (Aqil)` --references--> `ResponsPeluang`  [INFERRED]
+  PEMBAGIAN-TUGAS.md → src/lib/kontrak.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (104 total, 52 thin omitted)
+## Communities (100 total, 53 thin omitted)
 
-### Community 0 - "agregasi.ts"
-Cohesion: 0.06
-Nodes (44): cheerio, dotenv, ref_node_fs, ref_node_path, ref_node_url, papaparse, vitest, ambilHtml() (+36 more)
+### Community 0 - "seed.ts"
+Cohesion: 0.05
+Nodes (57): BarisSekolah, csv(), kunciNama(), main(), seedAdmin(), seedAturan(), seedDayaTampung(), seedJalur() (+49 more)
 
 ### Community 1 - "LandingPage.tsx"
-Cohesion: 0.05
-Nodes (41): data_statistik_2026, BarisSekolah, csv(), kunciNama(), main(), seedAdmin(), seedAturan(), seedDayaTampung() (+33 more)
+Cohesion: 0.07
+Nodes (24): data_statistik_2026, @number-flow/react, LandingCta, PATH_STYLE, PATHS, STRATEGY_STEPS, VALUES, Props (+16 more)
 
 ### Community 2 - "mesin.ts"
-Cohesion: 0.10
-Nodes (33): AlternatifSwasta, Jenjang, PermintaanPeluang, bulat50(), jarakMeter(), angka(), berlaku(), bulat2() (+25 more)
+Cohesion: 0.09
+Nodes (37): ATURAN_2026, JALUR, KodeJalur, KodeSubJalur, AlternatifSwasta, Jenjang, PermintaanPeluang, bulat50() (+29 more)
 
-### Community 3 - "next"
-Cohesion: 0.11
-Nodes (16): next, metadata, metadata, metadata, WARNA, metadata, metadata, Badge() (+8 more)
+### Community 3 - "components/index.ts"
+Cohesion: 0.13
+Nodes (16): metadata, metadata, metadata, metadata, Accordion(), Disclaimer(), ExternalLink(), HelpLink() (+8 more)
 
-### Community 4 - "anak-saya/page.tsx"
-Cohesion: 0.31
-Nodes (9): ChildCard(), metadata, Child, continueTarget(), isComplete(), STAGES, stageStatus(), HELP_URL (+1 more)
+### Community 4 - "SaveDraft.tsx"
+Cohesion: 0.21
+Nodes (12): metadata, clearDraft(), getDraft(), SaveDraft(), submit(), parseProgress(), importQuickCheck(), OPTS (+4 more)
 
 ### Community 5 - "anak/route.ts"
-Cohesion: 0.14
-Nodes (24): ref_node_crypto, GET(), DELETE(), DELETE(), GET(), pesanNisnTerpakai(), POST(), GET() (+16 more)
+Cohesion: 0.19
+Nodes (19): GET(), DELETE(), DELETE(), GET(), pesanNisnTerpakai(), POST(), GET(), GET() (+11 more)
 
-### Community 6 - "Shell.tsx"
-Cohesion: 0.11
-Nodes (13): DashChrome(), KELUAR_WIZARD, LandingChrome(), publicNav(), QuickChrome(), SiteChrome(), stagesFor(), DashMenu (+5 more)
+### Community 6 - "nav.ts"
+Cohesion: 0.15
+Nodes (10): DashChrome(), FocusChrome(), DashMenu, Sidebar(), ADMIN, DashItem, HELP_URL, NavItem (+2 more)
 
 ### Community 7 - "[langkah]/page.tsx"
-Cohesion: 0.07
-Nodes (34): 2026-10-30 — Paket S2 diimplementasi, WizardLayout(), generateMetadata(), IsiLangkah(), LOCKED_LABEL, Props, Item, Choice() (+26 more)
+Cohesion: 0.06
+Nodes (28): WizardLayout(), generateMetadata(), IsiLangkah(), LOCKED_LABEL, Props, NavDirection(), PageTransition(), StepTransition() (+20 more)
 
 ### Community 8 - "Pembagian Tugas SiPesek"
 Cohesion: 0.06
@@ -187,55 +183,55 @@ Nodes (29): Alur kerja harian, Aturan per area, Branch backend, Branch frontend,
 
 ### Community 9 - "quick-check.ts"
 Cohesion: 0.09
-Nodes (28): HasilJalur, HasilSekolah, KECAMATAN_DEPOK, KECAMATAN_IRISAN_LUAR, KECAMATAN_LAINNYA, LabelPeluang, NilaiMapel, PembandingStatistik (+20 more)
+Nodes (30): HasilJalur, HasilSekolah, KECAMATAN_DEPOK, KECAMATAN_IRISAN_LUAR, KECAMATAN_LAINNYA, LabelPeluang, NilaiMapel, PembandingStatistik (+22 more)
 
 ### Community 10 - "auth.ts"
-Cohesion: 0.14
-Nodes (19): POST(), skema, bacaProfilOrtu(), buatToken(), buatTokenOrtu(), buatTokenSesi(), kunci(), NAMA_COOKIE (+11 more)
+Cohesion: 0.10
+Nodes (26): jose, POST(), bacaProfilOrtu(), buatToken(), buatTokenOrtu(), buatTokenSesi(), kunci(), NAMA_COOKIE (+18 more)
 
 ### Community 11 - "Button"
-Cohesion: 0.12
-Nodes (18): Props, metadata, metadata, metadata, Disclaimer(), Button(), ButtonGroup(), Checklist() (+10 more)
+Cohesion: 0.13
+Nodes (14): metadata, Props, metadata, Breadcrumb(), Button(), handleClick(), SchoolCard(), src_data_schools (+6 more)
 
 ### Community 12 - "package.json"
-Cohesion: 0.09
-Nodes (21): name, private, version, bcryptjs, nanoid, pg, prisma, @prisma/client (+13 more)
+Cohesion: 0.10
+Nodes (19): name, private, version, bcryptjs, pg, @prisma/client, react-dom, recharts (+11 more)
 
 ### Community 13 - "HasilCepat.tsx"
-Cohesion: 0.17
-Nodes (26): BarisSekolah(), DialogBaca(), gabung(), Gauge(), HasilCepat(), KartuHasil(), KartuPilihan(), JENJANG (+18 more)
+Cohesion: 0.19
+Nodes (24): BarisSekolah(), DialogBaca(), gabung(), Gauge(), HasilCepat(), KartuHasil(), KartuPilihan(), JENJANG (+16 more)
 
 ### Community 14 - "react"
-Cohesion: 0.21
-Nodes (8): react, STATUS, Props, Icon(), Item, Props, Props, Stepper()
+Cohesion: 0.11
+Nodes (20): react, ICON, Badge(), STATUS, src_components_bottom_nav_bottom_nav, Props, Icon(), src_components_landing_landing (+12 more)
 
 ### Community 15 - "galat"
-Cohesion: 0.27
-Nodes (17): zod, GET(), PUT(), skemaUbah, tahunDariParams(), PUT(), skema, POST() (+9 more)
-
-### Community 16 - "Usulan Animasi SiPesek (versi 2: dengan library pihak ketiga)"
 Cohesion: 0.25
-Nodes (7): 2. Paket stack yang bisa dipilih, 3. Ringkasan per halaman, 5. Yang saya sarankan tidak dipakai (tetap bisa Anda pilih), 7. Cara memberi keputusan, 8. Pertanyaan terbuka, Dasar pertimbangan, Usulan Animasi SiPesek (versi 2: dengan library pihak ketiga)
+Nodes (18): zod, GET(), PUT(), skemaUbah, tahunDariParams(), PUT(), skema, POST() (+10 more)
 
-### Community 17 - "Toast.tsx"
-Cohesion: 0.25
-Nodes (7): 9. Status implementasi (2026-10-30), Ctx, ICONS, ToastContext, ToastData, ToastRegion(), useToast()
+### Community 16 - "Shell.tsx"
+Cohesion: 0.16
+Nodes (11): continueFor(), firstName(), KELUAR_WIZARD, LandingChrome(), publicNav(), QuickChrome(), SiteChrome(), stagesFor() (+3 more)
 
-### Community 18 - "Select"
+### Community 17 - "A. Global"
+Cohesion: 0.20
+Nodes (10): A-01 — Umpan balik tombol, tautan, kartu, A-02 — Reveal saat scroll, A-03 — Transisi antar halaman, A-04 — Toast dan alert, A-05 — Dialog, menu mobile, bottom sheet, A-06 — Accordion dan Tabs, A-07 — Smooth scroll (baru), A-08 — Tur panduan pertama kali (baru) (+2 more)
+
+### Community 18 - "MasukGoogle.tsx"
+Cohesion: 0.09
+Nodes (25): 9. Status implementasi (2026-10-30), metadata, metadata, Checklist(), Item, Choice(), ChoiceGroup(), ChoiceProps (+17 more)
+
+### Community 19 - "Alert"
 Cohesion: 0.10
-Nodes (20): D-04 — Filter dan urutan hasil, metadata, metadata, metadata, metadata, metadata, metadata, Dialog() (+12 more)
-
-### Community 19 - "kebijakan-rasio/page.tsx"
-Cohesion: 0.15
-Nodes (12): metadata, metadata, ZONE_KIND, metadata, Stats(), src_data_kecamatan_fmt, src_data_kecamatan_kec_filter, src_data_kecamatan_kecamatan (+4 more)
+Nodes (23): D-04 — Filter dan urutan hasil, metadata, metadata, metadata, metadata, metadata, ZONE_KIND, metadata (+15 more)
 
 ### Community 20 - "getSession"
-Cohesion: 0.14
-Nodes (18): IndexPage(), metadata, AnakSayaPage(), PetaSekolahPage(), StrategiPage(), UnduhanPage(), PanduanPage(), porsi() (+10 more)
+Cohesion: 0.09
+Nodes (27): 2026-10-30 — Panduan dan Tanya Jawab, IndexPage(), metadata, AnakSayaPage(), PetaSekolahPage(), StrategiPage(), UnduhanPage(), metadata (+19 more)
 
 ### Community 21 - "Navbar.tsx"
-Cohesion: 0.15
-Nodes (11): BottomNav(), ChildMenu(), DashBar(), firstName(), FocusBar(), Navbar(), NavbarProps, NavChild (+3 more)
+Cohesion: 0.13
+Nodes (14): BottomNav(), ChildMenu(), DashBar(), firstName(), FocusBar(), Navbar(), NavbarProps, NavChild (+6 more)
 
 ### Community 22 - "compilerOptions"
 Cohesion: 0.11
@@ -255,127 +251,107 @@ Nodes (15): scripts, build, data:ekspor, data:impor, data:kirim, data:sekolah, d
 
 ### Community 27 - "db.ts"
 Cohesion: 0.15
-Nodes (17): @prisma/adapter-pg, server-only, GET(), GET(), src_generated_prisma_client, src_generated_prisma_client_prismaclient, muatDashboard(), persen() (+9 more)
+Nodes (18): @prisma/adapter-pg, server-only, GET(), GET(), src_generated_prisma_client, src_generated_prisma_client_prisma, src_generated_prisma_client_prismaclient, muatDashboard() (+10 more)
 
 ### Community 28 - "HomePicker.tsx"
 Cohesion: 0.17
 Nodes (12): leaflet, react-leaflet, HomePicker(), locate(), pilih(), PetaRumah, BATAS, SekolahPeta (+4 more)
 
-### Community 29 - "PageHeader"
-Cohesion: 0.20
-Nodes (9): 2026-10-30 — Panduan dan Tanya Jawab, 2026-10-31 — Merge origin/main (81c4e5e) ke frontend/animation, Changelog Animasi, metadata, Breadcrumb(), PageHeader(), Section(), SchoolCard() (+1 more)
+### Community 29 - "MasukPetugas.tsx"
+Cohesion: 0.31
+Nodes (9): MasukPetugas(), tujuan(), MasukDemo(), MasukGoogle(), pasangTombol(), setelahGoogle(), tujuan(), ACCOUNTS (+1 more)
 
-### Community 30 - "app/layout.tsx"
-Cohesion: 0.15
-Nodes (13): 6. Urutan pengerjaan (jika S2 disetujui), motion, metadata, Sprite(), loadFeatures(), MotionProvider(), HIDDEN, Kind (+5 more)
+### Community 30 - "Toast.tsx"
+Cohesion: 0.09
+Nodes (21): 2026-10-30 — Paket S2 diimplementasi, 2026-10-31 — Merge origin/main (81c4e5e) ke frontend/animation, 2026-10-31 — Perbaikan hydration mismatch dan pemulihan beranda, Changelog Animasi, 6. Urutan pengerjaan (jika S2 disetujui), motion, metadata, Sprite() (+13 more)
+
+### Community 31 - "Usulan Animasi SiPesek (versi 2: dengan library pihak ketiga)"
+Cohesion: 0.25
+Nodes (7): 2. Paket stack yang bisa dipilih, 3. Ringkasan per halaman, 5. Yang saya sarankan tidak dipakai (tetap bisa Anda pilih), 7. Cara memberi keputusan, 8. Pertanyaan terbuka, Dasar pertimbangan, Usulan Animasi SiPesek (versi 2: dengan library pihak ketiga)
 
 ### Community 32 - "QuickCheck.tsx"
 Cohesion: 0.14
-Nodes (19): setDraft(), angkaAtauNull(), dateText(), EMPTY, Phase, PHASE_NO, PHASE_TITLE, Props (+11 more)
+Nodes (18): setDraft(), angkaAtauNull(), dateText(), EMPTY, Phase, PHASE_NO, PHASE_TITLE, Props (+10 more)
 
-### Community 34 - "styles/index.ts"
-Cohesion: 0.18
-Nodes (10): src_components_bottom_nav_bottom_nav, src_components_landing_landing, src_components_link_link, src_components_school_card_school_card, src_components_section_heading_section_heading, src_styles_base, src_styles_motion, src_styles_pages (+2 more)
+### Community 33 - "onBlur"
+Cohesion: 0.60
+Nodes (6): onBlur(), onChange(), onSubmit(), isControl(), keyOf(), messageFor()
 
-### Community 35 - "session-actions.ts"
-Cohesion: 0.19
-Nodes (15): MasukPetugas(), tujuan(), Gis, MasukDemo(), MasukGoogle(), pasangTombol(), setelahGoogle(), tujuan() (+7 more)
-
-### Community 36 - "A. Global"
-Cohesion: 0.22
-Nodes (9): A-01 — Umpan balik tombol, tautan, kartu, A-02 — Reveal saat scroll, A-03 — Transisi antar halaman, A-04 — Toast dan alert, A-05 — Dialog, menu mobile, bottom sheet, A-07 — Smooth scroll (baru), A-08 — Tur panduan pertama kali (baru), A. Global (+1 more)
-
-### Community 37 - "Button.tsx"
-Cohesion: 0.26
-Nodes (8): handleClick(), Props, HelpLink(), dialogs, openDialog(), registerDialog(), triggerOf(), triggers
-
-### Community 38 - "validasi.ts"
-Cohesion: 0.17
-Nodes (11): opsiCookieOrtu, ResponsOrtu, angkaAtauNull, Aturan, bobotMapel, nilai100, skemaAturan, skemaMasukGoogle (+3 more)
-
-### Community 39 - "peluang/route.ts"
-Cohesion: 0.25
-Nodes (8): BATAS_TAMU_PER_JAM, cekTersimpan(), pembatasTamu, POST(), ipKlien(), PembatasJendela, BATAS_CEK_PER_HARI, muatDataMesin()
-
-### Community 40 - "akses-ditolak/page.tsx"
-Cohesion: 0.18
-Nodes (15): AksesDitolakPage(), AREA, CariParams, Keterangan(), metadata, homeFor(), nextWizardHref(), ROLE_LABEL (+7 more)
-
-### Community 41 - "C. Cek Cepat dan Isi Data"
+### Community 34 - "C. Cek Cepat dan Isi Data"
 Cohesion: 0.25
 Nodes (8): C-01 — Validasi NISN dan bidang form, C-02 — Tombol loading saat menghitung peluang, C-03 — Kemunculan hasil peluang, C-04 — Stepper wizard dan perpindahan langkah, C-05 — Simpan draf (`/cek-cepat/simpan`), C. Cek Cepat dan Isi Data, D-05 — Kartu ke detail sekolah, SchoolResultCard()
 
-### Community 42 - "accounts.ts"
-Cohesion: 0.20
-Nodes (12): StageItem, StageLink(), AccountSeed, buildSession(), isAccount(), PARENT_PREFIXES, parseProgress(), Progress (+4 more)
+### Community 35 - "validasi.ts"
+Cohesion: 0.25
+Nodes (7): angkaAtauNull, Aturan, bobotMapel, nilai100, skemaAturan, skemaPermintaanPeluang, skemaTambahAnak
 
-### Community 43 - "SaveDraft.tsx"
-Cohesion: 0.24
-Nodes (10): metadata, clearDraft(), getDraft(), SaveDraft(), submit(), importQuickCheck(), OPTS, draftToWizard() (+2 more)
+### Community 36 - "4. Item animasi, lengkap dengan opsi"
+Cohesion: 0.25
+Nodes (8): 4. Item animasi, lengkap dengan opsi, E-01 — Daftar anak, cadangan, unduhan, E-02 — Unduh dokumen, E. Akun orang tua, F-01 — Tanya Jawab dan Panduan, F-02 — Masuk dan masuk petugas, F-03 — Not found dan akses ditolak, F. Halaman publik
+
+### Community 37 - "Dialog"
+Cohesion: 0.25
+Nodes (7): metadata, Dialog(), Upload(), dialogs, registerDialog(), triggerOf(), triggers
+
+### Community 39 - "peluang/route.ts"
+Cohesion: 0.14
+Nodes (15): nanoid, ref_node_crypto, ref_node_url, vitest, BATAS_TAMU_PER_JAM, cekTersimpan(), pembatasTamu, POST() (+7 more)
+
+### Community 40 - "accounts.ts"
+Cohesion: 0.11
+Nodes (34): ChildCard(), metadata, AksesDitolakPage(), AREA, CariParams, Keterangan(), metadata, AccountKey (+26 more)
 
 ### Community 44 - "eslint.config.mjs"
 Cohesion: 0.50
 Nodes (3): eslintConfig, eslint, eslint-config-next
 
-### Community 49 - "Form.tsx"
-Cohesion: 0.18
-Nodes (14): ariaInvalid(), FieldError(), FieldProps, Control, ErrorContext, Errors, onBlur(), onChange() (+6 more)
+### Community 49 - "next"
+Cohesion: 0.20
+Nodes (6): next, metadata, Card(), Props, Pagination(), Tabs()
 
 ### Community 50 - "Map.tsx"
-Cohesion: 0.28
-Nodes (8): LABEL, MapSchools(), Pin, PIN_ICON, pos(), Roads, Zone, ZONE_ICON
-
-### Community 53 - "google.ts"
-Cohesion: 0.39
-Nodes (5): jose, fotoGoogle(), AkunGoogle, JWKS_GOOGLE, verifikasiTokenGoogle()
-
-### Community 55 - "components/index.ts"
-Cohesion: 0.15
-Nodes (11): A-06 — Accordion dan Tabs, metadata, Accordion(), Alert(), ICON, MapZones(), Props, SectionHeading() (+3 more)
-
-### Community 56 - "4. Item animasi, lengkap dengan opsi"
-Cohesion: 0.25
-Nodes (8): 4. Item animasi, lengkap dengan opsi, E-01 — Daftar anak, cadangan, unduhan, E-02 — Unduh dokumen, E. Akun orang tua, F-01 — Tanya Jawab dan Panduan, F-02 — Masuk dan masuk petugas, F-03 — Not found dan akses ditolak, F. Halaman publik
+Cohesion: 0.21
+Nodes (11): D-03 — Peta sekolah, LABEL, MapLegend(), MapSchools(), MapZones(), Pin, PIN_ICON, pos() (+3 more)
 
 ### Community 57 - "Footer.tsx"
 Cohesion: 0.32
 Nodes (6): Brand(), Column, Footer(), JALUR, LAYANAN, panduan()
 
-### Community 58 - "D. Halaman hasil dan strategi"
-Cohesion: 0.29
-Nodes (6): D-01 — Bar rentang skor dan probabilitas, D-02 — Urutan pilihan sekolah dan reorder, D-03 — Peta sekolah, D-06 — Galeri foto sekolah di detail, D. Halaman hasil dan strategi, RankList()
-
-### Community 59 - "B. Beranda (`/`)"
+### Community 82 - "B. Beranda (`/`)"
 Cohesion: 0.33
 Nodes (6): B-01 — Hero masuk, B-02 — Kartu jalur (Domisili, Afirmasi, Mutasi, Prestasi), B-03 — Langkah "Cara kerja", B-04 — Angka data SPMB di beranda, B-05 — Latar dan dekorasi beranda, B. Beranda (`/`)
 
-### Community 60 - "G. Dashboard"
+### Community 83 - "D. Halaman hasil dan strategi"
+Cohesion: 0.33
+Nodes (5): D-01 — Bar rentang skor dan probabilitas, D-02 — Urutan pilihan sekolah dan reorder, D-06 — Galeri foto sekolah di detail, D. Halaman hasil dan strategi, RankList()
+
+### Community 84 - "G. Dashboard"
 Cohesion: 0.40
 Nodes (5): G-01 — Statistik dashboard kebijakan, G-02 — Grafik dashboard, G-03 — Peta blank spot, G-04 — Admin: impor, simpan, aturan, G. Dashboard
 
-### Community 61 - "1. Katalog library yang boleh dipakai komersial"
+### Community 85 - "1. Katalog library yang boleh dipakai komersial"
 Cohesion: 0.50
 Nodes (4): 1. Katalog library yang boleh dipakai komersial, 1a. Mesin animasi umum, 1b. Library khusus, 1c. Ditolak atau perlu hati-hati karena lisensi
 
 ## Knowledge Gaps
-- **302 isolated node(s):** `eslintConfig`, `backend`, `nextConfig`, `name`, `version` (+297 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 447 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **52 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **301 isolated node(s):** `eslintConfig`, `backend`, `nextConfig`, `name`, `version` (+296 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 448 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **53 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `next` connect `next` to `anak-saya/page.tsx`, `anak/route.ts`, `Shell.tsx`, `[langkah]/page.tsx`, `auth.ts`, `Button`, `package.json`, `HasilCepat.tsx`, `react`, `galat`, `Select`, `kebijakan-rasio/page.tsx`, `getSession`, `Navbar.tsx`, `db.ts`, `HomePicker.tsx`, `PageHeader`, `app/layout.tsx`, `QuickCheck.tsx`, `session-actions.ts`, `Button.tsx`, `validasi.ts`, `peluang/route.ts`, `akses-ditolak/page.tsx`, `accounts.ts`, `SaveDraft.tsx`, `next.config.ts`, `Form.tsx`, `components/index.ts`, `Footer.tsx`?**
-  _High betweenness centrality (0.288) - this node is a cross-community bridge._
-- **Why does `react` connect `react` to `LandingPage.tsx`, `next`, `Shell.tsx`, `[langkah]/page.tsx`, `Button`, `package.json`, `HasilCepat.tsx`, `Toast.tsx`, `Select`, `Navbar.tsx`, `HomePicker.tsx`, `app/layout.tsx`, `QuickCheck.tsx`, `PageTransition.tsx`, `session-actions.ts`, `Button.tsx`, `akses-ditolak/page.tsx`, `SaveDraft.tsx`, `Form.tsx`, `Map.tsx`, `components/index.ts`?**
-  _High betweenness centrality (0.139) - this node is a cross-community bridge._
-- **Why does `Button()` connect `Button` to `QuickCheck.tsx`, `LandingPage.tsx`, `next`, `A. Global`, `anak-saya/page.tsx`, `session-actions.ts`, `[langkah]/page.tsx`, `akses-ditolak/page.tsx`, `Button.tsx`, `SaveDraft.tsx`, `HasilCepat.tsx`, `Toast.tsx`, `Select`, `kebijakan-rasio/page.tsx`, `Navbar.tsx`, `components/index.ts`, `HomePicker.tsx`, `PageHeader`?**
-  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+- **Why does `next` connect `next` to `components/index.ts`, `SaveDraft.tsx`, `anak/route.ts`, `nav.ts`, `[langkah]/page.tsx`, `auth.ts`, `Button`, `package.json`, `HasilCepat.tsx`, `react`, `galat`, `MasukGoogle.tsx`, `Alert`, `getSession`, `Navbar.tsx`, `db.ts`, `HomePicker.tsx`, `Toast.tsx`, `QuickCheck.tsx`, `Dialog`, `peluang/route.ts`, `accounts.ts`, `next.config.ts`, `Footer.tsx`?**
+  _High betweenness centrality (0.280) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `LandingPage.tsx`, `components/index.ts`, `SaveDraft.tsx`, `nav.ts`, `[langkah]/page.tsx`, `Button`, `package.json`, `HasilCepat.tsx`, `Shell.tsx`, `MasukGoogle.tsx`, `Alert`, `Navbar.tsx`, `HomePicker.tsx`, `Toast.tsx`, `QuickCheck.tsx`, `Dialog`, `accounts.ts`, `next`, `Map.tsx`?**
+  _High betweenness centrality (0.142) - this node is a cross-community bridge._
+- **Why does `Button()` connect `Button` to `QuickCheck.tsx`, `LandingPage.tsx`, `components/index.ts`, `SaveDraft.tsx`, `Dialog`, `[langkah]/page.tsx`, `accounts.ts`, `HasilCepat.tsx`, `react`, `A. Global`, `MasukGoogle.tsx`, `Alert`, `next`, `getSession`, `Navbar.tsx`, `HomePicker.tsx`, `MasukPetugas.tsx`?**
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `galat()` (e.g. with ``/cek` Formulir 3 langkah (Aqil)` and `Masuk dengan Google dan data anak (Aqil)`) actually correct?**
   _`galat()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `eslintConfig`, `backend`, `nextConfig` to the rest of the system?**
-  _302 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `agregasi.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06328320802005012 - nodes in this community are weakly interconnected._
+  _301 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `seed.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.05311871227364185 - nodes in this community are weakly interconnected._
 - **Should `LandingPage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05454545454545454 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06685633001422475 - nodes in this community are weakly interconnected._
