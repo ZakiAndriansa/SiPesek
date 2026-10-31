@@ -47,6 +47,13 @@ export const skemaPermintaanPeluang = z.object({
     .optional(),
 });
 
+// Simpan hasil Cek Cepat: permintaan peluang mode tamu ditambah data anak (lihat PermintaanSimpanCek).
+export const skemaSimpanCek = skemaPermintaanPeluang.omit({ anakId: true }).extend({
+  nisn: z.string().trim().min(1).max(20),
+  nama: z.string().trim().min(1).max(80),
+  setuju: z.literal(true),
+});
+
 export const skemaMasukGoogle = z.object({ credential: z.string().min(20).max(8000) });
 
 // Format NISN diperiksa terpisah oleh periksaNisn() agar pesannya jelas untuk orang tua.

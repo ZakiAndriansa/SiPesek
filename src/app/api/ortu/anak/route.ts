@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { bacaJson, galat } from "@/lib/http";
 import type { AnakRingkas, ResponsAnak } from "@/lib/kontrak";
 import { periksaNisn, sidikNisn } from "@/lib/nisn";
-import { BATAS_ANAK, keAnakRingkas, orangTuaMasuk, pilihAnak } from "@/lib/ortu";
+import { BATAS_ANAK, keAnakRingkas, orangTuaMasuk, pesanNisnTerpakai, pilihAnak } from "@/lib/ortu";
 import { skemaTambahAnak } from "@/lib/validasi";
 
 export async function GET(request: NextRequest) {
@@ -54,8 +54,3 @@ export async function POST(request: NextRequest) {
     throw e;
   }
 }
-
-const pesanNisnTerpakai = (milikSendiri: boolean) =>
-  milikSendiri
-    ? "NISN ini sudah ada di daftar anak Anda."
-    : "NISN ini sudah didaftarkan akun lain. Hubungi admin SiPesek bila ini anak Anda.";

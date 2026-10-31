@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/hasil/[t
   });
   if (!cek?.anak) return galat("Hasil tidak ditemukan.", 404);
 
-  const tersimpan = cek.hasil as Pick<ResponsPeluang, "hasil" | "swasta" | "catatan">;
+  const tersimpan = cek.hasil as Pick<ResponsPeluang, "hasil" | "swasta" | "catatan" | "skorAnak">;
   return Response.json({
     token: cek.token,
     anak: { id: cek.anak.id, nama: cek.anak.nama },
