@@ -184,7 +184,7 @@ function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => 
   return (
     <section className="card hasil-ringkas" aria-labelledby="q-ringkas">
       <div className="hasil-ringkas__kepala">
-        <p className="hasil-skor__langkah">{utama ? "Skor akhir dan peluang" : "Peluang di sekolah negeri"}</p>
+        <p className="hasil-skor__langkah">{utama ? "Skor akhir anak" : "Peluang di sekolah negeri"}</p>
         <HelpLink opens="dlg-baca-hasil">Cara membaca</HelpLink>
       </div>
 
@@ -208,6 +208,8 @@ function KartuHasil({ result, onEdit }: { result: ResponsPeluang; onEdit: () => 
           </>
         ))}
 
+      {/* Skor dan peluang dipisah garis tipis agar angka di atas jelas terbaca sebagai skor akhir. */}
+      {utama && <p className="hasil-skor__langkah hasil-ringkas__pemisah">Peluang di sekolah negeri</p>}
       <h2 className="hasil-ringkas__judul" id="q-ringkas">{r.judul}</h2>
       {r.jumlah.length > 0 && (
         <ul className="hasil-ringkas__jumlah" aria-label="Jumlah sekolah per label">
