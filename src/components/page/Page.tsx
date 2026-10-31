@@ -23,16 +23,20 @@ export function PageHeader({
   desc,
   actions,
   art,
+  reveal,
 }: {
   title: ReactNode;
   desc?: string;
   actions?: ReactNode;
   art?: string;
+  /** Header muncul pelan saat halaman dibuka. */
+  reveal?: boolean;
 }) {
   const buttons = actions && <div className="page-header__actions">{actions}</div>;
   return (
     <header
       className={`page-header${art ? " page-header--art" : actions ? " page-header--split" : ""}`}
+      {...(reveal ? { "data-reveal": "", "data-reveal-live": "" } : {})}
     >
       <div>
         <h1>{title}</h1>
@@ -58,13 +62,20 @@ export function PageHeader({
 
 export function Section({
   id,
+  reveal,
   children,
 }: {
   id?: string;
+  /** Seksi muncul pelan saat masuk layar (juga bila sudah terlihat saat halaman dibuka). */
+  reveal?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className="page-section" id={id}>
+    <section
+      className="page-section"
+      id={id}
+      {...(reveal ? { "data-reveal": "", "data-reveal-live": "" } : {})}
+    >
       {children}
     </section>
   );

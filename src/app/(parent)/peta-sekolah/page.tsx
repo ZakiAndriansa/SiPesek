@@ -86,7 +86,7 @@ export default async function PetaSekolahPage({
           </div>
 
           {/* School Results Column */}
-          <div className="stack">
+          <div className="stack" data-reveal-group="">
             <div className="block-head block-head--row">
               <h2 className="text-heading-md">{`${SCHOOLS.length} Sekolah Ditemukan`}</h2>
               <span className="block-head__aside">

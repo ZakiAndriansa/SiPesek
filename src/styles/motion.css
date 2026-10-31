@@ -1,0 +1,87 @@
+/* Gerak global: View Transitions antar halaman dan keyframes bersama.
+   Rencana lengkap: animation/PROPOSAL.md. Gerak per komponen ada di CSS komponennya. */
+
+/* ---------- A-03: pindah halaman, isi memudar ---------- */
+::view-transition-old(.page) {
+  animation: var(--duration-fast) var(--ease-out) both fade-out;
+}
+::view-transition-new(.page) {
+  animation: var(--duration-base) var(--ease-out) var(--duration-fast) both fade-in;
+}
+
+/* ---------- C-04: wizard maju/mundur ----------
+   Arah dibaca dari <html data-nav-dir>, diisi saat tombol Lanjut/Kembali ditekan. Tanpa arah
+   (tombol Back browser, refresh) isi hanya memudar. */
+::view-transition-old(.step) {
+  animation: var(--duration-fast) var(--ease-out) both fade-out;
+}
+::view-transition-new(.step) {
+  animation: var(--duration-base) var(--ease-out) var(--duration-fast) both fade-in;
+}
+:root[data-nav-dir="forward"]::view-transition-old(.step) {
+  --slide-offset: calc(-1 * var(--space-10));
+}
+:root[data-nav-dir="forward"]::view-transition-new(.step) {
+  --slide-offset: var(--space-10);
+}
+:root[data-nav-dir="back"]::view-transition-old(.step) {
+  --slide-offset: var(--space-10);
+}
+:root[data-nav-dir="back"]::view-transition-new(.step) {
+  --slide-offset: calc(-1 * var(--space-10));
+}
+:root[data-nav-dir]::view-transition-old(.step) {
+  animation:
+    var(--duration-fast) var(--ease-out) both fade-out,
+    var(--duration-slow) var(--ease-in-out) both slide-out;
+}
+:root[data-nav-dir]::view-transition-new(.step) {
+  animation:
+    var(--duration-base) var(--ease-out) var(--duration-fast) both fade-in,
+    var(--duration-slow) var(--ease-in-out) both slide-in;
+}
+
+/* ---------- Keyframes bersama ---------- */
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+@keyframes slide-in {
+  from { translate: var(--slide-offset); }
+}
+@keyframes slide-out {
+  to { translate: var(--slide-offset); }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 var(--reveal-distance);
+  }
+}
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--space-1));
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+@keyframes grow-x {
+  from { scale: 0 1; }
+}
+
+/* Gerak posisi dimatikan; pergantian halaman langsung. Blok global di base.css menangani animasi CSS lain. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

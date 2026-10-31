@@ -193,6 +193,17 @@
   box-shadow: 0 8px 22px rgba(4, 6, 19, 0.06);
 }
 
+/* D-02: sorotan lembut 600ms pada pilihan yang baru dipindah */
+.rank__item--moved {
+  animation: rank-moved 600ms var(--ease-out);
+}
+
+@keyframes rank-moved {
+  from {
+    background: var(--color-primary-tint);
+  }
+}
+
 .rank__num {
   display: inline-flex;
   align-items: center;
@@ -284,6 +295,9 @@
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, #10b981 0%, var(--color-success-text) 100%);
+  /* D-01: bar terisi dari kiri sekali saat halaman dibuka; angka di atasnya tetap diam */
+  transform-origin: left;
+  animation: grow-x var(--duration-reveal) var(--ease-out) var(--duration-base) both;
 }
 
 /* Pratinjau PDF */

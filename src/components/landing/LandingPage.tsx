@@ -4,6 +4,7 @@ import { FAQ_BERANDA } from "@/data/faq";
 import { CIRI_JALUR } from "@/data/jalur";
 import { Accordion } from "../accordion/Accordion";
 import { Button } from "../button/Button";
+import { AnimatedNumber } from "../stats/AnimatedNumber";
 import { SectionHeading } from "../section-heading/SectionHeading";
 
 const VALUES = [
@@ -82,7 +83,7 @@ function ValueSection() {
         title={<>Dibuat untuk orang tua.<br />Jujur soal peluang.</>}
         desc="Semua dirancang agar memilih sekolah terasa tenang dan masuk akal, dengan angka yang jelas dan penjelasan yang mudah dipahami."
       />
-      <div className="landing-value-grid">
+      <div className="landing-value-grid" data-reveal-group="">
         {VALUES.map((item) => (
           <article className={`landing-value-card ${item.className}`} key={item.title}>
             <img className="landing-glyph" src={item.glyph} alt="" aria-hidden="true" />
@@ -109,7 +110,7 @@ function PathsSection() {
           </Button>
         }
       />
-      <div className="landing-path-grid">
+      <div className="landing-path-grid" data-reveal-group="">
         {PATHS.map((path) => (
           <article className="landing-path-card" key={path.title}>
             <span className="landing-chip">{path.chip}</span>
@@ -140,13 +141,13 @@ const STRATEGY_STEPS = [
 function StrategySection() {
   return (
     <section className="landing-section landing-strategy" id="cara-kerja">
-      <div className="landing-strategy-copy">
+      <div className="landing-strategy-copy" data-reveal="">
         <h2>Strategi yang tepat untuk setiap anak.</h2>
         <p>Setiap anak punya kondisi berbeda. SiPesek membaca alamat, status keluarga, dan nilai (bila diisi), lalu menunjukkan jalur dengan peluang paling besar.</p>
         <Button variant="primary" lg href="/cek-cepat">Cek Peluang Anak</Button>
       </div>
-      <div className="landing-timeline">
-        <div className="landing-timeline-line" aria-hidden="true" />
+      <div className="landing-timeline" data-reveal-group="">
+        <div className="landing-timeline-line" aria-hidden="true" data-reveal="draw-y" />
         {STRATEGY_STEPS.map((step) => (
           <article className="landing-timeline-step" key={step.title}>
             <span className="landing-timeline-dot" aria-hidden="true" />
@@ -168,7 +169,7 @@ function StrategySection() {
 function DataSection() {
   return (
     <section className="landing-section landing-data">
-      <div className="landing-data-card">
+      <div className="landing-data-card" data-reveal="">
         <img src="/assets/landing-school-photo.png" alt="Gedung sekolah dan halaman hijau" />
         <div className="landing-data-copy">
           <h2>Dihitung dari data, dijelaskan dengan bahasa sehari-hari.</h2>
@@ -177,9 +178,9 @@ function DataSection() {
           <span>Ringkasan per sekolah, tanpa nama dan NISN anak</span>
           <div className="landing-highlight">Hasil adalah perkiraan berdasarkan data tahun lalu, bukan jaminan diterima.</div>
           <div className="landing-data-stats">
-            <div><strong>20</strong><span><i />SMA/SMK Negeri</span></div>
-            <div><strong>7.104</strong><span><i />Daya tampung 2026</span></div>
-            <div><strong>2 cara</strong><span><i />Cek Cepat atau masuk</span></div>
+            <div><strong><AnimatedNumber value="20" /></strong><span><i />SMA/SMK Negeri</span></div>
+            <div><strong><AnimatedNumber value="7.104" /></strong><span><i />Daya tampung 2026</span></div>
+            <div><strong><AnimatedNumber value="2 cara" /></strong><span><i />Cek Cepat atau masuk</span></div>
           </div>
         </div>
       </div>
@@ -189,7 +190,7 @@ function DataSection() {
 
 function FaqSection() {
   return (
-    <section className="landing-section landing-faq">
+    <section className="landing-section landing-faq" data-reveal-group="">
       <SectionHeading
         center
         title={<>Pertanyaan yang sering<br />diajukan.</>}
@@ -203,7 +204,7 @@ function FaqSection() {
 function CtaSection({ cta }: { cta: LandingCta }) {
   return (
     <section className="landing-cta-wrap">
-      <div className="landing-cta">
+      <div className="landing-cta" data-reveal="">
         <img className="landing-cta-image landing-cta-image--boy" src="/assets/landing-cta-boy.png" alt="" aria-hidden="true" />
         <img className="landing-cta-image landing-cta-image--girl" src="/assets/landing-cta-girl.png" alt="" aria-hidden="true" />
         <div className="landing-cta-content">

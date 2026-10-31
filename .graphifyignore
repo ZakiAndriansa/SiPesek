@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+src/generated/
+data/
+public/
+prisma/migrations/
+tsconfig.tsbuildinfo

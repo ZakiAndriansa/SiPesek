@@ -61,7 +61,7 @@ export function HasilCepat({
   return (
     <>
       {/* Tampilan layar tidak ikut dicetak; yang dicetak adalah LaporanCetak di bawah. */}
-      <div className="stack quick__result no-print">
+      <div className="stack quick__result no-print" data-reveal-live="">
         <KartuHasil result={result} onEdit={onEdit} />
 
         {catatanHasil(result, input).map((note) => (
@@ -76,7 +76,7 @@ export function HasilCepat({
               <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
               <p className="text-secondary">Satu ambisius, dua aman.</p>
             </div>
-            <ol className="hasil-pilihan">
+            <ol className="hasil-pilihan" data-reveal-group="">
               {pilihan.map((p, i) => (
                 <KartuPilihan key={p.name} p={p} no={i + 1} />
               ))}
@@ -84,7 +84,7 @@ export function HasilCepat({
           </section>
         )}
 
-        <section className="stack" aria-labelledby="q-sekolah">
+        <section className="stack" aria-labelledby="q-sekolah" data-reveal="">
           <div>
             <h2 className="text-heading-md" id="q-sekolah">Semua sekolah negeri ({result.hasil.length})</h2>
             <p className="text-secondary">Ketuk sekolah untuk melihat alasannya.</p>
@@ -238,7 +238,7 @@ function Gauge({ nilai, maks }: { nilai: number; maks: number }) {
     <div className="hasil-gauge" role="img" aria-label={`Skor akhir anak ${angkaSkor(nilai)} dari ${angkaSkor(maks)}`}>
       <svg viewBox="0 0 300 160" aria-hidden="true">
         <path className="hasil-gauge__jalur" d="M20 150 A130 130 0 0 1 280 150" />
-        <path className="hasil-gauge__isi" d="M20 150 A130 130 0 0 1 280 150" strokeDasharray={`${isi} ${panjang}`} />
+        <path className="hasil-gauge__isi" d="M20 150 A130 130 0 0 1 280 150" strokeDasharray={`${isi} ${panjang}`} style={{ "--gauge-len": isi } as React.CSSProperties} />
       </svg>
       <div className="hasil-gauge__tengah" aria-hidden="true">
         <p className="hasil-gauge__angka">

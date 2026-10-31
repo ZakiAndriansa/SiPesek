@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { m } from "motion/react";
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 type Tab = {
   id: string;
@@ -22,6 +23,7 @@ export function Tabs({
   const enabled = tabs.map((_, i) => i).filter((i) => !tabs[i].disabled);
   const [selected, setSelected] = useState(enabled[0]);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const pillId = useId();
 
   function onKeyDown(event: KeyboardEvent, index: number) {
     const pos = enabled.indexOf(index);
@@ -57,7 +59,16 @@ export function Tabs({
             onClick={() => setSelected(i)}
             onKeyDown={(e) => onKeyDown(e, i)}
           >
-            {t.label}
+            {/* A-06: latar tab aktif meluncur ke tab yang dipilih. */}
+            {selected === i && (
+              <m.span
+                className="tabs__pill"
+                layoutId={pillId}
+                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                aria-hidden="true"
+              />
+            )}
+            <span className="tabs__label">{t.label}</span>
           </button>
         ))}
       </div>

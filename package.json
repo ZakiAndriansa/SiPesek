@@ -19,12 +19,14 @@
     "data:ekspor": "tsx scripts/ekspor-statistik.ts"
   },
   "dependencies": {
+    "@number-flow/react": "^0.6.2",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.9",
     "jose": "^6.2.13",
     "leaflet": "^1.9.4",
+    "motion": "^14.9.0",
     "nanoid": "^6.0.2",
     "next": "16.4.3",
     "papaparse": "^5.7.0",

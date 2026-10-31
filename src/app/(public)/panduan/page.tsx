@@ -39,18 +39,19 @@ export default async function PanduanPage() {
     <Container>
 
       <PageHeader
+        reveal
         art="guide"
         title="Panduan Jalur SPMB"
         desc="Kenali empat jalur SPMB, berkas yang perlu disiapkan, dan cara SiPesek menghitung peluang anak diterima."
       />
 
       {/* 4 Jalur Cards in Toy Colors */}
-      <Section id="jalur">
+      <Section reveal id="jalur">
         <SectionHeading
           title="Empat Jalur Pendaftaran Resmi"
           desc={`Persen di tiap kartu adalah porsi siswa yang diterima lewat jalur itu di SMA dan SMK negeri Depok tahun ${TAHUN_PORSI}. SMAN 1 Depok memakai seleksi unggulan tersendiri.`}
         />
-        <div className="card-grid">
+        <div className="card-grid" data-reveal-group="" data-reveal-live="">
           {JALUR.map((j) => (
             <Card
               key={j.id}
@@ -72,7 +73,7 @@ export default async function PanduanPage() {
       </Section>
 
       {/* Dokumen Tab */}
-      <Section id="dokumen">
+      <Section reveal id="dokumen">
         <SectionHeading
           title="Dokumen yang Perlu Disiapkan"
           desc="Daftar berkas penting sesuai jalur yang dipilih. Siapkan fotokopi dan scan digital sedini mungkin. Daftar ini ringkasan; syarat lengkap mengikuti juknis SPMB Jawa Barat tahun berjalan."
@@ -99,13 +100,13 @@ export default async function PanduanPage() {
       </Section>
 
       {/* Cara Peluang Dihitung */}
-      <Section id="cara-hitung">
+      <Section reveal id="cara-hitung">
         <SectionHeading
           title="Bagaimana Peluang Dihitung?"
           desc={`SiPesek membandingkan kondisi anak dengan siswa yang diterima di SPMB ${TAHUN_PORSI}, dalam tiga langkah.`}
         />
         <div className="stack stack--lg">
-          <div className="card-grid card-grid--3">
+          <div className="card-grid card-grid--3" data-reveal-group="" data-reveal-live="">
             <div className="card" style={{ background: "var(--color-surface)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <span style={{ width: "36px", height: "36px", borderRadius: "999px", background: "var(--color-primary-tint)", color: "var(--color-primary-text)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700" }}>1</span>
@@ -137,7 +138,7 @@ export default async function PanduanPage() {
             </div>
           </div>
 
-          <div className="card-grid card-grid--3">
+          <div className="card-grid card-grid--3" data-reveal-group="" data-reveal-live="">
             <div className="card" style={{ borderLeft: "4px solid var(--color-success-text)" }}>
               <Badge kind="aman" lg />
               <p className="card__text" style={{ marginTop: "12px" }}>
@@ -165,7 +166,7 @@ export default async function PanduanPage() {
       </Section>
 
       {/* Privasi: ringkas di sini, rinciannya hanya di /privasi */}
-      <Section id="privasi">
+      <Section reveal id="privasi">
         <Card
           icon="shield"
           title="Data keluarga tetap aman"
@@ -175,7 +176,7 @@ export default async function PanduanPage() {
       </Section>
 
       {/* CTA Band: sama dengan penutup beranda, menyesuaikan status masuk */}
-      <Section>
+      <Section reveal>
         <CtaBand
           title="Siapkan pilihan sekolah sebelum mendaftar."
           text={

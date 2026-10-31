@@ -490,3 +490,18 @@
     padding-left: 14pt;
   }
 }
+
+/* C-03: kartu isian muncul pelan setiap pindah tahap Cek Cepat */
+.quick__card {
+  animation: rise-in var(--duration-slow) var(--ease-out) both;
+}
+
+/* D-01: busur skor terisi sekali saat hasil muncul; angka di tengahnya tetap diam */
+.hasil-gauge__isi {
+  animation: gauge-fill var(--duration-reveal) var(--ease-out) var(--duration-base) both;
+}
+@keyframes gauge-fill {
+  from {
+    stroke-dashoffset: var(--gauge-len);
+  }
+}

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Alert, Button, ButtonGroup, PageHeader } from "@/components";
 import { getSession } from "@/lib/session";
 import { WizardForm } from "@/features/isi-data/WizardForm";
+import { StepTransition } from "@/components/motion/PageTransition";
 import {
   AFTER_LAST,
   BEFORE_FIRST,
@@ -57,7 +58,7 @@ async function IsiLangkah({ params, searchParams }: Props) {
   const data = (await getSession())?.child?.data;
 
   return (
-    <>
+    <StepTransition>
       {locked && (
         <Alert kind="info" title={`${locked} belum bisa dibuka`}>
           Lengkapi data anak sampai langkah terakhir dulu. Setelah itu {locked} langsung terbuka.
@@ -85,11 +86,11 @@ async function IsiLangkah({ params, searchParams }: Props) {
                 {step.nextText ?? "Simpan & Lanjut"}
               </Button>
               {step.skippable && (
-                <Button variant="ghost" block href={next}>
+                <Button variant="ghost" block href={next} data-nav-dir="forward">
                   Lewati Langkah Ini
                 </Button>
               )}
-              <Button variant="secondary" block href={prev} iconLeft="chevron-left">
+              <Button variant="secondary" block href={prev} iconLeft="chevron-left" data-nav-dir="back">
                 Kembali
               </Button>
             </ButtonGroup>
@@ -98,7 +99,7 @@ async function IsiLangkah({ params, searchParams }: Props) {
       </div>
 
       {step.Dialogs && <step.Dialogs />}
-    </>
+    </StepTransition>
   );
 }
 

@@ -125,3 +125,15 @@
   flex-direction: column;
   gap: var(--space-6);
 }
+
+/* C-01: pesan error turun pelan saat muncul; teks dan ikon tetap jadi penanda utama */
+.field__error:not([hidden]) {
+  animation: drop-in var(--duration-base) var(--ease-out) both;
+}
+.field__input,
+.field__select,
+.field__textarea {
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}

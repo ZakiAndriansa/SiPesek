@@ -3,6 +3,8 @@ import { Suspense, type ReactNode } from "react";
 import "@/styles";
 import { Sprite } from "@/components/icon/Sprite";
 import { ToastProvider, ToastRegion } from "@/components/toast/Toast";
+import { MotionProvider } from "@/components/motion/MotionProvider";
+import { RevealObserver } from "@/components/motion/RevealObserver";
 export const metadata: Metadata = {
   title: {
     default: "SiPesek",
@@ -27,11 +29,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body suppressHydrationWarning>
         <Sprite />
-        <ToastProvider>
-          {/* cacheComponents aktif: halaman yang membaca cookie sesi harus berada di dalam Suspense. */}
-          <Suspense fallback={null}>{children}</Suspense>
-          <ToastRegion />
-        </ToastProvider>
+        <MotionProvider>
+          <ToastProvider>
+            {/* cacheComponents aktif: halaman yang membaca cookie sesi harus berada di dalam Suspense. */}
+            <Suspense fallback={null}>{children}</Suspense>
+            <ToastRegion />
+          </ToastProvider>
+        </MotionProvider>
+        <RevealObserver />
       </body>
     </html>
   );
