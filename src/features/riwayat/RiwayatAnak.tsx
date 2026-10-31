@@ -1,13 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Badge, Button, Dialog, Icon } from "@/components";
-import type { AnakRingkas, ResponsAnak, ResponsRiwayat, RiwayatCek } from "@/lib/kontrak";
+import type { RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
-
-type AnakDenganRiwayat = AnakRingkas & { riwayat: RiwayatCek[] };
-type Status = "memuat" | "ada" | "belum-masuk" | "galat";
+import { pilihAnakAktif, segarkanOrtu, useOrtu, type AnakOrtu } from "@/features/ortu/store";
 
 const BATAS_ANAK = 5;
 const JENJANG: Record<RiwayatCek["jenjang"], string> = { SMA: "SMA", SMK: "SMK", SEMUA: "SMA dan SMK" };
@@ -15,44 +13,19 @@ const tanggal = (iso: string) =>
   new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 /**
- * Anak dan riwayat cek yang benar-benar tersimpan di akun Google (GET /api/ortu/anak dan /api/ortu/riwayat).
- * Diambil di klien agar cookie sesi ikut terkirim ke API. Hapus anak memanggil DELETE /api/ortu/anak/[id].
+ * Anak dan riwayat cek yang benar-benar tersimpan di akun Google, dari data bersama di features/ortu/store
+ * (sama dengan pemilih anak di navbar). Hapus anak memanggil DELETE /api/ortu/anak/[id] lalu memuat ulang.
  */
 export function RiwayatAnak() {
   const router = useRouter();
-  const [anak, setAnak] = useState<AnakDenganRiwayat[]>([]);
-  const [status, setStatus] = useState<Status>("memuat");
+  const { status, anak, aktif } = useOrtu();
   const [galatHapus, setGalatHapus] = useState("");
-
-  const muat = useCallback(async () => {
-    try {
-      const res = await fetch("/api/ortu/anak");
-      if (res.status === 401) return setStatus("belum-masuk");
-      if (!res.ok) return setStatus("galat");
-      const daftar = ((await res.json()) as ResponsAnak).anak;
-      const lengkap = await Promise.all(
-        daftar.map(async (a) => {
-          const r = await fetch(`/api/ortu/riwayat?anakId=${a.id}`);
-          return { ...a, riwayat: r.ok ? ((await r.json()) as ResponsRiwayat).riwayat : [] };
-        }),
-      );
-      setAnak(lengkap);
-      setStatus("ada");
-    } catch {
-      setStatus("galat");
-    }
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void muat();
-  }, [muat]);
 
   async function hapus(id: number) {
     setGalatHapus("");
     const res = await fetch(`/api/ortu/anak/${id}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) return setGalatHapus("Data anak belum bisa dihapus. Periksa internet, lalu coba lagi.");
-    await muat();
+    await segarkanOrtu();
   }
 
   if (status === "memuat") {
@@ -109,7 +82,16 @@ export function RiwayatAnak() {
     <div className="riwayat-anak">
       {galatHapus && <Alert kind="danger">{galatHapus}</Alert>}
       {anak.map((a) => (
-        <KartuAnak key={a.id} a={a} onHapus={() => hapus(a.id)} />
+        <KartuAnak
+          key={a.id}
+          a={a}
+          aktif={a.id === aktif?.id}
+          onHapus={() => hapus(a.id)}
+          onLihat={() => {
+            pilihAnakAktif(a.id);
+            router.push("/peta-sekolah");
+          }}
+        />
       ))}
       {anak.length < BATAS_ANAK ? (
         <Button variant="secondary" block href="/cek-cepat" iconLeft="plus">
@@ -122,15 +104,13 @@ export function RiwayatAnak() {
   );
 }
 
-function KartuAnak({ a, onHapus }: { a: AnakDenganRiwayat; onHapus: () => void }) {
+function KartuAnak({ a, aktif, onHapus, onLihat }: { a: AnakOrtu; aktif: boolean; onHapus: () => void; onLihat: () => void }) {
   const dialog = `dlg-hapus-anak-${a.id}`;
   return (
-    <article className="card riwayat-anak__kartu">
+    <article className={`card riwayat-anak__kartu${aktif ? " child-card--active" : ""}`}>
       <div className="child-card__top">
         <h2 className="card__title">{a.nama}</h2>
-        <Button variant="ghost" sm iconLeft="trash" opens={dialog}>
-          Hapus
-        </Button>
+        {aktif && <span className="badge badge--brand">Sedang dilihat</span>}
       </div>
       <p className="riwayat-anak__nisn">
         NISN berakhiran {a.nisnAkhir} · {a.riwayat.length} hasil tersimpan
@@ -173,6 +153,17 @@ function KartuAnak({ a, onHapus }: { a: AnakDenganRiwayat; onHapus: () => void }
           ))}
         </ul>
       )}
+
+      <div className="button-group">
+        {a.riwayat.length > 0 && (
+          <Button variant="primary" icon="arrow-right" onClick={onLihat}>
+            Lihat hasil, strategi, dan dokumen
+          </Button>
+        )}
+        <Button variant="ghost" iconLeft="trash" opens={dialog}>
+          Hapus data anak
+        </Button>
+      </div>
 
       <Dialog
         id={dialog}

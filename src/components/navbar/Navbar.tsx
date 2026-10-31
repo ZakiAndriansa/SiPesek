@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { stageOf } from "@/lib/accounts";
 import { HELP_URL, PUBLIC_NAV } from "@/lib/nav";
+import { lupakanDataOrtu } from "@/features/ortu/store";
 import { addChild, selectChild, signOut } from "@/lib/session-actions";
 import { Brand } from "../brand/Brand";
 import { Button } from "../button/Button";
@@ -26,13 +27,15 @@ export type NavbarProps =
       activeId: string | null;
       stages: StageItem[];
       lockedHref: string;
+      /** Pengganti pemilih anak prototipe (akun Google memakai data anak asli dari API). */
+      childMenu?: ReactNode;
     };
 
 const firstName = (name: string) => name.split(" ")[0];
 
 function SignOutButton() {
   return (
-    <form action={signOut}>
+    <form action={signOut} onSubmit={lupakanDataOrtu}>
       <button type="submit" className="menu__item">
         <Icon name="log-out" className="icon icon--sm" />
         Keluar
@@ -225,7 +228,7 @@ export function Navbar(props: NavbarProps) {
             </ol>
           </nav>
           <div className="navbar__actions">
-            <ChildMenu kids={props.kids} activeId={props.activeId} />
+            {props.childMenu ?? <ChildMenu kids={props.kids} activeId={props.activeId} />}
             <AccountMenu
               user={props.user}
               photo={props.photo}

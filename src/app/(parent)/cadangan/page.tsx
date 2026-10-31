@@ -10,13 +10,23 @@ import {
   Toolbar,
 } from "@/components";
 import { PRIVATE_SCHOOLS } from "@/data/schools";
+import { CadanganOrtu } from "@/features/ortu/CadanganOrtu";
+import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Sekolah Swasta Cadangan · SiPesek",
   description: "Rekomendasi sekolah swasta terakreditasi sebagai jaring pengaman keluarga tanpa bias komersial.",
 };
 
-export default function CadanganPage() {
+export default async function CadanganPage() {
+  // Akun Google: sekolah swasta terdekat dari hasil cek tersimpan. Akun contoh tetap memakai data prototipe.
+  if ((await getSession())?.account === "google") {
+    return (
+      <Container>
+        <CadanganOrtu />
+      </Container>
+    );
+  }
   return (
     <Container>
       <Breadcrumb items={[["Strategi", "/strategi"], ["Sekolah Cadangan"]]} />

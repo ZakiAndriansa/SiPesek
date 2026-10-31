@@ -152,7 +152,7 @@ export function continueTarget(child: Child | null): { label: string; href: stri
 export function stageOf(pathname: string): StageKey | null {
   const under = (p: string) => pathname === p || pathname.startsWith(`${p}/`);
   if (under("/anak-saya") || under("/isi-data")) return "data";
-  if (under("/peta-sekolah") || under("/detail-sekolah")) return "hasil";
+  if (under("/peta-sekolah") || under("/detail-sekolah") || under("/hasil")) return "hasil";
   if (under("/strategi") || under("/cadangan")) return "strategi";
   if (under("/unduhan")) return "dokumen";
   return null;

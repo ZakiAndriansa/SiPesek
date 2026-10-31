@@ -10,6 +10,7 @@ import {
   WIZARD_TOTAL,
   type Session,
 } from "@/lib/accounts";
+import { MenuAnakOrtu } from "@/features/ortu/MenuAnakOrtu";
 import { POLICY } from "@/lib/nav";
 import { getSession } from "@/lib/session";
 import { BottomNav } from "../bottom-nav/BottomNav";
@@ -27,11 +28,15 @@ const firstName = (name: string) => name.split(" ")[0];
 
 /** Teks tombol "Lanjutkan" untuk orang tua di halaman publik. */
 export function continueFor(session: Session) {
+  if (session.account === "google") return { label: "Lihat data anak", href: "/anak-saya" };
   if (!session.child) return { label: "Mulai isi data anak", href: nextWizardHref(null) };
   return { label: `Lanjutkan: ${firstName(session.child.name)}`, href: continueTarget(session.child).href };
 }
 
 function stagesFor(session: Session) {
+  // Akun Google: data asli diambil di klien, jadi tahap tidak dikunci; tiap halaman menjelaskan sendiri
+  // bila anak belum punya hasil tersimpan.
+  if (session.account === "google") return STAGES.map((s) => ({ ...s, state: "terbuka" as const }));
   const status = stageStatus(session.child);
   return STAGES.map((s) => ({ ...s, state: status[s.key] }));
 }
@@ -67,6 +72,7 @@ export async function SiteChrome({
         activeId: parent.child?.id ?? null,
         stages: stagesFor(parent),
         lockedHref: nextWizardHref(parent.child),
+        childMenu: parent.account === "google" ? <MenuAnakOrtu /> : undefined,
       }
     : publicNav(session);
 

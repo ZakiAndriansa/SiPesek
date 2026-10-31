@@ -5,6 +5,7 @@ import { Alert, Button, ButtonGroup, Choice, ChoiceGroup, Field, Form } from "@/
 import type { PermintaanSimpanCek, ResponsSimpanCek } from "@/lib/kontrak";
 import { toRequest, type QuickDraft } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
+import { tandaiUsang } from "@/features/ortu/store";
 import { clearDraft, getDraft, setBaruDisimpan } from "./draft-store";
 
 const JENJANG = { sma: "SMA", smk: "SMK", belum: "Belum tahu (SMA dan SMK)" } as const;
@@ -70,6 +71,8 @@ export function SaveDraft() {
       } else {
         const hasil = isi as ResponsSimpanCek;
         setBaruDisimpan({ result: hasil, input, anakBaru: hasil.anakBaru });
+        // Navbar dan halaman tahap memuat ulang daftar anak, dengan anak ini sebagai anak aktif.
+        if (hasil.anak) tandaiUsang(hasil.anak.id);
         clearDraft();
         router.push(`/hasil/${hasil.token}`);
         return;

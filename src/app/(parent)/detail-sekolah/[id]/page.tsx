@@ -17,6 +17,8 @@ import {
 } from "@/components";
 import { getSchool, SCHOOLS, shortName } from "@/data/schools";
 import { AddSchoolButton } from "@/features/sekolah/SchoolActions";
+import { DetailSekolahOrtu } from "@/features/ortu/DetailSekolahOrtu";
+import { getSession } from "@/lib/session";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -31,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: `${school.name} · Detail & Peluang SPMB`,
         description: `Analisis peluang masuk ${school.name} melalui berbagai jalur SPMB.`,
       }
-    : {};
+    : { title: "Detail Sekolah" };
 }
 
 // Seluruh isi bergantung pada id sekolah di URL, jadi dialirkan di balik Suspense.
@@ -46,7 +48,10 @@ export default function DetailSekolahPage({ params }: Props) {
 }
 
 async function DetailSekolah({ params }: Props) {
-  const school = getSchool((await params).id);
+  const { id } = await params;
+  // Akun Google: id adalah id sekolah di database, datanya dari hasil cek tersimpan anak aktif.
+  if ((await getSession())?.account === "google" && /^\d+$/.test(id)) return <DetailSekolahOrtu id={Number(id)} />;
+  const school = getSchool(id);
   if (!school) notFound();
   const { detail } = school;
 
