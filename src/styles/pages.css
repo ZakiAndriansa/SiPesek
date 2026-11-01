@@ -947,3 +947,28 @@ body:has(.dash)::before {
   min-height: 2.5rem;
   text-align: right;
 }
+
+/* ---------- Strategi: jarak antarbagian mengikuti isi, tidak renggang saat layar lebar atau di-zoom out ---------- */
+.stack--lg.stack--strategi {
+  gap: var(--space-8);
+}
+
+@media (min-width: 1024px) {
+  .stack--lg.stack--strategi {
+    gap: var(--space-10);
+  }
+}
+
+/* Blok langkah berikutnya sudah berjarak dari gap stack; margin bawaan .page-section tidak ditambahkan lagi. */
+.stack--strategi > .page-section {
+  margin-top: 0;
+}
+
+/* Keterangan sumber hasil (Hasil Sekolah, Strategi, Dokumen, Cadangan, Detail): berlatar agar tetap terbaca di atas ilustrasi */
+.sumber-hasil {
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}

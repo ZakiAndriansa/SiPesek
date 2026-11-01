@@ -87,6 +87,30 @@
   color: var(--color-ink-soft);
 }
 
+/* Hasil: tiap bagian adalah panel berlatar, dengan jarak antarpanel yang lega tetapi tidak renggang. */
+.quick__result,
+.hasil-tersimpan {
+  gap: var(--space-6);
+}
+@media (min-width: 600px) {
+  .quick__result,
+  .hasil-tersimpan {
+    gap: var(--space-8);
+  }
+}
+/* Panel besar tidak "terangkat" saat disentuh kursor: isinya dibaca, bukan diklik sebagai satu kartu. */
+.hasil-panel:hover {
+  box-shadow: 0 6px 20px rgba(4, 6, 19, 0.04);
+}
+/* Panel yang hanya berisi baris lipat: baris menempel satu sama lain, dipisah garis tipis. */
+.hasil-panel.hasil-daftar {
+  gap: 0;
+  padding-block: var(--space-2);
+}
+.hasil-panel .hasil-baris:last-child {
+  border-bottom: 0;
+}
+
 /* Hasil Cek Cepat: ringkasan dulu, rincian dilipat dalam baris tipis. */
 .hasil-ringkas {
   display: grid;
