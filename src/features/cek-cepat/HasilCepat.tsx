@@ -77,7 +77,7 @@ export function HasilCepat({
 
         {pilihan.length > 0 && (
           <section className="stack" aria-labelledby="q-strategi">
-            <div>
+            <div className="block-head">
               <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
               <p className="text-secondary">Satu ambisius, dua aman.</p>
             </div>
@@ -89,7 +89,7 @@ export function HasilCepat({
           </section>
         )}
 
-        <section className="stack" aria-labelledby="q-sekolah" data-reveal="">
+        <section className="card hasil-panel" aria-labelledby="q-sekolah" data-reveal="">
           <div>
             <h2 className="text-heading-md" id="q-sekolah">Semua sekolah negeri ({result.hasil.length})</h2>
             <p className="text-secondary">Ketuk sekolah untuk melihat alasannya.</p>
@@ -118,7 +118,7 @@ export function HasilCepat({
           )}
         </section>
 
-        <div className="hasil-daftar">
+        <div className="card hasil-panel hasil-daftar">
           {swasta.length > 0 && (
             <Lipat judul={`Sekolah swasta terdekat (${swasta.length})`}>
               <ul className="hasil-lipat__daftar">

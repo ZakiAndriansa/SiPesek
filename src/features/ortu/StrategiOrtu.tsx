@@ -48,7 +48,7 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
         title={`Strategi untuk ${nama}`}
         desc={`Paling banyak ${MAKS_PILIHAN} sekolah negeri. Urutan bisa diubah, dan sekolah bisa diganti dari Hasil Sekolah.`}
       />
-      <div className="stack stack--lg">
+      <div className="stack stack--lg stack--strategi">
         <SumberHasil terakhir={terakhir} hasil={hasil} />
 
         <section className="card stack" aria-labelledby="s-nilai">
@@ -65,9 +65,12 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
 
         <section className="stack" aria-labelledby="s-pilihan">
           <div className="block-head block-head--row">
-            <h2 className="text-heading-md" id="s-pilihan">
-              Pilihan sekolah
-            </h2>
+            <div>
+              <h2 className="text-heading-md" id="s-pilihan">
+                Pilihan sekolah
+              </h2>
+              <p className="text-caption">Susunan ini tersimpan di perangkat ini saja, dan ikut tercetak di halaman Dokumen.</p>
+            </div>
             {p.disusunSendiri && (
               <Button variant="ghost" sm iconLeft="refresh" onClick={p.kembalikan}>
                 Kembalikan ke rekomendasi
@@ -129,7 +132,6 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
               Tambah sekolah dari Hasil Sekolah
             </Button>
           )}
-          <p className="text-caption text-secondary">Susunan ini tersimpan di perangkat ini saja, dan ikut tercetak di halaman Dokumen.</p>
         </section>
 
         <Accordion

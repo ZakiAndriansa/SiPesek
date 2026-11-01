@@ -31,3 +31,9 @@ Konflik: `panduan/page.tsx`, `QuickCheck.tsx`, `quick.css`. Ketiganya diambil ut
 
 - **Hydration mismatch** ("A tree hydrated but some attributes of the server rendered HTML didn't match"): `RevealObserver` memberi `style` inline (opacity, transform) pada elemen HTML hasil server sebelum React selesai hydrate batas Suspense-nya. Direproduksi di dev server (1 sampai 3 peringatan per kunjungan). Sekarang keadaan awal "tersembunyi" dibuat dengan Web Animations API yang dijeda, jadi atribut DOM tidak pernah berubah. Peringatan hilang di 9 halaman yang diuji.
 - **Beranda dikembalikan ke main:** `LandingPage.tsx` dan `landing.css` berisi percobaan varian porsi SMA/SMK (cincin, bar) yang belum di-commit dan tidak ada di main. Dikembalikan ke commit terakhir (main + animasi). Cadangan percobaan: `/tmp/landing-variants-backup.patch`.
+
+## 2026-11-01 — Latar dan jarak halaman hasil dan Strategi (bukan animasi)
+
+- Hasil (`HasilCepat.tsx`, dipakai `/cek-cepat` dan `/hasil/[token]`): judul hasil tersimpan dan judul "Rekomendasi 3 pilihan" di `.block-head`; "Semua sekolah negeri" dan blok lipat (swasta, ringkasan jalur) menjadi `.card`. Jarak antarpanel 24px, 32px mulai 600px.
+- Strategi: `.stack--strategi` menurunkan jarak antarbagian dari 56/72px ke 32/40px, dan blok langkah berikutnya tidak lagi mendapat margin tambahan 48px.
+- `.sumber-hasil` ("Dari cek …") berlatar putih di semua halaman tahap akun Google. Keterangan "Susunan ini tersimpan…" dipindah ke panel judul "Pilihan sekolah".

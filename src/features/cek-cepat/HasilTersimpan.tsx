@@ -95,13 +95,13 @@ export function HasilTersimpan({ token }: { token: string }) {
   const nama = result.anak?.nama ?? "anak";
   const anakId = result.anak?.id;
   return (
-    <div className="stack">
+    <div className="stack hasil-tersimpan">
       {baru && (
         <Alert kind="success" title="Hasil tersimpan">
           {baru.pesan}
         </Alert>
       )}
-      <div className="no-print">
+      <div className="block-head no-print">
         <h1 className="text-heading-lg quick__title">Hasil {nama}</h1>
         <p className="text-secondary">
           Dicek {tanggal(result.dibuatPada)} dengan acuan SPMB {result.tahunAcuan}.
