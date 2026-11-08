@@ -12,10 +12,10 @@ import { muatDataMesin } from "@/lib/peluang/muat";
 import { skemaPermintaanPeluang } from "@/lib/validasi";
 
 // Tamu yang belum masuk, per jam (0 = tanpa batas):
-// 1. BATAS_TAMU_PER_JAM cek per perangkat (cookie anonim), agar juri yang berbagi satu Wi-Fi atau satu IP
-//    operator seluler tidak saling menghabiskan jatah;
+// 1. BATAS_TAMU_PER_JAM cek per perangkat (cookie anonim, bawaan 10), agar pengunjung yang berbagi satu Wi-Fi
+//    atau satu IP operator seluler tidak saling menghabiskan jatah;
 // 2. BATAS_TAMU_IP_PER_JAM cek per IP, rem longgar untuk bot yang membuang cookie di setiap permintaan.
-const BATAS_TAMU_PER_JAM = Number(process.env.BATAS_TAMU_PER_JAM ?? 30);
+const BATAS_TAMU_PER_JAM = Number(process.env.BATAS_TAMU_PER_JAM ?? 10);
 const BATAS_TAMU_IP_PER_JAM = Number(process.env.BATAS_TAMU_IP_PER_JAM ?? 150);
 let sudahPeringatkanTanpaIp = false;
 
@@ -76,11 +76,12 @@ async function tolakBilaLewatBatas(request: NextRequest, idPerangkat: string): P
   console.info(`Cek tamu ditolak: batas per ${karenaPerangkat ? "perangkat" : "IP"} tercapai, tunggu ${tolak.tunggu} s.`);
   const respons = NextResponse.json(
     {
-      galat: karenaPerangkat
-        ? `Batas ${BATAS_TAMU_PER_JAM} kali cek per jam untuk tamu di perangkat ini sudah tercapai. ` +
-          "Masuk dengan Google untuk cek tanpa batas per jam dan menyimpan riwayat."
-        : "Terlalu banyak cek dari jaringan ini dalam satu jam. " +
-          "Masuk dengan Google untuk tetap bisa cek dan menyimpan riwayat.",
+      galat:
+        "Untuk melindungi SiPesek dari penyalahgunaan otomatis, Cek Cepat tanpa akun dibatasi " +
+        (karenaPerangkat
+          ? `${BATAS_TAMU_PER_JAM} kali per jam di setiap perangkat. `
+          : "per jam untuk setiap jaringan, dan jaringan ini sudah mencapai batasnya. ") +
+        "Masuk dengan Google untuk lanjut sekarang dan menyimpan hasilnya.",
     } satisfies ResponsGalat,
     { status: 429 },
   );
