@@ -60,6 +60,13 @@ const angkaAtauNull = (raw: string) => {
   return v === null || Number.isNaN(v) ? null : v;
 };
 
+/** Jam lokal (misalnya "23.45") saat batas cek tamu terbuka lagi, dari header Retry-After dalam detik. */
+function jamCobaLagi(res: Response): string | null {
+  const detik = Number(res.headers.get("Retry-After"));
+  if (!Number.isFinite(detik) || detik <= 0) return null;
+  return new Date(Date.now() + detik * 1000).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+}
+
 /**
  * Cek Cepat tamu. Isian dikirim ke mesin peluang (POST /api/peluang mode tamu), dihitung, lalu dibuang:
  * server tidak menyimpan NISN, titik rumah, maupun hasilnya. Di browser, semuanya hanya ada di memori tab.
@@ -72,6 +79,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const [lokasi, setLokasi] = useState<Titik | null>(null);
   const [result, setResult] = useState<ResponsPeluang | null>(null);
   const [error, setError] = useState("");
+  // Batas Cek Cepat tamu tercapai (429): pesan server dan jam boleh mencoba lagi tanpa akun.
+  const [batas, setBatas] = useState<{ pesan: string; jam: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
   const [leaving, setLeaving] = useState(false);
   // NISN hanya di memori tab: dikirim untuk diperiksa server, dan ikut draf simpan bila orang tua menekan Simpan.
@@ -121,6 +130,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     };
     setInput(next);
     setError("");
+    setBatas(null);
     const invalid = validateInput(next);
     if (invalid) return setError(invalid);
     if (!lokasi) return setError("Tandai titik rumah di peta, atau tekan Gunakan lokasi saya. Jarak ke sekolah dihitung dari titik ini.");
@@ -134,6 +144,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
         body: JSON.stringify(toRequest(next, nisn.current, lokasi)),
       });
       const body = await res.json().catch(() => null);
+      if (res.status === 429 && !loggedIn) return setBatas({ pesan: body?.galat ?? "", jam: jamCobaLagi(res) });
       if (!res.ok) return setError(body?.galat ?? body?.pesan ?? "Hasil belum bisa dihitung. Coba lagi sebentar lagi.");
       setResult(body as ResponsPeluang);
       setPhase("hasil");
@@ -312,6 +323,20 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
             {error && (
               <Alert kind="danger" title="Belum bisa dihitung">
                 {error}
+              </Alert>
+            )}
+            {batas && (
+              <Alert
+                kind="info"
+                title="Batas cek tanpa akun tercapai"
+                action={
+                  <Button variant="primary" icon="arrow-right" onClick={save}>
+                    Masuk dengan Google untuk lanjut
+                  </Button>
+                }
+              >
+                {batas.pesan || "Cek Cepat tanpa akun dibatasi per jam. Masuk dengan Google untuk lanjut sekarang."}
+                {batas.jam && ` Tanpa akun, Cek Cepat bisa dipakai lagi pukul ${batas.jam}.`}
               </Alert>
             )}
             <ButtonGroup>

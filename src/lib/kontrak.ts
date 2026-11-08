@@ -63,7 +63,8 @@ export type PermintaanPeluang = {
    * Diisi: cek atas nama anak milik orang tua yang sedang masuk (dari GET /api/ortu/anak); hasilnya
    * disimpan ke riwayat (401 bila belum masuk, 404 bila bukan anaknya, 429 bila lewat 20 cek per hari).
    * Kosong: mode tamu; hasil dihitung lalu dikembalikan tanpa disimpan apa pun, dan `nisn` wajib.
-   * Tamu yang belum masuk dibatasi 10 cek per jam per IP (429 dengan header Retry-After).
+   * Tamu yang belum masuk dibatasi 10 cek per jam per perangkat (cookie anonim) dan 150 per IP
+   * (429 dengan header Retry-After).
    */
   anakId?: number;
   /** Wajib di mode tamu: hanya diperiksa (10 digit, kewajaran tahun lahir), tidak disimpan. */

@@ -33,6 +33,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?isi GOOGLE_CLIENT_ID di .env.server}
       NISN_PEPPER: ${NISN_PEPPER:?isi NISN_PEPPER di .env.server}
       BATAS_TAMU_PER_JAM: ${BATAS_TAMU_PER_JAM:-10}
+      BATAS_TAMU_IP_PER_JAM: ${BATAS_TAMU_IP_PER_JAM:-150}
     ports:
       - "3000:3000"
     depends_on:
