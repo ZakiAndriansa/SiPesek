@@ -5,6 +5,7 @@ import { Sprite } from "@/components/icon/Sprite";
 import { ToastProvider, ToastRegion } from "@/components/toast/Toast";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { RevealObserver } from "@/components/motion/RevealObserver";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 export const metadata: Metadata = {
   title: {
     default: "SiPesek",
@@ -37,6 +38,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </ToastProvider>
         </MotionProvider>
         <RevealObserver />
+        {/* Mengukur kecepatan halaman di perangkat pengunjung; hanya mengirim data di deploy Vercel. */}
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -2,7 +2,8 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import type { Map as PetaLeaflet } from "leaflet";
-import { CircleMarker, MapContainer, TileLayer, Tooltip, useMapEvents } from "react-leaflet";
+import { CircleMarker, MapContainer, Tooltip, useMapEvents } from "react-leaflet";
+import { UbinPeta } from "@/features/peta/UbinPeta";
 import { Button } from "@/components";
 import { PUSAT_DEPOK, WILAYAH, type Titik } from "@/lib/quick-check";
 
@@ -53,10 +54,7 @@ export default function PetaRumah({
         scrollWheelZoom={false}
         aria-label="Peta jalan Depok. Ketuk lokasi rumah untuk menaruh pin."
       >
-        <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        />
+        <UbinPeta />
         <KetukPeta onPilih={onChange} />
         {sekolah.map((s) => (
           <CircleMarker
