@@ -113,4 +113,24 @@ describe("store ortu", () => {
     await muat;
     expect(store.bacaKeadaanOrtu().hasil.A).toBeUndefined();
   });
+
+  it("hasil yang baru dihitung tidak diunduh lagi saat halaman tahap dibuka", async () => {
+    const f = pasangFetch(); // tanpa jawaban apa pun: fetch ke /api/hasil/BARU akan melempar galat
+    const skor = { jenjang: "SMA", nilai: 88, rincian: [{ label: "Rapor", nilai: 88 }] };
+    store.simpanHasilBaru({ token: "BARU", anakBaru: true, hasil: [], skorAnak: [skor] } as never);
+
+    await store.pastikanHasil("BARU");
+
+    expect(f.panggilan).toEqual([]);
+    const tersimpan = store.bacaKeadaanOrtu().hasil.BARU as unknown as Record<string, unknown>;
+    // Sama dengan bentuk GET /api/hasil/[token]: rincian skor dan penanda anakBaru tidak ikut.
+    expect(tersimpan.skorAnak).toEqual([{ ...skor, rincian: [] }]);
+    expect(tersimpan).not.toHaveProperty("anakBaru");
+  });
+
+  it("hasil yang baru dihitung dilupakan saat keluar", () => {
+    store.simpanHasilBaru({ token: "BARU", hasil: [] } as never);
+    store.lupakanDataOrtu({ perangkat: true });
+    expect(store.bacaKeadaanOrtu().hasil.BARU).toBeUndefined();
+  });
 });

@@ -4,51 +4,38 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, ButtonGroup, Dialog } from "@/components";
 import { useToast } from "@/components/toast/Toast";
-import type { ResponsAnak, ResponsOrtu, ResponsPeluang, ResponsRiwayat } from "@/lib/kontrak";
+import { ambil, BATAS_KIRIM_MS } from "@/lib/ambil";
+import type { ResponsSalinan } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
 import { bacaIsian } from "./isian";
 import { lupakanDataOrtu, useOrtu } from "./store";
 
 class SesiHabis extends Error {}
 
-async function ambil<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (res.status === 401) throw new SesiHabis();
-  if (!res.ok) throw new Error(url);
-  return (await res.json()) as T;
-}
-
 /**
  * Salinan semua data akun, diambil langsung dari server saat tombol ditekan (bukan dari tampilan yang
- * mungkin belum diperbarui), ditambah isian wizard yang hanya ada di perangkat ini.
+ * mungkin belum diperbarui) dalam satu panggilan, ditambah isian wizard yang hanya ada di perangkat ini.
  */
 async function susunSalinan() {
-  const akun = await ambil<ResponsOrtu>("/api/ortu/saya");
-  const { anak } = await ambil<ResponsAnak>("/api/ortu/anak");
+  // Batas waktu lebih longgar dari baca biasa: 5 anak x 20 cek bisa sekitar 2 MB di jaringan seluler.
+  const res = await ambil("/api/ortu/salinan", { batasMs: BATAS_KIRIM_MS });
+  if (res.status === 401) throw new SesiHabis();
+  if (!res.ok) throw new Error("salinan");
+  const { akun, anak } = (await res.json()) as ResponsSalinan;
   return {
     keterangan: "Salinan data akun SiPesek milik orang tua yang mengunduhnya.",
     diunduhPada: new Date().toISOString(),
-    akun: { nama: akun.nama, email: akun.email },
+    akun,
     tidakDisimpan:
       "NISN lengkap, titik rumah, dan nilai rapor tidak disimpan di server SiPesek, jadi tidak ada di salinan ini. " +
       "Yang tersimpan dari NISN hanya 3 angka terakhirnya.",
-    anak: await Promise.all(
-      anak.map(async (a) => {
-        const { riwayat } = await ambil<ResponsRiwayat>(`/api/ortu/riwayat?anakId=${a.id}`);
-        return {
-          nama: a.nama,
-          nisnBerakhiran: a.nisnAkhir,
-          nisnLazim: a.nisnLazim,
-          isianDiPerangkatIni: bacaIsian(a.id),
-          riwayatCek: await Promise.all(
-            riwayat.map(async (r) => {
-              const hasil = await ambil<ResponsPeluang>(`/api/hasil/${encodeURIComponent(r.token)}`);
-              return { ...r, hasil: { hasil: hasil.hasil, swasta: hasil.swasta, catatan: hasil.catatan, skorAnak: hasil.skorAnak } };
-            }),
-          ),
-        };
-      }),
-    ),
+    anak: anak.map((a) => ({
+      nama: a.nama,
+      nisnBerakhiran: a.nisnAkhir,
+      nisnLazim: a.nisnLazim,
+      isianDiPerangkatIni: bacaIsian(a.id),
+      riwayatCek: a.riwayat,
+    })),
   };
 }
 

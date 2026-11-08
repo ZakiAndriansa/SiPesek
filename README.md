@@ -45,6 +45,7 @@ Statistik SPMB 2026 sudah ada di repo dalam bentuk agregat (`data/statistik-2026
 | `GET /api/ortu/saya` | Orang tua yang sedang masuk |
 | `GET`/`POST /api/ortu/anak`, `DELETE /api/ortu/anak/[id]` | Data anak (nama dan NISN) milik akun |
 | `GET /api/ortu/riwayat?anakId=` | Riwayat cek satu anak |
+| `GET /api/ortu/salinan` | Semua data akun dalam satu panggilan, untuk Unduh Salinan Data |
 | `DELETE /api/ortu/akun` | Hapus akun dan semua data anak |
 | `POST /api/peluang` | Hitung peluang. Dengan `anakId` (wajib masuk): disimpan ke riwayat anak (20 cek terbaru per anak; tanpa batas harian, paling banyak 5 cek per menit per akun). Tanpa `anakId` (mode tamu, wajib NISN): tidak disimpan, tamu dibatasi 10 cek per jam per perangkat dan 150 per IP |
 | `GET /api/hasil/[token]` | Buka hasil yang disimpan (hanya pemiliknya) |

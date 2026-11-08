@@ -236,6 +236,24 @@ export type ResponsSimpanCek = ResponsPeluang & { anakBaru: boolean };
 /** GET /api/ortu/riwayat?anakId= (404 bila anak bukan milik akun ini). */
 export type ResponsRiwayat = { anak: AnakRingkas; riwayat: RiwayatCek[] };
 
+/** Isi hasil satu cek seperti tersimpan di server (tanpa rincian skor). */
+export type IsiHasilTersimpan = Pick<ResponsPeluang, "hasil" | "swasta" | "catatan" | "skorAnak">;
+
+/**
+ * GET /api/ortu/salinan: semua data akun dalam satu panggilan (untuk "Unduh Salinan Data"), menggantikan satu
+ * panggilan per anak dan per cek. 401 bila belum masuk. `hasil` null hanya bila cek terhapus di tengah jalan.
+ */
+export type ResponsSalinan = {
+  akun: { nama: string; email: string };
+  anak: Array<{
+    id: number;
+    nama: string;
+    nisnAkhir: string;
+    nisnLazim: boolean;
+    riwayat: Array<RiwayatCek & { hasil: IsiHasilTersimpan | null }>;
+  }>;
+};
+
 // DELETE /api/ortu/anak/[id]: hapus anak dan riwayatnya. DELETE /api/ortu/akun: hapus akun dan semua data anak.
 
 // ---------- GET /api/dashboard?tahun= ----------

@@ -19,7 +19,7 @@ import {
   type Titik,
 } from "@/lib/quick-check";
 import { bacaIsian, ISIAN_KOSONG, simpanIsian, type Isian } from "./isian";
-import { segarkanOrtu, tandaiUsang, useOrtu, type AnakOrtu } from "./store";
+import { segarkanOrtu, simpanHasilBaru, tandaiUsang, useOrtu, type AnakOrtu } from "./store";
 import { GagalMuat, Memuat, SesiBerakhir } from "./Wadah";
 
 const LANGKAH = [
@@ -332,6 +332,7 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
       const hasil = isi as ResponsPeluang;
       simpanIsian(anak.id, { langkah: WIZARD_TOTAL_ORTU });
       setBaruDisimpan({ result: hasil, input, pesan: `Data ${anak.nama} lengkap, dan hasil ini tersimpan di riwayatnya.` });
+      simpanHasilBaru(hasil);
       tandaiUsang(anak.id);
       router.push(`/hasil/${hasil.token}`);
     } catch (e) {
