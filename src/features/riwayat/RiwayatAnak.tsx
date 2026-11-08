@@ -12,6 +12,8 @@ import { pilihAnakAktif, segarkanOrtu, useOrtu, type AnakOrtu } from "@/features
 import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
 
 const BATAS_ANAK = 5;
+/** Sama dengan SIMPAN_CEK_PER_ANAK di src/lib/ortu.ts (modul server, tidak bisa diimpor dari sini). */
+const SIMPAN_CEK_PER_ANAK = 20;
 const JENJANG: Record<RiwayatCek["jenjang"], string> = { SMA: "SMA", SMK: "SMK", SEMUA: "SMA dan SMK" };
 const tanggal = (iso: string) =>
   new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -186,6 +188,12 @@ function KartuAnak({
             </li>
           ))}
         </ul>
+      )}
+      {a.riwayat.length >= SIMPAN_CEK_PER_ANAK - 5 && (
+        <p className="text-caption text-secondary">
+          SiPesek menyimpan {SIMPAN_CEK_PER_ANAK} hasil terbaru per anak. Hasil yang lebih lama terhapus otomatis saat ada
+          cek baru.
+        </p>
       )}
 
       <div className="button-group">

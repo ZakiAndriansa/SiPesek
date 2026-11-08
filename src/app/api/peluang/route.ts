@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { bacaJson, galat } from "@/lib/http";
 import type { ResponsGalat, ResponsPeluang } from "@/lib/kontrak";
 import { periksaNisn } from "@/lib/nisn";
-import { hitungDanSimpan, lewatBatasHarian, orangTuaMasuk } from "@/lib/ortu";
+import { hitungDanSimpan, orangTuaMasuk, tolakBilaTerlaluCepat } from "@/lib/ortu";
 import { hitungPeluang } from "@/lib/peluang/mesin";
 import { muatDataMesin } from "@/lib/peluang/muat";
 import { skemaPermintaanPeluang } from "@/lib/validasi";
@@ -96,8 +96,8 @@ async function cekTersimpan(p: typeof skemaPermintaanPeluang._output, anakId: nu
   });
   if (!anak) return galat("Data anak tidak ditemukan.", 404);
 
-  const batas = await lewatBatasHarian(orangTuaId);
-  if (batas) return galat(batas, 429);
+  const terlaluCepat = await tolakBilaTerlaluCepat(orangTuaId);
+  if (terlaluCepat) return terlaluCepat;
 
   return Response.json((await hitungDanSimpan(p, anak)) satisfies ResponsPeluang);
 }

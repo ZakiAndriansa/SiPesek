@@ -67,7 +67,8 @@ export default function PrivasiPage() {
             <li>
               <strong>Riwayat cek peluang:</strong> tanggal, tahun acuan, jenjang, kecamatan sesuai KK, daftar sekolah
               dan jalur yang dihitung beserta label peluangnya, jarak rumah ke sekolah yang dibulatkan ke 50 meter,
-              serta skor gabungan hasil hitungan dan rentangnya per 10 poin.
+              serta skor gabungan hasil hitungan dan rentangnya per 10 poin. Yang disimpan hanya 20 cek terbaru per
+              anak; cek yang lebih lama terhapus otomatis.
             </li>
           </ol>
           <p className="card__text">
