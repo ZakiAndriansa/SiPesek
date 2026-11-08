@@ -55,6 +55,7 @@ Statistik SPMB 2026 sudah ada di repo dalam bentuk agregat (`data/statistik-2026
 | `GET`/`PUT /api/admin/aturan/[tahun]` | Rumus dan batas label |
 | `PATCH /api/admin/sekolah/[id]` | Koordinat, alamat, biaya |
 | `PUT /api/admin/daya-tampung` | Daya tampung per sekolah atau program |
+| `GET /api/ping` | Membangunkan database dan menghangatkan fungsi. Diketuk pinger `.github/workflows/pinger.yml`, yang mati secara bawaan; cara menyalakan dan batas kuota Neon ada di berkas itu |
 
 Bentuk request dan response ada di `src/lib/kontrak.ts`.
 
