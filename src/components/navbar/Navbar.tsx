@@ -300,7 +300,17 @@ export function Navbar(props: NavbarProps) {
  * Bar atas dashboard: merek, label peran + nama, dan menu akun berisi Keluar. Tanpa `user` (pengunjung
  * dashboard kebijakan yang publik): tautan ke Beranda dan masuk petugas.
  */
-export function DashBar({ home, user, role }: { home: string; user?: string; role: string }) {
+export function DashBar({
+  home,
+  user,
+  role,
+  links = [["/", "Lihat situs publik"]],
+}: {
+  home: string;
+  user?: string;
+  role: string;
+  links?: [string, string][];
+}) {
   if (!user) {
     return (
       <header className="navbar">
@@ -328,7 +338,7 @@ export function DashBar({ home, user, role }: { home: string; user?: string; rol
             <strong>{user}</strong>
             <span>{role}</span>
           </span>
-          <AccountMenu user={user} role={role} links={[["/", "Lihat situs publik"]]} />
+          <AccountMenu user={user} role={role} links={links} />
         </div>
       </div>
     </header>

@@ -161,17 +161,29 @@ export async function DashChrome({
   children: ReactNode;
 }) {
   const session = await getSession();
-  // Dashboard kebijakan terbuka untuk umum; pengunjung tanpa sesi melihatnya sebagai "Dashboard Kebijakan".
-  const role = session ? ROLE_LABEL[session.role] : menu === POLICY ? "Dashboard Kebijakan" : menu.role;
-  // Admin yang membuka dashboard kebijakan tetap punya jalan kembali ke panel admin.
+  const kebijakan = menu === POLICY;
+  // Orang tua yang sedang masuk lalu membuka dashboard kebijakan (terbuka untuk umum) sedang memakai dashboard
+  // itu, bukan area orang tua: labelnya "Dashboard Kebijakan", dengan jalan kembali ke Data Anak.
+  const ortuDiKebijakan = kebijakan && session?.role === "orang-tua";
+  // Pengunjung tanpa sesi juga melihatnya sebagai "Dashboard Kebijakan".
+  const role = session && !ortuDiKebijakan ? ROLE_LABEL[session.role] : kebijakan ? "Dashboard Kebijakan" : menu.role;
+  // Admin yang membuka dashboard kebijakan tetap punya jalan kembali ke panel admin; orang tua ke Data Anak.
   const items =
-    session?.role === "admin" && menu === POLICY
+    session?.role === "admin" && kebijakan
       ? [...menu.items, ["/admin-sekolah", "Kembali ke Panel Admin", "settings"] as const]
-      : menu.items;
+      : ortuDiKebijakan
+        ? [...menu.items, ["/anak-saya", "Kembali ke Data Anak", "users"] as const]
+        : menu.items;
+  const tautanAkun: [string, string][] = ortuDiKebijakan
+    ? [
+        ["/anak-saya", "Kembali ke Data Anak"],
+        ["/", "Lihat situs publik"],
+      ]
+    : [["/", "Lihat situs publik"]];
   return (
     <>
       <SkipLink />
-      <DashBar home={session ? homeFor(session) : menu.home} user={session?.name} role={role} />
+      <DashBar home={session ? homeFor(session) : menu.home} user={session?.name} role={role} links={tautanAkun} />
       <main id="konten">
         <div className="container dash">
           <Sidebar menu={{ ...menu, role: menu !== POLICY ? menu.role : session?.role === "admin" ? "Dashboard Kebijakan (Admin)" : "Dashboard Kebijakan", items }} />
