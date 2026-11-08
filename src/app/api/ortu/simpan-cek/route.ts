@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { bacaJson, galat } from "@/lib/http";
 import type { ResponsSimpanCek } from "@/lib/kontrak";
 import { periksaNisn, sidikNisn } from "@/lib/nisn";
-import { BATAS_ANAK, hitungDanSimpan, lewatBatasHarian, orangTuaMasuk, pesanNisnTerpakai } from "@/lib/ortu";
+import { BATAS_ANAK, hitungDanSimpan, orangTuaMasuk, pesanNisnTerpakai, tolakBilaTerlaluCepat } from "@/lib/ortu";
 import { skemaSimpanCek } from "@/lib/validasi";
 
 // Simpan hasil Cek Cepat ke akun: cari atau buat anak dari NISN, lalu hitung ulang dan simpan ke riwayat.
@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
   const nisn = periksaNisn(nisnMentah);
   if (!nisn.sah) return galat(nisn.pesan, 400);
 
-  // Batas harian diperiksa sebelum membuat anak, agar tidak tersisa anak tanpa hasil.
-  const batas = await lewatBatasHarian(ortu.id);
-  if (batas) return galat(batas, 429);
+  // Batas per menit diperiksa sebelum membuat anak, agar tidak tersisa anak tanpa hasil.
+  const terlaluCepat = await tolakBilaTerlaluCepat(ortu.id);
+  if (terlaluCepat) return terlaluCepat;
 
   const sidik = sidikNisn(nisn.nisn);
   const pilih = { id: true, nama: true, nisnLazim: true, orangTuaId: true } as const;

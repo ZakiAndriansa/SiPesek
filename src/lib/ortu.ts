@@ -4,34 +4,66 @@ import type { NextRequest } from "next/server";
 import { sesiOrtu } from "@/lib/auth";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import type { AnakRingkas, PermintaanPeluang, ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
+import type { AnakRingkas, PermintaanPeluang, ResponsGalat, ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
 import { hitungPeluang } from "@/lib/peluang/mesin";
 import { muatDataMesin, muatIdSubJalur } from "@/lib/peluang/muat";
 
 export const BATAS_ANAK = 5;
-export const BATAS_CEK_PER_HARI = 20;
-const SEHARI_MS = 24 * 60 * 60 * 1000;
+/**
+ * Orang tua yang masuk tidak dibatasi jumlah cek per hari. Rem ini hanya menahan skrip: manusia yang mengisi
+ * atau mengubah isian tidak akan melewati 5 cek per menit.
+ */
+export const BATAS_CEK_PER_MENIT = 5;
+/** Riwayat menyimpan cek terbaru per anak; yang lebih lama dihapus, agar satu akun tidak memenuhi database. */
+export const SIMPAN_CEK_PER_ANAK = 20;
+const SEMENIT_MS = 60 * 1000;
 
 export const pesanNisnTerpakai = (milikSendiri: boolean) =>
   milikSendiri
     ? "NISN ini sudah ada di daftar anak Anda."
     : "NISN ini sudah didaftarkan akun lain. Hubungi admin SiPesek bila ini anak Anda.";
 
-/** Pesan 429 bila akun sudah mencapai BATAS_CEK_PER_HARI cek dalam 24 jam terakhir; null bila masih boleh. */
-export async function lewatBatasHarian(orangTuaId: number): Promise<string | null> {
-  const cekHariIni = await prisma.cekPeluang.count({
-    where: { anak: { orangTuaId }, dibuatPada: { gte: new Date(Date.now() - SEHARI_MS) } },
+/**
+ * Respons 429 (dengan Retry-After) bila akun sudah membuat BATAS_CEK_PER_MENIT cek dalam satu menit terakhir,
+ * atau null bila masih boleh.
+ */
+export async function tolakBilaTerlaluCepat(orangTuaId: number): Promise<Response | null> {
+  const terbaru = await prisma.cekPeluang.findMany({
+    where: { anak: { orangTuaId }, dibuatPada: { gte: new Date(Date.now() - SEMENIT_MS) } },
+    orderBy: { dibuatPada: "asc" },
+    select: { dibuatPada: true },
+    take: BATAS_CEK_PER_MENIT,
   });
-  return cekHariIni >= BATAS_CEK_PER_HARI
-    ? `Batas ${BATAS_CEK_PER_HARI} kali cek dalam 24 jam sudah tercapai. Silakan coba lagi besok.`
-    : null;
+  if (terbaru.length < BATAS_CEK_PER_MENIT) return null;
+  const tunggu = Math.max(1, Math.ceil((terbaru[0].dibuatPada.getTime() + SEMENIT_MS - Date.now()) / 1000));
+  const respons = Response.json(
+    {
+      galat:
+        `Cek terlalu cepat: paling banyak ${BATAS_CEK_PER_MENIT} kali per menit, untuk melindungi SiPesek dari ` +
+        `penyalahgunaan otomatis. Tunggu ${tunggu} detik, lalu coba lagi.`,
+    } satisfies ResponsGalat,
+    { status: 429 },
+  );
+  respons.headers.set("Retry-After", String(tunggu));
+  return respons;
 }
 
 /**
- * Hitung peluang atas nama satu anak lalu simpan ringkasannya ke riwayat. Pemilik anak dan batas harian
- * sudah diperiksa pemanggil. Yang disimpan hanya ringkasan: tanpa koordinat rumah dan tanpa nilai rapor atau
+ * Hitung peluang atas nama satu anak lalu simpan ringkasannya ke riwayat, lalu hapus cek anak itu yang lebih
+ * lama dari SIMPAN_CEK_PER_ANAK cek terbaru. Pemilik anak dan batas per menit sudah diperiksa pemanggil. Yang disimpan hanya ringkasan: tanpa koordinat rumah dan tanpa nilai rapor atau
  * TKA mentah. Skor akhir disimpan tanpa rinciannya, karena rincian membuka rata-rata rapor dan nilai TKA.
  */
+/** Hapus cek anak di luar SIMPAN_CEK_PER_ANAK terbaru (HasilCek ikut terhapus lewat cascade). */
+export async function hapusCekLama(anakId: number) {
+  const lama = await prisma.cekPeluang.findMany({
+    where: { anakId },
+    orderBy: [{ dibuatPada: "desc" }, { id: "desc" }],
+    skip: SIMPAN_CEK_PER_ANAK,
+    select: { id: true },
+  });
+  if (lama.length > 0) await prisma.cekPeluang.deleteMany({ where: { id: { in: lama.map((c) => c.id) } } });
+}
+
 export async function hitungDanSimpan(
   p: PermintaanPeluang,
   anak: { id: number; nama: string; nisnLazim: boolean },
@@ -65,6 +97,7 @@ export async function hitungDanSimpan(
       },
     },
   });
+  await hapusCekLama(anak.id);
 
   return {
     token,

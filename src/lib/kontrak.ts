@@ -61,7 +61,8 @@ export type NilaiMapel = { bin: number; mtk: number; ipa: number; ips: number; b
 export type PermintaanPeluang = {
   /**
    * Diisi: cek atas nama anak milik orang tua yang sedang masuk (dari GET /api/ortu/anak); hasilnya
-   * disimpan ke riwayat (401 bila belum masuk, 404 bila bukan anaknya, 429 bila lewat 20 cek per hari).
+   * disimpan ke riwayat (401 bila belum masuk, 404 bila bukan anaknya, 429 dengan Retry-After bila lewat 5 cek
+   * per menit; tidak ada batas per hari). Riwayat menyimpan 20 cek terbaru per anak.
    * Kosong: mode tamu; hasil dihitung lalu dikembalikan tanpa disimpan apa pun, dan `nisn` wajib.
    * Tamu yang belum masuk dibatasi 10 cek per jam per perangkat (cookie anonim) dan 150 per IP
    * (429 dengan header Retry-After).
@@ -224,7 +225,7 @@ export type RiwayatCek = {
  * permintaan peluang mode tamu (NISN wajib) ditambah nama anak dan persetujuan. Bila NISN belum ada di akun,
  * anak baru dibuat (201); bila sudah ada, cek ditambahkan ke anak itu tanpa mengubah namanya (200).
  * Galat: 400 isian atau NISN tidak sah; 401 belum masuk; 409 NISN milik akun lain; 422 sudah 5 anak;
- * 429 lewat 20 cek per 24 jam. Hasil dihitung ulang di server, jadi titik rumah (`lokasi`) tetap wajib
+ * 429 lewat 5 cek per menit. Hasil dihitung ulang di server, jadi titik rumah (`lokasi`) tetap wajib
  * walau tidak disimpan.
  */
 export type PermintaanSimpanCek = Omit<PermintaanPeluang, "anakId" | "nisn"> & PermintaanTambahAnak;
