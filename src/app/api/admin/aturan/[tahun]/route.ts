@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { sesiAdmin, tolakTanpaSesi } from "@/lib/auth";
+import { lupakanCacheTahun } from "@/lib/dashboard";
 import { prisma } from "@/lib/db";
 import { bacaJson, galat } from "@/lib/http";
 import { lupakanCacheMesin } from "@/lib/peluang/muat";
@@ -40,5 +41,6 @@ export async function PUT(request: NextRequest, ctx: RouteContext<"/api/admin/at
     });
   });
   lupakanCacheMesin();
+  lupakanCacheTahun();
   return Response.json(hasil);
 }

@@ -1,13 +1,13 @@
 import type { NextRequest } from "next/server";
 import Papa from "papaparse";
-import { muatDashboard, tahunDiminta } from "@/lib/dashboard";
-import { CACHE_PUBLIK, galat } from "@/lib/http";
+import { bacaQueryDashboard, muatDashboard } from "@/lib/dashboard";
+import { CACHE_PUBLIK } from "@/lib/http";
 
 export async function GET(request: NextRequest) {
-  const q = request.nextUrl.searchParams;
-  const tahun = await tahunDiminta(q.get("tahun"));
-  if (!tahun) return galat("Belum ada data SPMB.", 404);
-  const jenis = q.get("jenis") === "kecamatan" ? "kecamatan" : "sekolah";
+  const q = await bacaQueryDashboard(request.nextUrl.searchParams, { jenis: ["sekolah", "kecamatan"] });
+  if ("gagal" in q) return q.gagal;
+  const { tahun } = q;
+  const jenis = request.nextUrl.searchParams.get("jenis") === "kecamatan" ? "kecamatan" : "sekolah";
 
   const d = await muatDashboard(tahun);
   const baris: Record<string, string | number>[] =
