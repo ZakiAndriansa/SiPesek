@@ -6,7 +6,8 @@ import { prisma } from "@/lib/db";
 /**
  * Menyimpan agregat hasil src/lib/etl/agregasi.ts ke database.
  * Statistik diganti per sekolah yang ada di impor, sehingga impor satu sekolah
- * tidak menghapus sekolah lain.
+ * tidak menghapus sekolah lain. Semua penulisan (program keahlian baru, statistik, log) ada dalam satu
+ * transaksi: bila impor gagal di tengah, tidak ada yang tersimpan setengah jalan.
  */
 export async function simpanImpor(p: PermintaanImpor, adminId: number | null): Promise<ResponsImpor> {
   const [sekolah, subJalur, program] = await Promise.all([
@@ -18,8 +19,11 @@ export async function simpanImpor(p: PermintaanImpor, adminId: number | null): P
   const idSubJalur = new Map(subJalur.map((s) => [s.namaDiData, s.id]));
   const idProgram = new Map(program.map((pr) => [`${pr.sekolahId}|${pr.nama}`, pr.id]));
 
+  // Lintasan pertama tanpa menulis apa pun: saring baris yang tidak dikenal dan kumpulkan program yang belum ada.
+  const kunciProgram = (sekolahId: number, nama: string) => `${sekolahId}|${nama}`;
   const peringatan = new Set<string>();
-  const baris: Prisma.StatistikSeleksiCreateManyInput[] = [];
+  const siap: Array<{ s: PermintaanImpor["statistik"][number]; sekolahId: number; subJalurId: number }> = [];
+  const programBaru = new Map<string, { sekolahId: number; nama: string; bidang: string }>();
   for (const s of p.statistik) {
     const sekolahId = idSekolah.get(s.kodeSekolah);
     const subJalurId = idSubJalur.get(s.subJalur);
@@ -31,55 +35,62 @@ export async function simpanImpor(p: PermintaanImpor, adminId: number | null): P
       peringatan.add(`Sub jalur tidak dikenal: "${s.subJalur}"`);
       continue;
     }
-    let programId: number | null = null;
-    if (s.program) {
-      programId = idProgram.get(`${sekolahId}|${s.program}`) ?? null;
-      if (!programId) {
-        const baru = await prisma.programKeahlian.create({
-          data: { sekolahId, nama: s.program, bidang: s.bidang ?? "" },
-        });
-        programId = baru.id;
-        idProgram.set(`${sekolahId}|${s.program}`, programId);
-        peringatan.add(`Program baru dibuat tanpa kelompok bobot: ${s.program} (${s.namaSekolah})`);
-      }
+    const kunci = s.program ? kunciProgram(sekolahId, s.program) : null;
+    if (s.program && kunci && !idProgram.has(kunci) && !programBaru.has(kunci)) {
+      programBaru.set(kunci, { sekolahId, nama: s.program, bidang: s.bidang ?? "" });
+      peringatan.add(`Program baru dibuat tanpa kelompok bobot: ${s.program} (${s.namaSekolah})`);
     }
-    baris.push({
-      tahun: p.tahun,
-      sekolahId,
-      subJalurId,
-      programId,
-      pendaftar: s.pendaftar,
-      pendaftarPilihan1: s.pendaftarPilihan1,
-      diterima: s.diterima,
-      nilaiMinDiterima: s.nilaiMin,
-      nilaiMedianDiterima: s.nilaiMedian,
-      nilaiMaksDiterima: s.nilaiMaks,
-    });
+    siap.push({ s, sekolahId, subJalurId });
   }
 
-  const sekolahDiimpor = [...new Set(baris.map((b) => b.sekolahId))];
+  const sekolahDiimpor = [...new Set(siap.map((x) => x.sekolahId))];
 
-  const log = await prisma.$transaction(async (tx) => {
-    await tx.statistikSeleksi.deleteMany({ where: { tahun: p.tahun, sekolahId: { in: sekolahDiimpor } } });
-    await tx.statistikSeleksi.createMany({ data: baris });
-    if (p.gantiStatistikKecamatan) {
-      await tx.statistikKecamatan.deleteMany({ where: { tahun: p.tahun } });
-      await tx.statistikKecamatan.createMany({ data: p.kecamatan.map((k) => ({ ...k, tahun: p.tahun })) });
-    }
-    return tx.logImpor.create({
-      data: {
+  const { log, jumlahStatistik } = await prisma.$transaction(
+    async (tx) => {
+      // Semua program baru dibuat dengan satu query, bukan satu query per program.
+      if (programBaru.size > 0) {
+        const dibuat = await tx.programKeahlian.createManyAndReturn({
+          data: [...programBaru.values()],
+          select: { id: true, sekolahId: true, nama: true },
+        });
+        for (const pr of dibuat) idProgram.set(kunciProgram(pr.sekolahId, pr.nama), pr.id);
+      }
+      const baris: Prisma.StatistikSeleksiCreateManyInput[] = siap.map(({ s, sekolahId, subJalurId }) => ({
         tahun: p.tahun,
-        namaFile: p.namaFile,
-        jumlahBaris: p.jumlahBaris,
-        jumlahSekolah: sekolahDiimpor.length,
-        adminId,
-      },
-    });
-  });
+        sekolahId,
+        subJalurId,
+        programId: s.program ? (idProgram.get(kunciProgram(sekolahId, s.program)) ?? null) : null,
+        pendaftar: s.pendaftar,
+        pendaftarPilihan1: s.pendaftarPilihan1,
+        diterima: s.diterima,
+        nilaiMinDiterima: s.nilaiMin,
+        nilaiMedianDiterima: s.nilaiMedian,
+        nilaiMaksDiterima: s.nilaiMaks,
+      }));
+      await tx.statistikSeleksi.deleteMany({ where: { tahun: p.tahun, sekolahId: { in: sekolahDiimpor } } });
+      await tx.statistikSeleksi.createMany({ data: baris });
+      if (p.gantiStatistikKecamatan) {
+        await tx.statistikKecamatan.deleteMany({ where: { tahun: p.tahun } });
+        await tx.statistikKecamatan.createMany({ data: p.kecamatan.map((k) => ({ ...k, tahun: p.tahun })) });
+      }
+      const log = await tx.logImpor.create({
+        data: {
+          tahun: p.tahun,
+          namaFile: p.namaFile,
+          jumlahBaris: p.jumlahBaris,
+          jumlahSekolah: sekolahDiimpor.length,
+          adminId,
+        },
+      });
+      return { log, jumlahStatistik: baris.length };
+    },
+    // Impor satu tahun bisa ribuan baris; batas bawaan 5 detik terlalu ketat untuk database yang baru bangun.
+    { timeout: 30_000 },
+  );
 
   return {
     logImporId: log.id,
-    jumlahStatistik: baris.length,
+    jumlahStatistik,
     jumlahSekolah: sekolahDiimpor.length,
     peringatan: [...peringatan],
   };

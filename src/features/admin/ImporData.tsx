@@ -1,8 +1,9 @@
 "use client";
 import Papa from "papaparse";
-import { useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { Alert, Button, Choice, DashSection, Field, Form, PageHeader, Stats, Table } from "@/components";
 import { useToast } from "@/components/toast/Toast";
+import { ambil, pesanGagal } from "@/lib/ambil";
 import { agregasi, type BarisMentah, type HasilAgregasi } from "@/lib/etl/agregasi";
 import type { PermintaanImpor, ResponsImpor } from "@/lib/kontrak";
 import { SesiAdminBerakhir } from "./SesiAdmin";
@@ -33,6 +34,8 @@ export function ImporData() {
   const [berkas, setBerkas] = useState<Berkas | null>(null);
   const [membaca, setMembaca] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Penjaga klik ganda: state `busy` baru berubah setelah render, jadi dua klik cepat bisa mengimpor dua kali.
+  const mengirim = useRef(false);
   const [galat, setGalat] = useState("");
   const [hasil, setHasil] = useState<ResponsImpor | null>(null);
   const [sesiHabis, setSesiHabis] = useState(false);
@@ -59,7 +62,7 @@ export function ImporData() {
   }
 
   async function kirim() {
-    if (!berkas || busy) return;
+    if (!berkas || mengirim.current) return;
     const f = new FormData(document.getElementById(FORM) as HTMLFormElement);
     const tahun = Number(f.get("tahun"));
     if (!Number.isInteger(tahun) || tahun < 2020 || tahun > 2100) return setGalat("Tulis tahun SPMB, misalnya 2026.");
@@ -71,10 +74,13 @@ export function ImporData() {
       statistik: berkas.hasil.statistik,
       kecamatan: berkas.hasil.kecamatan,
     };
+    mengirim.current = true;
     setBusy(true);
     setGalat("");
     try {
-      const res = await fetch("/api/admin/impor", {
+      // Impor satu tahun bisa ribuan baris agregat; batas waktunya lebih longgar dari simpan biasa.
+      const res = await ambil("/api/admin/impor", {
+        batasMs: 60_000,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(permintaan),
@@ -84,9 +90,10 @@ export function ImporData() {
       if (!res.ok) return setGalat(isi?.galat ?? "Impor belum berhasil. Coba lagi sebentar lagi.");
       setHasil(isi as ResponsImpor);
       show(`Data seleksi ${tahun} diimpor.`, "success");
-    } catch {
-      setGalat("Tidak tersambung ke server SiPesek. Periksa internet, lalu coba lagi.");
+    } catch (e) {
+      setGalat(pesanGagal(e));
     } finally {
+      mengirim.current = false;
       setBusy(false);
     }
   }
