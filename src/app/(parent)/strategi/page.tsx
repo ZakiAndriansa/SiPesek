@@ -15,6 +15,7 @@ import {
 } from "@/components";
 import { strategySchools } from "@/data/schools";
 import { StrategiOrtu } from "@/features/ortu/StrategiOrtu";
+import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default async function StrategiPage() {
   const session = await getSession();
   // Akun Google: strategi dari hasil cek tersimpan. Akun contoh tetap memakai data prototipe.
   if (session?.account === "google") {
+    await pramuatDataOrtu();
     return (
       <Container>
         <StrategiOrtu />

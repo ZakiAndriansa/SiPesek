@@ -3,7 +3,7 @@ import { tolakTanpaSesiOrtu } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { galat } from "@/lib/http";
 import type { ResponsPeluang } from "@/lib/kontrak";
-import { orangTuaMasuk } from "@/lib/ortu";
+import { keResponsHasil, orangTuaMasuk } from "@/lib/ortu";
 
 // Hasil memuat data anak, jadi hanya orang tua pemiliknya yang bisa membuka.
 export async function GET(request: NextRequest, ctx: RouteContext<"/api/hasil/[token]">) {
@@ -17,15 +17,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/hasil/[t
   });
   if (!cek?.anak) return galat("Hasil tidak ditemukan.", 404);
 
-  const tersimpan = cek.hasil as Pick<ResponsPeluang, "hasil" | "swasta" | "catatan" | "skorAnak">;
-  return Response.json({
-    token: cek.token,
-    anak: { id: cek.anak.id, nama: cek.anak.nama },
-    nisnLazim: cek.anak.nisnLazim,
-    tahunAcuan: cek.tahunAcuan,
-    dibuatPada: cek.dibuatPada.toISOString(),
-    ...tersimpan,
-  } satisfies ResponsPeluang);
+  return Response.json(keResponsHasil(cek, cek.anak) satisfies ResponsPeluang);
 }
 
 // Menghapus satu hasil dari riwayat anak; anak dan hasil lainnya tetap. Hasil milik akun lain dijawab 404.

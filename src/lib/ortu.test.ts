@@ -4,15 +4,21 @@ const findMany = vi.fn();
 const deleteMany = vi.fn();
 const anakFindMany = vi.fn();
 const queryRaw = vi.fn();
+const findUnique = vi.fn();
 vi.mock("@/lib/db", () => ({
   prisma: {
-    cekPeluang: { findMany: (...a: unknown[]) => findMany(...a), deleteMany: (...a: unknown[]) => deleteMany(...a) },
+    cekPeluang: {
+      findMany: (...a: unknown[]) => findMany(...a),
+      deleteMany: (...a: unknown[]) => deleteMany(...a),
+      findUnique: (...a: unknown[]) => findUnique(...a),
+    },
     anak: { findMany: (...a: unknown[]) => anakFindMany(...a) },
     $queryRaw: (...a: unknown[]) => queryRaw(...a),
   },
 }));
 
-const { BATAS_CEK_PER_MENIT, SIMPAN_CEK_PER_ANAK, hapusCekLama, salinanAkun, tolakBilaTerlaluCepat } = await import("./ortu");
+const { BATAS_CEK_PER_MENIT, SIMPAN_CEK_PER_ANAK, hapusCekLama, hasilTerakhirAnakAktif, salinanAkun, tolakBilaTerlaluCepat } =
+  await import("./ortu");
 
 const SEKARANG = new Date("2026-11-08T10:00:00Z");
 const detikLalu = (s: number) => ({ dibuatPada: new Date(SEKARANG.getTime() - s * 1000) });
@@ -24,6 +30,7 @@ beforeEach(() => {
   deleteMany.mockReset();
   anakFindMany.mockReset();
   queryRaw.mockReset();
+  findUnique.mockReset();
 });
 afterEach(() => vi.useRealTimers());
 
@@ -112,5 +119,32 @@ describe("salinanAkun", () => {
     expect(s.anak).toEqual([]);
     expect(queryRaw).not.toHaveBeenCalled();
     expect(findMany).not.toHaveBeenCalled();
+  });
+});
+
+describe("hasilTerakhirAnakAktif", () => {
+  const ringkas = { jumlahSekolah: 1, peluangBesar: 1, masihMungkin: 0, peluangKecil: 0 };
+  const rw = (token: string) => ({ token, dibuatPada: "2026-11-01T00:00:00.000Z", tahunAcuan: 2026, jenjang: "SMA" as const, kecamatan: null, ringkas });
+  const anakA = (id: number, tokens: string[]) => ({ id, nama: `Anak ${id}`, nisnAkhir: "567", nisnLazim: true, jumlahCek: tokens.length, riwayat: tokens.map(rw) });
+
+  it("mengambil hasil terbaru anak pilihan, dengan bentuk sama seperti GET /api/hasil/[token]", async () => {
+    findUnique.mockResolvedValue({ token: "B1", tahunAcuan: 2026, dibuatPada: new Date("2026-11-02T00:00:00Z"), hasil: { hasil: [], catatan: ["x"] } });
+    const h = await hasilTerakhirAnakAktif([anakA(1, ["A1"]), anakA(2, ["B1", "B0"])], 2);
+    expect(findUnique.mock.calls[0][0].where).toEqual({ token: "B1" });
+    expect(h).toEqual({
+      token: "B1",
+      anak: { id: 2, nama: "Anak 2" },
+      nisnLazim: true,
+      tahunAcuan: 2026,
+      dibuatPada: "2026-11-02T00:00:00.000Z",
+      hasil: [],
+      catatan: ["x"],
+    });
+  });
+
+  it("anak aktif tanpa hasil, atau akun tanpa anak: null tanpa query", async () => {
+    expect(await hasilTerakhirAnakAktif([anakA(1, ["A1"]), anakA(2, [])], 2)).toBeNull();
+    expect(await hasilTerakhirAnakAktif([], null)).toBeNull();
+    expect(findUnique).not.toHaveBeenCalled();
   });
 });

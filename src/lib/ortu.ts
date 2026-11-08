@@ -15,6 +15,7 @@ import type {
 } from "@/lib/kontrak";
 import { hitungPeluang } from "@/lib/peluang/mesin";
 import { muatDataMesin, muatIdSubJalur } from "@/lib/peluang/muat";
+import { tentukanAnakAktif } from "@/lib/anak-aktif";
 
 export const BATAS_ANAK = 5;
 /**
@@ -218,4 +219,38 @@ export async function salinanAkun(ortu: { id: number; nama: string; email: strin
       riwayat: (riwayat.get(a.id) ?? []).map((r) => ({ ...r, hasil: hasilPerToken.get(r.token) ?? null })),
     })),
   };
+}
+
+type CekTersimpan = { token: string; tahunAcuan: number; dibuatPada: Date; hasil: unknown };
+
+/** Bentuk GET /api/hasil/[token] dari baris CekPeluang dan anaknya (dipakai juga oleh GET /api/ortu/anak). */
+export function keResponsHasil(cek: CekTersimpan, anak: { id: number; nama: string; nisnLazim: boolean }): ResponsPeluang {
+  return {
+    token: cek.token,
+    anak: { id: anak.id, nama: anak.nama },
+    nisnLazim: anak.nisnLazim,
+    tahunAcuan: cek.tahunAcuan,
+    dibuatPada: cek.dibuatPada.toISOString(),
+    ...(cek.hasil as IsiHasilTersimpan),
+  };
+}
+
+/**
+ * Hasil terakhir anak aktif (aturan sama dengan store di browser), agar halaman tahap cukup satu panggilan.
+ * Null bila akun belum punya anak atau anak aktif belum punya hasil.
+ */
+export async function hasilTerakhirAnakAktif(
+  anak: Array<AnakRingkas & { riwayat: RiwayatCek[] }>,
+  pilihan: number | null,
+): Promise<ResponsPeluang | null> {
+  const id = tentukanAnakAktif(anak, pilihan);
+  const aktif = anak.find((a) => a.id === id);
+  const token = aktif?.riwayat[0]?.token;
+  if (!aktif || !token) return null;
+  // Token berasal dari riwayat anak milik akun ini, jadi kepemilikannya sudah terjamin.
+  const cek = await prisma.cekPeluang.findUnique({
+    where: { token },
+    select: { token: true, tahunAcuan: true, dibuatPada: true, hasil: true },
+  });
+  return cek ? keResponsHasil(cek, aktif) : null;
 }

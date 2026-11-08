@@ -16,6 +16,7 @@ import {
   Toolbar,
 } from "@/components";
 import { SCHOOLS } from "@/data/schools";
+import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 import { SchoolResultCard } from "@/features/sekolah/SchoolResultCard";
 import { HasilSekolahOrtu } from "@/features/ortu/HasilSekolahOrtu";
@@ -33,6 +34,7 @@ export default async function PetaSekolahPage({
   const session = await getSession();
   // Akun Google: hasil asli dari cek yang tersimpan. Akun contoh (mode demo) tetap memakai data prototipe.
   if (session?.account === "google") {
+    await pramuatDataOrtu();
     return (
       <Container>
         <HasilSekolahOrtu />

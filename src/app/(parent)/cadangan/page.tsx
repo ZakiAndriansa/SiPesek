@@ -11,6 +11,7 @@ import {
 } from "@/components";
 import { PRIVATE_SCHOOLS } from "@/data/schools";
 import { CadanganOrtu } from "@/features/ortu/CadanganOrtu";
+import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
 export default async function CadanganPage() {
   // Akun Google: sekolah swasta terdekat dari hasil cek tersimpan. Akun contoh tetap memakai data prototipe.
   if ((await getSession())?.account === "google") {
+    await pramuatDataOrtu();
     return (
       <Container>
         <CadanganOrtu />

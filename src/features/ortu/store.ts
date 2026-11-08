@@ -4,6 +4,7 @@
 // modul supaya navbar dan halaman tahap memakai data yang sama tanpa mengambil ulang tiap pindah halaman.
 import { useEffect, useSyncExternalStore } from "react";
 import { ambil } from "@/lib/ambil";
+import { bacaIdAnak, COOKIE_ANAK_AKTIF, tentukanAnakAktif, URL_DATA_ORTU } from "@/lib/anak-aktif";
 import type { AnakRingkas, ResponsAnak, ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
 import { lupakanIsian } from "./isian";
 import { hapusPilihan, lupakanPilihan } from "./pilihan";
@@ -35,11 +36,11 @@ function ubah(baru: Partial<Keadaan>) {
   pendengar.forEach((f) => f());
 }
 
-// Anak yang sedang dilihat hanya kenyamanan per perangkat, jadi cukup di localStorage.
+// Anak yang sedang dilihat hanya kenyamanan per perangkat, jadi cukup di localStorage. Salinannya di cookie
+// memberi tahu server anak mana yang hasil terakhirnya ikut dikirim bersama daftar anak.
 function bacaAktif(): number | null {
   try {
-    const v = Number(localStorage.getItem(KUNCI_AKTIF));
-    return Number.isInteger(v) && v > 0 ? v : null;
+    return bacaIdAnak(localStorage.getItem(KUNCI_AKTIF));
   } catch {
     return null;
   }
@@ -52,12 +53,14 @@ function tulisAktif(id: number | null) {
   } catch {
     // Penyimpanan browser diblokir: pilihan anak berlaku sampai tab ditutup.
   }
-}
-
-/** Anak aktif: pilihan terakhir bila masih ada, selain itu anak pertama yang punya hasil, lalu anak pertama. */
-function tentukanAktif(anak: AnakOrtu[], pilihan: number | null) {
-  if (pilihan !== null && anak.some((a) => a.id === pilihan)) return pilihan;
-  return (anak.find((a) => a.riwayat.length > 0) ?? anak[0])?.id ?? null;
+  try {
+    document.cookie =
+      id === null
+        ? `${COOKIE_ANAK_AKTIF}=; Path=/; Max-Age=0; SameSite=Lax`
+        : `${COOKIE_ANAK_AKTIF}=${id}; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+  } catch {
+    // Tanpa cookie, server memakai anak pertama yang punya hasil; browser tetap memakai pilihannya sendiri.
+  }
 }
 
 async function ambilSemua(v: number) {
@@ -66,15 +69,23 @@ async function ambilSemua(v: number) {
     if (v === versi && keadaan.status !== "ada") ubah({ status: "galat" });
   };
   try {
-    // Satu panggilan untuk anak sekaligus riwayatnya, bukan satu panggilan per anak.
-    const res = await ambil("/api/ortu/anak?riwayat=1");
+    // Satu panggilan untuk anak, riwayatnya, dan hasil terakhir anak aktif. Alamatnya sama dengan preload di
+    // halaman (src/features/ortu/pramuat.ts), jadi pada buka halaman pertama browser memakai jawaban preload.
+    const res = await ambil(URL_DATA_ORTU);
     if (v !== versi) return;
     if (res.status === 401) return ubah({ status: "belum-masuk", anak: [], aktifId: null });
     if (!res.ok) return gagal();
-    const daftar = ((await res.json()) as ResponsAnak).anak;
+    const isi = (await res.json()) as ResponsAnak;
     if (v !== versi) return;
-    const anak = daftar.map((a) => ({ ...a, riwayat: a.riwayat ?? [] }));
-    ubah({ status: "ada", anak, aktifId: tentukanAktif(anak, keadaan.aktifId ?? bacaAktif()) });
+    const anak = isi.anak.map((a) => ({ ...a, riwayat: a.riwayat ?? [] }));
+    const terakhir = isi.hasilTerakhir;
+    ubah({
+      status: "ada",
+      anak,
+      aktifId: tentukanAnakAktif(anak, keadaan.aktifId ?? bacaAktif()),
+      // Hasil terakhir masuk bersamaan dengan daftar anak: halaman tahap tidak perlu panggilan kedua.
+      ...(terakhir?.token ? { hasil: { ...keadaan.hasil, [terakhir.token]: terakhir } } : {}),
+    });
   } catch {
     gagal();
   }

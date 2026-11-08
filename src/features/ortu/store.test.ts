@@ -35,7 +35,7 @@ function pasangFetch() {
 
 const anak = (id: number, nama: string) => ({ id, nama, nisnAkhir: "567", nisnLazim: true, jumlahCek: 1 });
 const cek = (token: string) => ({ token, dibuatPada: "2026-11-01T00:00:00.000Z", tahunAcuan: 2026, jenjang: "SMA", kecamatan: "Beji", ringkas: { jumlahSekolah: 15, peluangBesar: 1, masihMungkin: 2, peluangKecil: 12 } });
-const ANAK = "/api/ortu/anak?riwayat=1";
+const ANAK = "/api/ortu/anak?riwayat=1&hasil=1";
 
 let store: typeof import("./store");
 beforeEach(async () => {
@@ -126,6 +126,29 @@ describe("store ortu", () => {
     // Sama dengan bentuk GET /api/hasil/[token]: rincian skor dan penanda anakBaru tidak ikut.
     expect(tersimpan.skorAnak).toEqual([{ ...skor, rincian: [] }]);
     expect(tersimpan).not.toHaveProperty("anakBaru");
+  });
+
+  it("hasil terakhir yang ikut daftar anak langsung dipakai, tanpa panggilan kedua", async () => {
+    const f = pasangFetch();
+    f.jawab(ANAK, {
+      status: 200,
+      body: { anak: [{ ...anak(1, "Anak"), riwayat: [cek("T1")] }], hasilTerakhir: { token: "T1", hasil: [] } },
+    });
+
+    await store.segarkanOrtu();
+    await store.pastikanHasil("T1"); // yang dipanggil halaman tahap saat dibuka
+
+    expect(f.panggilan).toEqual([ANAK]);
+    expect(store.bacaKeadaanOrtu()).toMatchObject({ status: "ada", aktifId: 1, hasil: { T1: { token: "T1" } } });
+  });
+
+  it("memilih anak menyalin pilihannya ke cookie untuk server", () => {
+    const doc = { cookie: "" };
+    vi.stubGlobal("document", doc);
+    store.pilihAnakAktif(3);
+    expect(doc.cookie).toMatch(/^sipesek_anak_aktif=3; Path=\/;/);
+    store.lupakanDataOrtu();
+    expect(doc.cookie).toMatch(/^sipesek_anak_aktif=; Path=\/; Max-Age=0/);
   });
 
   it("hasil yang baru dihitung dilupakan saat keluar", () => {
