@@ -42,9 +42,10 @@ export default function PrivasiPage() {
             sama dengan daftar di bawah; titik rumah dan nilai rapor tetap tidak disimpan.
           </p>
           <p className="card__text">
-            Untuk mencegah penyalahgunaan, Cek Cepat tanpa akun dibatasi jumlahnya per jam. Karena itu server mencatat
-            sidik alamat IP perangkat beserta waktunya. Sidik ini tidak bisa diubah kembali menjadi alamat IP, tidak
-            terhubung dengan isian Cek Cepat, dan hanya dipakai selama satu jam sebelum dihapus.
+            Untuk mencegah penyalahgunaan, Cek Cepat tanpa akun dibatasi jumlahnya per jam, per perangkat dan per
+            jaringan. Karena itu perangkat diberi cookie berisi kode acak, dan server mencatat sidik kode itu dan sidik
+            alamat IP beserta waktunya. Sidik ini tidak bisa diubah kembali menjadi kode atau alamat IP, tidak terhubung
+            dengan isian Cek Cepat, dan hanya dipakai selama satu jam sebelum dihapus.
           </p>
         </div>
       </Section>
@@ -117,8 +118,8 @@ export default function PrivasiPage() {
         <div className="card">
           <h2 className="card__title">Cookie</h2>
           <p className="card__text">
-            SiPesek hanya memakai cookie yang diperlukan agar Bapak/Ibu tetap masuk dan anak yang dipilih tetap aktif,
-            paling lama 30 hari. Tidak ada cookie iklan atau analitik.
+            SiPesek hanya memakai cookie yang diperlukan agar Bapak/Ibu tetap masuk, anak yang dipilih tetap aktif, dan
+            batas Cek Cepat tanpa akun berlaku per perangkat, paling lama 30 hari. Tidak ada cookie iklan atau analitik.
           </p>
         </div>
       </Section>
