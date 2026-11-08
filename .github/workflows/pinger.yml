@@ -18,7 +18,8 @@ name: Pinger
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    # Menit 7 dan 37, bukan :00 dan :30: GitHub sering menunda atau melewatkan jadwal di awal jam yang ramai.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 # Jadwal GitHub sering terlambat beberapa menit, jadi setiap run berjalan 55 menit dan run baru menggantikan

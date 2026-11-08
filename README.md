@@ -54,6 +54,7 @@ Statistik SPMB 2026 sudah ada di repo dalam bentuk agregat (`data/statistik-2026
 | `POST /api/admin/masuk`, `/keluar` | Sesi admin (cookie httpOnly) |
 | `POST /api/admin/impor` | Simpan agregat hasil parsing di browser |
 | `GET`/`PUT /api/admin/aturan/[tahun]` | Rumus dan batas label |
+| `GET /api/admin/aturan/aktif` | Aturan tahun SPMB yang aktif (dibuka pertama di halaman Aturan SPMB) |
 | `PATCH /api/admin/sekolah/[id]` | Koordinat, alamat, biaya |
 | `PUT /api/admin/daya-tampung` | Daya tampung per sekolah atau program |
 | `GET /api/ping` | Membangunkan database dan menghangatkan fungsi. Diketuk pinger `.github/workflows/pinger.yml`, yang mati secara bawaan; cara menyalakan dan batas kuota Neon ada di berkas itu |

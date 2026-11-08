@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Badge, Button, Choice, DashSection, Field, Form, PageHeader, Table } from "@/components";
 import { useToast } from "@/components/toast/Toast";
+import { ambil as ambilApi, pesanGagal } from "@/lib/ambil";
 import type { Aturan, RumusSkor } from "@/lib/validasi";
 import { SesiAdminBerakhir } from "./SesiAdmin";
 
@@ -74,27 +75,30 @@ export function AturanSpmb() {
   const [galat, setGalat] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Tahun awal: tahun acuan yang dipakai dashboard.
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { tahun?: number } | null) => setTahun(d?.tahun ?? new Date().getFullYear()))
-      .catch(() => setTahun(new Date().getFullYear()));
-  }, []);
+  // Penjaga klik ganda: state `busy` baru berubah setelah render, jadi dua klik cepat bisa sama-sama lolos.
+  const mengirim = useRef(false);
+  // Tahun yang datanya sudah ada di layar, agar pindah ke tahun itu tidak memuat ulang.
+  const tahunTermuat = useRef<number | null>(null);
 
+  // Saat dibuka (tahun masih null) langsung memuat tahun aktif dalam satu panggilan; setelah itu tahun pilihan.
   useEffect(() => {
-    if (tahun === null) return;
+    if (tahun !== null && tahun === tahunTermuat.current) return;
     let batal = false;
-    fetch(`/api/admin/aturan/${tahun}`)
+    ambilApi(tahun === null ? "/api/admin/aturan/aktif" : `/api/admin/aturan/${tahun}`)
       .then(async (res) => {
         if (batal) return;
         if (res.status === 401) return setStatus("belum-masuk");
         if (res.status === 404) {
+          // Belum ada tahun aktif: tampilkan tahun ini sebagai tahun yang belum punya aturan.
+          if (tahun === null) return setTahun(new Date().getFullYear());
           setData(null);
           return setStatus("tidak-ada");
         }
         if (!res.ok) return setStatus("galat");
-        setData((await res.json()) as TahunSpmb);
+        const baru = (await res.json()) as TahunSpmb;
+        tahunTermuat.current = baru.tahun;
+        setData(baru);
+        setTahun(baru.tahun);
         setStatus("ada");
       })
       .catch(() => !batal && setStatus("galat"));
@@ -104,10 +108,12 @@ export function AturanSpmb() {
   }, [tahun]);
 
   async function simpan(tujuan: number, aturan: Aturan, aktif: boolean) {
+    if (mengirim.current) return;
+    mengirim.current = true;
     setBusy(true);
     setGalat("");
     try {
-      const res = await fetch(`/api/admin/aturan/${tujuan}`, {
+      const res = await ambilApi(`/api/admin/aturan/${tujuan}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ aturan, aktif }),
@@ -115,9 +121,10 @@ export function AturanSpmb() {
       if (res.status === 401) return setStatus("belum-masuk");
       if (!res.ok) return setGalat((await res.json().catch(() => null))?.galat ?? "Aturan belum bisa disimpan.");
       return (await res.json()) as TahunSpmb;
-    } catch {
-      setGalat("Tidak tersambung ke server SiPesek. Periksa internet, lalu coba lagi.");
+    } catch (e) {
+      setGalat(pesanGagal(e));
     } finally {
+      mengirim.current = false;
       setBusy(false);
     }
   }
@@ -149,7 +156,7 @@ export function AturanSpmb() {
     <>
       <PageHeader
         title="Aturan SPMB per tahun"
-        desc="Rumus skor jalur prestasi dan ambang data yang dipakai mesin peluang. Isi sesuai juknis tahun itu; perubahan langsung berlaku untuk cek berikutnya."
+        desc="Rumus skor jalur prestasi dan ambang data yang dipakai mesin peluang. Isi sesuai juknis tahun itu; perubahan dipakai mesin peluang dalam sekitar satu menit."
       />
       <div className="card">
         <Form

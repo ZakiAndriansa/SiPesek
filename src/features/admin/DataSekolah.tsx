@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Alert, Badge, Button, Dialog, Field, Form, PageHeader, Select, Table, Toolbar } from "@/components";
 import { useToast } from "@/components/toast/Toast";
+import { ambil, pesanGagal, WaktuHabis } from "@/lib/ambil";
 import type { ResponsAdminSekolah } from "@/lib/kontrak";
 import { SesiAdminBerakhir } from "./SesiAdmin";
 
@@ -38,10 +39,12 @@ export function DataSekolah() {
   const [dipilih, setDipilih] = useState<Sekolah | null>(null);
   const [galat, setGalat] = useState("");
   const [busy, setBusy] = useState(false);
+  // Penjaga klik ganda: state `busy` baru berubah setelah render, jadi dua klik cepat bisa sama-sama lolos.
+  const mengirim = useRef(false);
 
   useEffect(() => {
     let batal = false;
-    fetch("/api/admin/sekolah")
+    ambil("/api/admin/sekolah")
       .then(async (res) => {
         if (batal) return;
         if (res.status === 401) return setStatus("belum-masuk");
@@ -87,7 +90,7 @@ export function DataSekolah() {
   }
 
   async function simpan() {
-    if (!dipilih || busy) return;
+    if (!dipilih || mengirim.current) return;
     const f = new FormData(document.getElementById(FORM) as HTMLFormElement);
     const lat = angkaDari(f.get("lat"));
     const lng = angkaDari(f.get("lng"));
@@ -118,10 +121,11 @@ export function DataSekolah() {
       if (ubah.biayaRingkas && !ubah.biayaUrl) return setGalat("Biaya hanya ditampilkan bila ada sumbernya. Isi tautan sumber biaya.");
     }
 
+    mengirim.current = true;
     setBusy(true);
     setGalat("");
     try {
-      const res = await fetch(`/api/admin/sekolah/${dipilih.id}`, {
+      const res = await ambil(`/api/admin/sekolah/${dipilih.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(ubah),
@@ -129,7 +133,7 @@ export function DataSekolah() {
       if (res.status === 401) return setStatus("belum-masuk");
       if (!res.ok) throw new Error((await res.json().catch(() => null))?.galat ?? "");
       if (kuota !== null && kuota !== dipilih.dayaTampung && data?.tahun) {
-        const dt = await fetch("/api/admin/daya-tampung", {
+        const dt = await ambil("/api/admin/daya-tampung", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tahun: data.tahun, sekolahId: dipilih.id, programId: null, kuota, sumber: sumberKuota }),
@@ -146,8 +150,11 @@ export function DataSekolah() {
       (document.getElementById(DIALOG) as HTMLDialogElement | null)?.close();
       show(`Data ${baru.nama} tersimpan.`, "success");
     } catch (e) {
-      setGalat(e instanceof Error && e.message ? e.message : "Belum bisa disimpan. Periksa internet, lalu coba lagi.");
+      // Pesan dari server (misalnya daya tampung gagal disimpan) didahulukan; selain itu galat jaringan atau batas waktu.
+      const dariServer = e instanceof Error && !(e instanceof WaktuHabis) && e.name === "Error" && e.message;
+      setGalat(dariServer ? e.message : pesanGagal(e));
     } finally {
+      mengirim.current = false;
       setBusy(false);
     }
   }
@@ -156,7 +163,7 @@ export function DataSekolah() {
     <>
       <PageHeader
         title="Data sekolah dan daya tampung"
-        desc={`Lengkapi koordinat dan alamat, daya tampung sekolah negeri${data.tahun ? ` untuk SPMB ${data.tahun}` : ""}, dan biaya sekolah swasta. Perubahan langsung dipakai mesin peluang dan dashboard.`}
+        desc={`Lengkapi koordinat dan alamat, daya tampung sekolah negeri${data.tahun ? ` untuk SPMB ${data.tahun}` : ""}, dan biaya sekolah swasta. Perubahan dipakai mesin peluang dalam sekitar satu menit dan tampil di dashboard publik paling lama 5 menit kemudian.`}
       />
       {tanpaTitik > 0 && (
         <Alert kind="warning" title={`${tanpaTitik} sekolah belum punya koordinat`}>
