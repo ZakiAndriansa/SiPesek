@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Alert, Button, ButtonGroup, PageHeader } from "@/components";
+import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 import { WizardForm } from "@/features/isi-data/WizardForm";
 import { WizardOrtu } from "@/features/ortu/WizardOrtu";
@@ -51,7 +52,10 @@ async function IsiLangkah({ params, searchParams }: Props) {
   if (!found) notFound();
   // Akun Google: isi data asli (4 langkah, tersambung ke API). Akun contoh tetap memakai wizard prototipe.
   const session = await getSession();
-  if (session?.account === "google") return <WizardOrtu n={found.n} baru={(await searchParams).baru === "1"} />;
+  if (session?.account === "google") {
+    await pramuatDataOrtu();
+    return <WizardOrtu n={found.n} baru={(await searchParams).baru === "1"} />;
+  }
   const { n, step } = found;
   const isLast = n === TOTAL;
   const next = isLast ? AFTER_LAST : stepHref(n + 1);

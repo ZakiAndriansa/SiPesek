@@ -12,6 +12,7 @@ import {
 } from "@/components";
 import { shortName, strategySchools } from "@/data/schools";
 import { DokumenOrtu } from "@/features/ortu/DokumenOrtu";
+import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default async function UnduhanPage() {
   const session = await getSession();
   // Akun Google: dokumen dari hasil cek dan pilihan tersimpan. Akun contoh tetap memakai data prototipe.
   if (session?.account === "google") {
+    await pramuatDataOrtu();
     return (
       <Container>
         <DokumenOrtu />

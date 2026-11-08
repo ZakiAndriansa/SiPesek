@@ -21,6 +21,7 @@ import {
 import { HakDataOrtu } from "@/features/ortu/HakDataOrtu";
 import { RiwayatAnak } from "@/features/riwayat/RiwayatAnak";
 import { HELP_URL } from "@/lib/nav";
+import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 import { addChild, selectChild } from "@/lib/session-actions";
 
@@ -80,6 +81,7 @@ export default async function AnakSayaPage() {
   const kids = session?.children ?? [];
   // Akun Google: anak dan riwayat cek asli dari database. Kartu prototipe hanya untuk anak yang diisi lewat wizard.
   const akunGoogle = session?.account === "google";
+  if (akunGoogle) await pramuatDataOrtu();
   return (
     <>
       <Container>

@@ -18,6 +18,7 @@ import {
 import { getSchool, SCHOOLS, shortName } from "@/data/schools";
 import { AddSchoolButton } from "@/features/sekolah/SchoolActions";
 import { DetailSekolahOrtu } from "@/features/ortu/DetailSekolahOrtu";
+import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 
 type Props = { params: Promise<{ id: string }> };
@@ -50,7 +51,10 @@ export default function DetailSekolahPage({ params }: Props) {
 async function DetailSekolah({ params }: Props) {
   const { id } = await params;
   // Akun Google: id adalah id sekolah di database, datanya dari hasil cek tersimpan anak aktif.
-  if ((await getSession())?.account === "google" && /^\d+$/.test(id)) return <DetailSekolahOrtu id={Number(id)} />;
+  if ((await getSession())?.account === "google" && /^\d+$/.test(id)) {
+    await pramuatDataOrtu();
+    return <DetailSekolahOrtu id={Number(id)} />;
+  }
   const school = getSchool(id);
   if (!school) notFound();
   const { detail } = school;

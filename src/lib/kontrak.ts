@@ -197,7 +197,15 @@ export type AnakRingkas = {
 };
 
 /** GET /api/ortu/anak. Dengan `?riwayat=1`, tiap anak membawa riwayat ceknya (terbaru dulu). */
-export type ResponsAnak = { anak: Array<AnakRingkas & { riwayat?: RiwayatCek[] }> };
+export type ResponsAnak = {
+  anak: Array<AnakRingkas & { riwayat?: RiwayatCek[] }>;
+  /**
+   * Hanya bila diminta dengan `?riwayat=1&hasil=1`: hasil terakhir anak aktif (pilihan dari cookie
+   * `sipesek_anak_aktif`, aturan di src/lib/anak-aktif.ts), sama bentuknya dengan GET /api/hasil/[token].
+   * Null bila anak aktif belum punya hasil.
+   */
+  hasilTerakhir?: ResponsPeluang | null;
+};
 
 /**
  * POST /api/ortu/anak. Balasan: 201 AnakRingkas; 400 NISN bukan 10 digit; 409 NISN sudah terdaftar;
