@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { ambil, pesanGagal } from "@/lib/ambil";
 import {
   Alert,
   Button,
@@ -77,6 +78,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const nisn = useRef("");
   const focusRef = useRef<HTMLDivElement>(null);
   const first = useRef(true);
+  // Penjaga klik ganda: state `busy` baru berubah setelah render, jadi dua klik cepat bisa sama-sama lolos.
+  const mengirim = useRef(false);
 
   // Pindahkan fokus ke judul tiap pindah langkah (pembaca layar + keyboard).
   useEffect(() => {
@@ -101,7 +104,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
 
   async function submitIsian() {
     const form = document.getElementById("isian-form") as HTMLFormElement | null;
-    if (!form || busy) return;
+    if (!form || mengirim.current) return;
     const data = new FormData(form);
     const text = (k: string) => String(data.get(k) ?? "");
     const next: QuickCheckInput = {
@@ -122,9 +125,10 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     if (invalid) return setError(invalid);
     if (!lokasi) return setError("Tandai titik rumah di peta, atau tekan Gunakan lokasi saya. Jarak ke sekolah dihitung dari titik ini.");
 
+    mengirim.current = true;
     setBusy(true);
     try {
-      const res = await fetch("/api/peluang", {
+      const res = await ambil("/api/peluang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(toRequest(next, nisn.current, lokasi)),
@@ -133,9 +137,10 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
       if (!res.ok) return setError(body?.galat ?? body?.pesan ?? "Hasil belum bisa dihitung. Coba lagi sebentar lagi.");
       setResult(body as ResponsPeluang);
       setPhase("hasil");
-    } catch {
-      setError("Tidak tersambung ke server SiPesek. Periksa internet, lalu coba lagi.");
+    } catch (e) {
+      setError(pesanGagal(e));
     } finally {
+      mengirim.current = false;
       setBusy(false);
     }
   }

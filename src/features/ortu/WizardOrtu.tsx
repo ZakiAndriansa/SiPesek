@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, ButtonGroup, Choice, ChoiceGroup, Dialog, ExternalLink, Field, Form, HelpLink, PageHeader, Select } from "@/components";
 import { HomePicker } from "@/features/cek-cepat/HomePicker";
 import { setBaruDisimpan } from "@/features/cek-cepat/draft-store";
+import { ambil, pesanGagal } from "@/lib/ambil";
 import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
 import type { AnakRingkas, PermintaanPeluang, ResponsPeluang } from "@/lib/kontrak";
 import {
@@ -162,15 +163,22 @@ function AnakBaru() {
   const router = useRouter();
   const [galat, setGalat] = useState("");
   const [busy, setBusy] = useState(false);
+  // Penjaga klik ganda: state `busy` baru berubah setelah render, jadi dua klik cepat bisa sama-sama lolos.
+  const mengirim = useRef(false);
+  const lepas = () => {
+    mengirim.current = false;
+    setBusy(false);
+  };
 
   async function simpan() {
-    if (busy) return;
+    if (mengirim.current) return;
     const f = bacaForm();
     const jenjang = String(f.get("jenjang")) as Isian["jenjang"];
+    mengirim.current = true;
     setBusy(true);
     setGalat("");
     try {
-      const res = await fetch("/api/ortu/anak", {
+      const res = await ambil("/api/ortu/anak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nama: String(f.get("nama") ?? "").trim(), nisn: String(f.get("nisn") ?? "").trim(), setuju: true }),
@@ -179,16 +187,16 @@ function AnakBaru() {
       if (!res.ok) {
         const tambahan = res.status === 409 && /daftar anak Anda/.test(isi?.galat ?? "") ? " Pilih anak itu di halaman Data Anak untuk melanjutkan." : "";
         setGalat((isi?.galat ?? "Data anak belum bisa disimpan. Coba lagi sebentar lagi.") + tambahan);
-        return setBusy(false);
+        return lepas();
       }
       const anak = isi as AnakRingkas;
       simpanIsian(anak.id, { jenjang, langkah: 1 });
       tandaiUsang(anak.id);
       await segarkanOrtu();
       router.push(href(2));
-    } catch {
-      setGalat("Tidak tersambung ke server SiPesek. Periksa internet, lalu coba lagi.");
-      setBusy(false);
+    } catch (e) {
+      setGalat(pesanGagal(e));
+      lepas();
     }
   }
 
@@ -234,6 +242,12 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
   const [galat, setGalat] = useState("");
   const [busy, setBusy] = useState(false);
   const [sesiHabis, setSesiHabis] = useState(false);
+  // Penjaga klik ganda: state `busy` baru berubah setelah render, jadi dua klik cepat bisa sama-sama lolos.
+  const mengirim = useRef(false);
+  const lepas = () => {
+    mengirim.current = false;
+    setBusy(false);
+  };
 
   const lanjut = (ubah: Partial<Isian>) => {
     simpanIsian(anak.id, { ...ubah, langkah: n });
@@ -286,7 +300,7 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
   }
 
   async function hitung() {
-    if (busy) return;
+    if (mengirim.current) return;
     const kecamatan = String(bacaForm().get("kecamatan") ?? "");
     const { langkah, ...sisa } = isian;
     void langkah;
@@ -294,13 +308,14 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
     const salah = validateInput(input);
     if (salah) return setGalat(salah);
     if (!lokasi) return setGalat("Tandai titik rumah di peta, atau tekan Gunakan lokasi saya.");
+    mengirim.current = true;
     setBusy(true);
     setGalat("");
     simpanIsian(anak.id, { kecamatan });
     const body: PermintaanPeluang = { ...toRequest(input, "", lokasi), anakId: anak.id };
     delete body.nisn;
     try {
-      const res = await fetch("/api/peluang", {
+      const res = await ambil("/api/peluang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -308,20 +323,20 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
       const isi = await res.json().catch(() => null);
       if (res.status === 401) {
         setSesiHabis(true);
-        return setBusy(false);
+        return lepas();
       }
       if (!res.ok) {
         setGalat(isi?.galat ?? "Peluang belum bisa dihitung. Coba lagi sebentar lagi.");
-        return setBusy(false);
+        return lepas();
       }
       const hasil = isi as ResponsPeluang;
       simpanIsian(anak.id, { langkah: WIZARD_TOTAL_ORTU });
       setBaruDisimpan({ result: hasil, input, pesan: `Data ${anak.nama} lengkap, dan hasil ini tersimpan di riwayatnya.` });
       tandaiUsang(anak.id);
       router.push(`/hasil/${hasil.token}`);
-    } catch {
-      setGalat("Tidak tersambung ke server SiPesek. Periksa internet, lalu coba lagi.");
-      setBusy(false);
+    } catch (e) {
+      setGalat(pesanGagal(e));
+      lepas();
     }
   }
 
