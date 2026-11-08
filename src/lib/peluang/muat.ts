@@ -5,10 +5,18 @@ import type { SekolahRingkas } from "@/lib/kontrak";
 import { skemaAturan } from "@/lib/validasi";
 import type { DataMesin } from "./mesin";
 
-// Data referensi jarang berubah; simpan sebentar di memori agar tiap cek tidak memicu 5 query.
-const UMUR_CACHE_MS = 60_000;
-let cache: { data: DataMesin; sampai: number } | null = null;
+// Data referensi jarang berubah, jadi disimpan di memori tiap instance:
+// 1. Lebih muda dari UMUR_SEGAR_MS: langsung dipakai.
+// 2. Lebih tua tetapi belum UMUR_MAKS_MS: tetap dipakai, sambil dimuat ulang di latar (stale-while-revalidate),
+//    agar tidak ada permintaan yang menunggu query setiap kali cache habis.
+// 3. Tidak ada atau terlalu tua: ditunggu. Permintaan serentak berbagi satu muatan, bukan masing-masing query.
+const UMUR_SEGAR_MS = 60_000;
+const UMUR_MAKS_MS = 30 * 60_000;
+type Cache = { data: DataMesin; idSubJalur: Map<string, number>; dimuat: number };
+let cache: Cache | null = null;
+let sedangMuat: Promise<Cache> | null = null;
 
+/** Dipanggil setelah admin mengubah data; permintaan berikutnya di instance ini memuat ulang. */
 export function lupakanCacheMesin() {
   cache = null;
 }
@@ -28,13 +36,37 @@ export const pilihSekolahRingkas = {
   rayonKode: true,
 } as const;
 
-export async function muatDataMesin(): Promise<DataMesin> {
-  if (cache && cache.sampai > Date.now()) return cache.data;
+function muatBaru(): Promise<Cache> {
+  sedangMuat ??= ambilDariDatabase()
+    .then((baru) => (cache = baru))
+    .finally(() => {
+      sedangMuat = null;
+    });
+  return sedangMuat;
+}
 
+export async function muatDataMesin(): Promise<DataMesin> {
+  const umur = cache ? Date.now() - cache.dimuat : Infinity;
+  if (cache && umur < UMUR_SEGAR_MS) return cache.data;
+  if (cache && umur < UMUR_MAKS_MS) {
+    // Gagal memuat ulang di latar tidak masalah: cache lama tetap dipakai sampai percobaan berikutnya.
+    void muatBaru().catch(() => {});
+    return cache.data;
+  }
+  return (await muatBaru()).data;
+}
+
+/** Id sub jalur per kode, dari muatan yang sama (dipakai saat menyimpan detail hasil). */
+export async function muatIdSubJalur(): Promise<Map<string, number>> {
+  await muatDataMesin();
+  return (cache ?? (await muatBaru())).idSubJalur;
+}
+
+async function ambilDariDatabase(): Promise<Cache> {
   const tahunAktif = await prisma.tahunSpmb.findFirst({ where: { aktif: true }, orderBy: { tahun: "desc" } });
   if (!tahunAktif) throw new Error("Belum ada tahun SPMB yang aktif. Jalankan npm run db:seed.");
 
-  const [sekolah, wilayah, statistik] = await Promise.all([
+  const [sekolah, wilayah, statistik, subJalur] = await Promise.all([
     prisma.sekolah.findMany({
       select: { ...pilihSekolahRingkas, biayaRingkas: true, biayaResmi: true, biayaUrl: true },
     }),
@@ -43,6 +75,7 @@ export async function muatDataMesin(): Promise<DataMesin> {
       where: { tahun: tahunAktif.tahun },
       include: { subJalur: true, program: true },
     }),
+    prisma.subJalur.findMany({ select: { id: true, kode: true } }),
   ]);
 
   const rayon = new Map<string, Set<string>>();
@@ -72,6 +105,5 @@ export async function muatDataMesin(): Promise<DataMesin> {
       maks: s.nilaiMaksDiterima,
     })),
   };
-  cache = { data, sampai: Date.now() + UMUR_CACHE_MS };
-  return data;
+  return { data, idSubJalur: new Map(subJalur.map((s) => [s.kode, s.id])), dimuat: Date.now() };
 }

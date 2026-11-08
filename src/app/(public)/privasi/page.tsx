@@ -42,8 +42,9 @@ export default function PrivasiPage() {
             sama dengan daftar di bawah; titik rumah dan nilai rapor tetap tidak disimpan.
           </p>
           <p className="card__text">
-            Untuk mencegah penyalahgunaan, Cek Cepat dibatasi 10 kali per jam. Karena itu alamat IP perangkat dicatat di
-            memori server paling lama satu jam, tidak ditulis ke database, dan hilang saat server dimulai ulang.
+            Untuk mencegah penyalahgunaan, Cek Cepat tanpa akun dibatasi jumlahnya per jam. Karena itu server mencatat
+            sidik alamat IP perangkat beserta waktunya. Sidik ini tidak bisa diubah kembali menjadi alamat IP, tidak
+            terhubung dengan isian Cek Cepat, dan hanya dipakai selama satu jam sebelum dihapus.
           </p>
         </div>
       </Section>

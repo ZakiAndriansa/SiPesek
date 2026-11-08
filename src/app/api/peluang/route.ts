@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { tolakTanpaSesiOrtu } from "@/lib/auth";
-import { ipKlien, PembatasJendela } from "@/lib/batas";
+import { ipKlien } from "@/lib/batas";
+import { cobaBatasTamu } from "@/lib/batas-tamu";
 import { prisma } from "@/lib/db";
 import { bacaJson, galat } from "@/lib/http";
 import type { ResponsPeluang } from "@/lib/kontrak";
@@ -12,7 +13,6 @@ import { skemaPermintaanPeluang } from "@/lib/validasi";
 
 // Tamu yang belum masuk: paling banyak BATAS_TAMU_PER_JAM cek per jam per IP (0 = tanpa batas).
 const BATAS_TAMU_PER_JAM = Number(process.env.BATAS_TAMU_PER_JAM ?? 10);
-const pembatasTamu = new PembatasJendela(BATAS_TAMU_PER_JAM, 60 * 60 * 1000);
 let sudahPeringatkanTanpaIp = false;
 
 export async function POST(request: NextRequest) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       if (!sudahPeringatkanTanpaIp) console.warn("Header IP pengunjung tidak ada; batas cek tamu tidak diterapkan.");
       sudahPeringatkanTanpaIp = true;
     } else {
-      const tunggu = pembatasTamu.coba(ip);
+      const tunggu = await cobaBatasTamu(ip, BATAS_TAMU_PER_JAM);
       if (tunggu !== null) {
         const respons = galat(
           `Batas ${BATAS_TAMU_PER_JAM} kali cek per jam untuk tamu sudah tercapai. ` +
