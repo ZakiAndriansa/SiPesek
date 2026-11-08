@@ -265,6 +265,8 @@ export type ResponsSalinan = {
 // DELETE /api/ortu/anak/[id]: hapus anak dan riwayatnya. DELETE /api/ortu/akun: hapus akun dan semua data anak.
 
 // ---------- GET /api/dashboard?tahun= ----------
+// 400 bila ada parameter lain atau tahun bukan 4 angka; 404 bila tahun tidak ada di data. Ekspor CSV sama,
+// ditambah jenis=sekolah atau jenis=kecamatan. Ini mencegah cache CDN dilewati dengan query asal-asalan.
 
 export type ResponsDashboard = {
   tahun: number;
