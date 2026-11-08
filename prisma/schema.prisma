@@ -226,6 +226,9 @@ model HasilCek {
   label      Label
 
   @@index([sekolahId, label])
+  // Penghapusan cek (hapus hasil, anak, akun, dan riwayat di luar 20 terbaru) menghapus baris ini lewat
+  // cascade berdasarkan cekId; tanpa index, Postgres memindai seluruh tabel untuk setiap cek.
+  @@index([cekId])
 }
 
 model Admin {

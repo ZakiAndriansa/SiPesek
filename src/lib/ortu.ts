@@ -4,7 +4,15 @@ import type { NextRequest } from "next/server";
 import { sesiOrtu } from "@/lib/auth";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import type { AnakRingkas, PermintaanPeluang, ResponsGalat, ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
+import type {
+  AnakRingkas,
+  IsiHasilTersimpan,
+  PermintaanPeluang,
+  ResponsGalat,
+  ResponsPeluang,
+  ResponsSalinan,
+  RiwayatCek,
+} from "@/lib/kontrak";
 import { hitungPeluang } from "@/lib/peluang/mesin";
 import { muatDataMesin, muatIdSubJalur } from "@/lib/peluang/muat";
 
@@ -182,4 +190,32 @@ export async function riwayatAnak(anakIds: number[]): Promise<Map<number, Riwaya
     });
   }
   return peta;
+}
+
+/**
+ * Semua data akun untuk "Unduh Salinan Data" dengan jumlah query tetap (anak, riwayat, dan isi hasil), berapa
+ * pun banyaknya anak dan cek. Sebelumnya browser memanggil satu API per anak dan satu per cek.
+ */
+export async function salinanAkun(ortu: { id: number; nama: string; email: string }): Promise<ResponsSalinan> {
+  const anak = (
+    await prisma.anak.findMany({ where: { orangTuaId: ortu.id }, select: pilihAnak, orderBy: { id: "asc" } })
+  ).map(keAnakRingkas);
+  const ids = anak.map((a) => a.id);
+  const [riwayat, isi] = await Promise.all([
+    riwayatAnak(ids),
+    ids.length === 0
+      ? Promise.resolve([])
+      : prisma.cekPeluang.findMany({ where: { anakId: { in: ids } }, select: { token: true, hasil: true } }),
+  ]);
+  const hasilPerToken = new Map(isi.map((c) => [c.token, c.hasil as IsiHasilTersimpan]));
+  return {
+    akun: { nama: ortu.nama, email: ortu.email },
+    anak: anak.map((a) => ({
+      id: a.id,
+      nama: a.nama,
+      nisnAkhir: a.nisnAkhir,
+      nisnLazim: a.nisnLazim,
+      riwayat: (riwayat.get(a.id) ?? []).map((r) => ({ ...r, hasil: hasilPerToken.get(r.token) ?? null })),
+    })),
+  };
 }

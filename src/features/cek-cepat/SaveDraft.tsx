@@ -7,7 +7,7 @@ import type { PermintaanSimpanCek, ResponsSimpanCek } from "@/lib/kontrak";
 import { toRequest, type QuickDraft } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
 import { simpanIsian } from "@/features/ortu/isian";
-import { tandaiUsang } from "@/features/ortu/store";
+import { simpanHasilBaru, tandaiUsang } from "@/features/ortu/store";
 import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
 import { clearDraft, getDraft, setBaruDisimpan } from "./draft-store";
 
@@ -85,6 +85,7 @@ export function SaveDraft() {
             : `NISN ini sudah ada di akun, jadi hasil ini masuk ke riwayat ${nama}.`,
         });
         // Navbar dan halaman tahap memuat ulang daftar anak, dengan anak ini sebagai anak aktif.
+        simpanHasilBaru(hasil);
         if (hasil.anak) {
           tandaiUsang(hasil.anak.id);
           // Isian Cek Cepat jadi isian anak ini, agar "Cek lagi" membuka isi data yang sudah terisi.

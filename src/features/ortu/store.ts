@@ -150,6 +150,19 @@ export async function hapusHasil(token: string): Promise<"ok" | "belum-masuk" | 
 }
 
 /**
+ * Masukkan hasil yang baru dihitung dan disimpan (wizard, atau Simpan dari Cek Cepat) ke memori, agar halaman
+ * tahap tidak mengunduhnya lagi. Bentuknya disamakan dengan GET /api/hasil/[token], yang tidak menyimpan rincian
+ * skor, supaya tampilan sama persis dengan setelah halaman dimuat ulang.
+ */
+export function simpanHasilBaru(hasil: ResponsPeluang & { anakBaru?: boolean }) {
+  if (!hasil.token) return;
+  const { anakBaru, ...tersimpan } = hasil;
+  void anakBaru;
+  const bersih: ResponsPeluang = { ...tersimpan, skorAnak: tersimpan.skorAnak?.map((s) => ({ ...s, rincian: [] })) };
+  ubah({ hasil: { ...keadaan.hasil, [hasil.token]: bersih } });
+}
+
+/**
  * Pastikan hasil satu cek ada di memori. Diambil bila belum ada, atau bila percobaan sebelumnya gagal: satu
  * kegagalan (misal server baru bangun) tidak membuat halaman macet sampai tab dimuat ulang.
  */
