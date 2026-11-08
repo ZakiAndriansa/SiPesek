@@ -1,0 +1,55 @@
+# Pinger: menjaga database Neon tetap bangun selama masa penilaian, agar pengunjung pertama tidak menunggu
+# database bangun (sekitar 2,5 detik). MATI secara bawaan.
+#
+# Nyalakan: GitHub > Settings > Secrets and variables > Actions > tab Variables > New repository variable,
+#   nama PINGER_AKTIF, nilai 1. Untuk langsung mulai tanpa menunggu jadwal: tab Actions > Pinger > Run workflow.
+# Matikan: ubah PINGER_AKTIF menjadi 0. Run yang sedang berjalan berhenti sendiri paling lama 55 menit kemudian,
+#   atau batalkan di tab Actions (Cancel run).
+#
+# Variabel opsional: PINGER_JAM_MULAI dan PINGER_JAM_SELESAI (jam WIB, bawaan 7 dan 22), PINGER_URL
+# (bawaan https://si-pesek.vercel.app).
+#
+# PENTING: paket gratis Neon memberi 100 CU-jam per bulan. Jika habis, database dihentikan sampai bulan
+# berikutnya. Selama pinger aktif database menyala terus, sekitar 0,25 CU-jam per jam aktif: jam 7 sampai 22
+# memakai sekitar 3,75 CU-jam per hari, sehingga kuota habis dalam kurang lebih 3 minggu. Nyalakan hanya selama
+# masa penilaian dan pantau pemakaian di dashboard Neon (Billing atau Usage).
+
+name: Pinger
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+# Jadwal GitHub sering terlambat beberapa menit, jadi setiap run berjalan 55 menit dan run baru menggantikan
+# run lama. Dengan begitu tidak ada celah walaupun jadwal molor sampai 25 menit.
+concurrency:
+  group: pinger
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  ping:
+    if: vars.PINGER_AKTIF == '1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      URL: ${{ vars.PINGER_URL || 'https://si-pesek.vercel.app' }}/api/ping
+      JAM_MULAI: ${{ vars.PINGER_JAM_MULAI || '7' }}
+      JAM_SELESAI: ${{ vars.PINGER_JAM_SELESAI || '22' }}
+    steps:
+      - name: Ketuk /api/ping tiap 3 menit
+        run: |
+          akhir=$(( $(date +%s) + 55 * 60 ))
+          while [ "$(date +%s)" -lt "$akhir" ]; do
+            jam=$(TZ=Asia/Jakarta date +%-H)
+            if [ "$jam" -lt "$JAM_MULAI" ] || [ "$jam" -ge "$JAM_SELESAI" ]; then
+              echo "Di luar jam aktif ($JAM_MULAI sampai $JAM_SELESAI WIB), berhenti."
+              exit 0
+            fi
+            waktu=$(TZ=Asia/Jakarta date +%H:%M)
+            curl -sS --max-time 30 -o respons.json -w "$waktu WIB http=%{http_code} %{time_total}s " "$URL" || true
+            cat respons.json 2>/dev/null; echo
+            sleep 180
+          done

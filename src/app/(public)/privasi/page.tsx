@@ -106,8 +106,9 @@ export default function PrivasiPage() {
           </ol>
           <p className="card__text">
             Data tidak dibagikan ke pihak lain. Pihak yang ikut memproses: Google (proses masuk), Vercel (menyajikan
-            halaman), server pengelola SiPesek (menghitung peluang dan menyimpan database), dan OpenStreetMap (gambar peta
-            di Cek Cepat; menerima alamat IP saat peta dimuat, tetapi tidak pernah menerima titik rumah).
+            halaman dan mengukur kecepatan muat halaman tanpa cookie dan tanpa isian form), server pengelola SiPesek
+            (menghitung peluang dan menyimpan database), dan OpenStreetMap beserta server cadangannya di OpenStreetMap
+            Jerman (gambar peta; menerima alamat IP saat peta dimuat, tetapi tidak pernah menerima titik rumah).
           </p>
         </div>
       </Section>

@@ -2,7 +2,8 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import type { Map as PetaLeaflet } from "leaflet";
-import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip } from "react-leaflet";
+import { Circle, CircleMarker, MapContainer, Tooltip } from "react-leaflet";
+import { UbinPeta } from "@/features/peta/UbinPeta";
 import { PUSAT_DEPOK } from "@/lib/quick-check";
 
 export type TitikKebijakan = {
@@ -40,10 +41,7 @@ export default function PetaKebijakan({ sekolah, tampilRadius }: { sekolah: Titi
       scrollWheelZoom={false}
       aria-label="Peta sekolah negeri Kota Depok dengan radius Jalur Domisili. Rincian ada di tabel di bawah."
     >
-      <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
+      <UbinPeta />
       {tampilRadius &&
         sekolah.map((s) =>
           s.radius ? (

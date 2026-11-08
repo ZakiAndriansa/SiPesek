@@ -2,7 +2,8 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import type { Map as PetaLeaflet } from "leaflet";
-import { CircleMarker, MapContainer, TileLayer, Tooltip } from "react-leaflet";
+import { CircleMarker, MapContainer, Tooltip } from "react-leaflet";
+import { UbinPeta } from "@/features/peta/UbinPeta";
 import type { LabelPeluang } from "@/lib/kontrak";
 import { namaLabel, PUSAT_DEPOK } from "@/lib/quick-check";
 
@@ -42,10 +43,7 @@ export default function PetaHasil({ sekolah }: { sekolah: TitikSekolah[] }) {
       scrollWheelZoom={false}
       aria-label="Peta sekolah negeri hasil cek, diwarnai menurut label peluang."
     >
-      <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
+      <UbinPeta />
       {sekolah.map((s) => (
         <CircleMarker
           key={s.id}
