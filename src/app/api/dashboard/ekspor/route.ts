@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import Papa from "papaparse";
 import { muatDashboard, tahunDiminta } from "@/lib/dashboard";
-import { galat } from "@/lib/http";
+import { CACHE_PUBLIK, galat } from "@/lib/http";
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams;
@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
   // BOM agar Excel membaca UTF-8 dengan benar.
   return new Response("﻿" + Papa.unparse(baris), {
     headers: {
+      ...CACHE_PUBLIK,
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="sipesek-${jenis}-${tahun}.csv"`,
     },

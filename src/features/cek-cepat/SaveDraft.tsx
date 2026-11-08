@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, ButtonGroup, Choice, ChoiceGroup, Field, Form } from "@/components";
+import { ambil, pesanGagal } from "@/lib/ambil";
 import type { PermintaanSimpanCek, ResponsSimpanCek } from "@/lib/kontrak";
 import { toRequest, type QuickDraft } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
@@ -25,6 +26,8 @@ export function SaveDraft() {
   const [draft, setLocal] = useState<QuickDraft | null | undefined>(undefined);
   const [galat, setGalat] = useState<Galat | null>(null);
   const [busy, setBusy] = useState(false);
+  // Penjaga klik ganda: menyimpan dua kali membuat dua riwayat dan memakai batas harian dua kali.
+  const mengirim = useRef(false);
 
   useEffect(() => {
     // Draf ada di memori modul: baru bisa dibaca setelah hidrasi.
@@ -54,13 +57,14 @@ export function SaveDraft() {
   const semester = input.nilai.filter((v) => v !== null).length;
 
   async function submit() {
-    if (busy) return;
+    if (mengirim.current) return;
+    mengirim.current = true;
     const nama = document.querySelector<HTMLInputElement>("#nama")?.value.trim() ?? "";
     const body: PermintaanSimpanCek = { ...toRequest(input, nisn, lokasi), nisn, nama, setuju: true };
     setBusy(true);
     setGalat(null);
     try {
-      const res = await fetch("/api/ortu/simpan-cek", {
+      const res = await ambil("/api/ortu/simpan-cek", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -95,9 +99,10 @@ export function SaveDraft() {
         router.push(`/hasil/${hasil.token}`);
         return;
       }
-    } catch {
-      setGalat({ pesan: "Tidak tersambung ke server SiPesek. Periksa internet, lalu coba lagi." });
+    } catch (e) {
+      setGalat({ pesan: pesanGagal(e) });
     }
+    mengirim.current = false;
     setBusy(false);
   }
 

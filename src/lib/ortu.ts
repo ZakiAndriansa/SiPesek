@@ -2,10 +2,11 @@ import "server-only";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
 import { sesiOrtu } from "@/lib/auth";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import type { AnakRingkas, PermintaanPeluang, ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
 import { hitungPeluang } from "@/lib/peluang/mesin";
-import { muatDataMesin } from "@/lib/peluang/muat";
+import { muatDataMesin, muatIdSubJalur } from "@/lib/peluang/muat";
 
 export const BATAS_ANAK = 5;
 export const BATAS_CEK_PER_HARI = 20;
@@ -37,8 +38,7 @@ export async function hitungDanSimpan(
 ): Promise<ResponsPeluang> {
   const hasil = hitungPeluang(p, await muatDataMesin());
 
-  const subJalur = await prisma.subJalur.findMany({ select: { id: true, kode: true } });
-  const idSubJalur = new Map(subJalur.map((s) => [s.kode, s.id]));
+  const idSubJalur = await muatIdSubJalur();
   const skorPertama = hasil.hasil.flatMap((h) => h.jalur).find((j) => j.satuan === "skor" && j.nilaiAnak !== null);
   const bawah = skorPertama?.nilaiAnak != null ? Math.floor(skorPertama.nilaiAnak / 10) * 10 : null;
   const token = nanoid(12);
@@ -98,28 +98,55 @@ type AnakTerpilih = { id: number; nama: string; nisnAkhir: string; nisnLazim: bo
 
 export const keAnakRingkas = ({ _count, ...a }: AnakTerpilih): AnakRingkas => ({ ...a, jumlahCek: _count.cek });
 
-/** Ringkasan satu cek untuk daftar riwayat, dari kartu hasil yang tersimpan. */
-export function keRiwayat(cek: {
+type BarisRiwayat = {
+  anakId: number;
   token: string;
   dibuatPada: Date;
   tahunAcuan: number;
   jenjang: string;
   kecamatan: string | null;
-  hasil: unknown;
-}): RiwayatCek {
-  const kartu = (cek.hasil as Pick<ResponsPeluang, "hasil">).hasil ?? [];
-  const hitung = (label: string) => kartu.filter((h) => h.labelTerbaik === label).length;
-  return {
-    token: cek.token,
-    dibuatPada: cek.dibuatPada.toISOString(),
-    tahunAcuan: cek.tahunAcuan,
-    jenjang: cek.jenjang as RiwayatCek["jenjang"],
-    kecamatan: cek.kecamatan,
-    ringkas: {
-      jumlahSekolah: kartu.length,
-      peluangBesar: hitung("PELUANG_BESAR"),
-      masihMungkin: hitung("MASIH_MUNGKIN"),
-      peluangKecil: hitung("PELUANG_KECIL"),
-    },
-  };
+  jumlahSekolah: number;
+  peluangBesar: number;
+  masihMungkin: number;
+  peluangKecil: number;
+};
+
+/**
+ * Riwayat cek beberapa anak sekaligus, terbaru dulu. Ringkasan label dihitung di Postgres dari kolom JSON
+ * `hasil`, sehingga kartu hasil (sekitar 48 KB per cek) tidak ikut ditarik ke aplikasi.
+ */
+export async function riwayatAnak(anakIds: number[]): Promise<Map<number, RiwayatCek[]>> {
+  const peta = new Map<number, RiwayatCek[]>(anakIds.map((id) => [id, []]));
+  if (anakIds.length === 0) return peta;
+  const baris = await prisma.$queryRaw<BarisRiwayat[]>`
+    SELECT c."anakId", c.token, c."dibuatPada", c."tahunAcuan", c.jenjang, c.kecamatan,
+      r."jumlahSekolah", r."peluangBesar", r."masihMungkin", r."peluangKecil"
+    FROM "CekPeluang" c
+    CROSS JOIN LATERAL (
+      SELECT count(*)::int AS "jumlahSekolah",
+        (count(*) FILTER (WHERE e->>'labelTerbaik' = 'PELUANG_BESAR'))::int AS "peluangBesar",
+        (count(*) FILTER (WHERE e->>'labelTerbaik' = 'MASIH_MUNGKIN'))::int AS "masihMungkin",
+        (count(*) FILTER (WHERE e->>'labelTerbaik' = 'PELUANG_KECIL'))::int AS "peluangKecil"
+      FROM jsonb_array_elements(
+        CASE WHEN jsonb_typeof(c.hasil->'hasil') = 'array' THEN c.hasil->'hasil' ELSE '[]'::jsonb END
+      ) AS e
+    ) AS r
+    WHERE c."anakId" IN (${Prisma.join(anakIds)})
+    ORDER BY c."dibuatPada" DESC`;
+  for (const b of baris) {
+    peta.get(b.anakId)?.push({
+      token: b.token,
+      dibuatPada: b.dibuatPada.toISOString(),
+      tahunAcuan: b.tahunAcuan,
+      jenjang: b.jenjang as RiwayatCek["jenjang"],
+      kecamatan: b.kecamatan,
+      ringkas: {
+        jumlahSekolah: b.jumlahSekolah,
+        peluangBesar: b.peluangBesar,
+        masihMungkin: b.masihMungkin,
+        peluangKecil: b.peluangKecil,
+      },
+    });
+  }
+  return peta;
 }

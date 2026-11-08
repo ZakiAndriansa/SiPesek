@@ -2,6 +2,7 @@
 // Data dashboard kebijakan dari GET /api/dashboard (publik, agregat, tanpa data pribadi).
 // Diambil di klien sekali per tab lalu disimpan di memori modul, supaya pindah halaman dashboard tidak mengambil ulang.
 import { useEffect, useSyncExternalStore } from "react";
+import { ambil } from "@/lib/ambil";
 import type { ResponsDashboard } from "@/lib/kontrak";
 
 export type Dashboard = ResponsDashboard;
@@ -18,7 +19,7 @@ function ubah(baru: Keadaan) {
 
 function muat() {
   if (sedangMuat || keadaan.status === "ada") return;
-  sedangMuat = fetch("/api/dashboard")
+  sedangMuat = ambil("/api/dashboard")
     .then(async (res) => {
       if (!res.ok) throw new Error(String(res.status));
       ubah({ status: "ada", data: (await res.json()) as Dashboard });

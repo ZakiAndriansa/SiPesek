@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button } from "@/components";
+import { ambil } from "@/lib/ambil";
 import type { ResponsPeluang } from "@/lib/kontrak";
 import type { QuickCheckInput } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
@@ -27,11 +28,13 @@ export function HasilTersimpan({ token }: { token: string }) {
   const [result, setResult] = useState<ResponsPeluang | null>(baru?.result ?? null);
   const [input] = useState<QuickCheckInput | null>(baru?.input ?? null);
   const [status, setStatus] = useState<Status>(baru ? "ada" : "memuat");
+  // Dinaikkan oleh tombol "Coba lagi" untuk mengulang pengambilan.
+  const [percobaan, setPercobaan] = useState(0);
 
   useEffect(() => {
     if (baru) return;
     let batal = false;
-    fetch(`/api/hasil/${encodeURIComponent(token)}`)
+    ambil(`/api/hasil/${encodeURIComponent(token)}`)
       .then(async (res) => {
         if (batal) return;
         if (res.status === 401) return setStatus("belum-masuk");
@@ -44,7 +47,7 @@ export function HasilTersimpan({ token }: { token: string }) {
     return () => {
       batal = true;
     };
-  }, [baru, token]);
+  }, [baru, token, percobaan]);
 
   if (status === "memuat") {
     return (
@@ -80,13 +83,25 @@ export function HasilTersimpan({ token }: { token: string }) {
         kind={status === "galat" ? "danger" : "info"}
         title={status === "galat" ? "Hasil belum bisa dimuat" : "Hasil tidak ditemukan"}
         action={
-          <Button variant="secondary" href="/anak-saya">
-            Lihat data anak
-          </Button>
+          status === "galat" ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setStatus("memuat");
+                setPercobaan((n) => n + 1);
+              }}
+            >
+              Coba lagi
+            </Button>
+          ) : (
+            <Button variant="secondary" href="/anak-saya">
+              Lihat data anak
+            </Button>
+          )
         }
       >
         {status === "galat"
-          ? "Tidak tersambung ke server SiPesek. Periksa internet, lalu muat ulang halaman ini."
+          ? "Server SiPesek belum menjawab. Periksa internet, lalu coba lagi."
           : "Hasil ini sudah dihapus, atau disimpan oleh akun lain."}
       </Alert>
     );

@@ -5,15 +5,20 @@ import { prisma } from "@/lib/db";
 import { bacaJson, galat } from "@/lib/http";
 import type { AnakRingkas, ResponsAnak } from "@/lib/kontrak";
 import { periksaNisn, sidikNisn } from "@/lib/nisn";
-import { BATAS_ANAK, keAnakRingkas, orangTuaMasuk, pesanNisnTerpakai, pilihAnak } from "@/lib/ortu";
+import { BATAS_ANAK, keAnakRingkas, orangTuaMasuk, pesanNisnTerpakai, pilihAnak, riwayatAnak } from "@/lib/ortu";
 import { skemaTambahAnak } from "@/lib/validasi";
 
 export async function GET(request: NextRequest) {
   const ortu = await orangTuaMasuk(request);
   if (!ortu) return tolakTanpaSesiOrtu();
 
-  const anak = await prisma.anak.findMany({ where: { orangTuaId: ortu.id }, select: pilihAnak, orderBy: { id: "asc" } });
-  return Response.json({ anak: anak.map(keAnakRingkas) } satisfies ResponsAnak);
+  const anak = (
+    await prisma.anak.findMany({ where: { orangTuaId: ortu.id }, select: pilihAnak, orderBy: { id: "asc" } })
+  ).map(keAnakRingkas);
+  // ?riwayat=1: riwayat semua anak ikut dalam satu panggilan (satu query), bukan satu panggilan per anak.
+  if (request.nextUrl.searchParams.get("riwayat") !== "1") return Response.json({ anak } satisfies ResponsAnak);
+  const riwayat = await riwayatAnak(anak.map((a) => a.id));
+  return Response.json({ anak: anak.map((a) => ({ ...a, riwayat: riwayat.get(a.id) ?? [] })) } satisfies ResponsAnak);
 }
 
 export async function POST(request: NextRequest) {

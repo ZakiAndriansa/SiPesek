@@ -6,7 +6,7 @@ import { Alert, Button, ButtonGroup } from "@/components";
 import { CEK_LAGI_HREF, lanjutIsiHref } from "./isian";
 import type { ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
-import { useHasilAktif, type AnakOrtu } from "./store";
+import { pastikanHasil, segarkanOrtu, useHasilAktif, type AnakOrtu } from "./store";
 
 export type DataTahap = { aktif: AnakOrtu; terakhir: RiwayatCek; hasil: ResponsPeluang };
 
@@ -56,8 +56,16 @@ export function DenganHasil({ children }: { children: (data: DataTahap) => React
   if (hasil === undefined) return <Memuat teks="Memuat hasil…" />;
   if (hasil === null) {
     return (
-      <Alert kind="danger" title="Hasil belum bisa dimuat">
-        Tidak tersambung ke server SiPesek. Periksa internet, lalu muat ulang halaman ini.
+      <Alert
+        kind="danger"
+        title="Hasil belum bisa dimuat"
+        action={
+          <Button variant="secondary" onClick={() => void pastikanHasil(terakhir.token)}>
+            Coba lagi
+          </Button>
+        }
+      >
+        Server SiPesek belum menjawab. Periksa internet, lalu coba lagi.
       </Alert>
     );
   }
@@ -105,8 +113,16 @@ export function SesiBerakhir() {
 
 export function GagalMuat() {
   return (
-    <Alert kind="danger" title="Data belum bisa dimuat">
-      Tidak tersambung ke server SiPesek. Periksa internet, lalu muat ulang halaman ini.
+    <Alert
+      kind="danger"
+      title="Data belum bisa dimuat"
+      action={
+        <Button variant="secondary" onClick={() => void segarkanOrtu()}>
+          Coba lagi
+        </Button>
+      }
+    >
+      Server SiPesek belum menjawab. Periksa internet, lalu coba lagi.
     </Alert>
   );
 }

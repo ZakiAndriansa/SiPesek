@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Badge, Button, Dialog, Icon } from "@/components";
+import { ambil } from "@/lib/ambil";
 import type { RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
 import { HapusHasil } from "@/features/ortu/HapusHasil";
@@ -27,7 +28,7 @@ export function RiwayatAnak() {
 
   async function hapus(id: number) {
     setGalatHapus("");
-    const res = await fetch(`/api/ortu/anak/${id}`, { method: "DELETE" }).catch(() => null);
+    const res = await ambil(`/api/ortu/anak/${id}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) return setGalatHapus("Data anak belum bisa dihapus. Periksa internet, lalu coba lagi.");
     hapusIsian(id);
     await segarkanOrtu();
@@ -63,8 +64,16 @@ export function RiwayatAnak() {
   }
   if (status === "galat") {
     return (
-      <Alert kind="danger" title="Data anak belum bisa dimuat">
-        Tidak tersambung ke server SiPesek. Periksa internet, lalu muat ulang halaman ini.
+      <Alert
+        kind="danger"
+        title="Data anak belum bisa dimuat"
+        action={
+          <Button variant="secondary" onClick={() => void segarkanOrtu()}>
+            Coba lagi
+          </Button>
+        }
+      >
+        Server SiPesek belum menjawab. Periksa internet, lalu coba lagi.
       </Alert>
     );
   }

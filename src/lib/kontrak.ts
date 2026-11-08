@@ -194,8 +194,8 @@ export type AnakRingkas = {
   jumlahCek: number;
 };
 
-/** GET /api/ortu/anak */
-export type ResponsAnak = { anak: AnakRingkas[] };
+/** GET /api/ortu/anak. Dengan `?riwayat=1`, tiap anak membawa riwayat ceknya (terbaru dulu). */
+export type ResponsAnak = { anak: Array<AnakRingkas & { riwayat?: RiwayatCek[] }> };
 
 /**
  * POST /api/ortu/anak. Balasan: 201 AnakRingkas; 400 NISN bukan 10 digit; 409 NISN sudah terdaftar;

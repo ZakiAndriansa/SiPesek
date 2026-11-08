@@ -3,7 +3,7 @@ import { tolakTanpaSesiOrtu } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { galat } from "@/lib/http";
 import type { ResponsRiwayat } from "@/lib/kontrak";
-import { keAnakRingkas, keRiwayat, orangTuaMasuk, pilihAnak } from "@/lib/ortu";
+import { keAnakRingkas, orangTuaMasuk, pilihAnak, riwayatAnak } from "@/lib/ortu";
 
 export async function GET(request: NextRequest) {
   const ortu = await orangTuaMasuk(request);
@@ -15,10 +15,6 @@ export async function GET(request: NextRequest) {
     : null;
   if (!anak) return galat("Data anak tidak ditemukan.", 404);
 
-  const cek = await prisma.cekPeluang.findMany({
-    where: { anakId: anak.id },
-    select: { token: true, dibuatPada: true, tahunAcuan: true, jenjang: true, kecamatan: true, hasil: true },
-    orderBy: { dibuatPada: "desc" },
-  });
-  return Response.json({ anak: keAnakRingkas(anak), riwayat: cek.map(keRiwayat) } satisfies ResponsRiwayat);
+  const riwayat = (await riwayatAnak([anak.id])).get(anak.id) ?? [];
+  return Response.json({ anak: keAnakRingkas(anak), riwayat } satisfies ResponsRiwayat);
 }

@@ -246,3 +246,14 @@ model LogImpor {
   admin         Admin?   @relation(fields: [adminId], references: [id])
   dibuatPada    DateTime @default(now())
 }
+
+// Pembatas Cek Cepat tamu (tanpa login), dibagi semua instance server. `kunci` adalah sidik HMAC alamat IP,
+// bukan IP asli. Baris lebih tua dari satu jam tidak dipakai lagi dan dibersihkan berkala.
+model BatasTamu {
+  id    BigInt   @id @default(autoincrement())
+  kunci String
+  waktu DateTime @default(now())
+
+  @@index([kunci, waktu])
+  @@index([waktu])
+}
