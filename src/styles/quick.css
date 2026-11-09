@@ -20,6 +20,12 @@
   display: grid;
   gap: var(--space-3);
 }
+/* Di dalam kelompok nilai, judul kelompok (legend) yang utama; label tiap kotak (Semester 1 dan seterusnya)
+   satu tingkat di bawahnya, tetapi tetap lebih menonjol daripada catatan. */
+.quick__nilai .field__label {
+  font-size: var(--text-body-md);
+  font-weight: var(--weight-medium);
+}
 .quick__summary {
   margin: 0;
   padding-left: var(--space-5);
