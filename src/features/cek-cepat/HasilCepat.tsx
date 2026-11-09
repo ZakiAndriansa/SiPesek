@@ -79,6 +79,21 @@ export function HasilCepat({
       <div className="stack quick__result no-print" data-reveal-live="">
         <KartuHasil result={result} onEdit={onEdit} />
 
+        {pilihan.length > 0 && (
+          <section className="stack" aria-labelledby="q-strategi">
+            <div className="block-head">
+              <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
+              <p className="text-secondary">Satu ambisius, dua aman.</p>
+            </div>
+            <ol className="hasil-pilihan" data-reveal-group="">
+              {pilihan.map((p, i) => (
+                <KartuPilihan key={p.name} p={p} no={i + 1} />
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {/* Catatan sesudah rekomendasi: jawaban utama dulu, keterangan tambahan setelahnya. */}
         {/* Hasil satu jalur: tetap tawarkan semua jalur, karena jalur lain bisa jadi lebih aman. */}
         {jalurDipilih && (
           <Alert
@@ -102,20 +117,6 @@ export function HasilCepat({
             {note}
           </Alert>
         ))}
-
-        {pilihan.length > 0 && (
-          <section className="stack" aria-labelledby="q-strategi">
-            <div className="block-head">
-              <h2 className="text-heading-md" id="q-strategi">Rekomendasi 3 pilihan</h2>
-              <p className="text-secondary">Satu ambisius, dua aman.</p>
-            </div>
-            <ol className="hasil-pilihan" data-reveal-group="">
-              {pilihan.map((p, i) => (
-                <KartuPilihan key={p.name} p={p} no={i + 1} />
-              ))}
-            </ol>
-          </section>
-        )}
 
         <section className="card hasil-panel" aria-labelledby="q-sekolah" data-reveal="">
           <div>
