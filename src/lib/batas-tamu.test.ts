@@ -2,7 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const queryRaw = vi.fn();
 const executeRaw = vi.fn();
-vi.mock("@/lib/db", () => ({ prisma: { $queryRaw: (...a: unknown[]) => queryRaw(...a), $executeRaw: (...a: unknown[]) => executeRaw(...a) } }));
+const urutan: string[] = [];
+const tx = {
+  $queryRaw: (...a: unknown[]) => (urutan.push("hitung dan catat"), queryRaw(...a)),
+  $executeRaw: (...a: unknown[]) => (urutan.push("kunci"), executeRaw(...a)),
+};
+vi.mock("@/lib/db", () => ({
+  prisma: {
+    $queryRaw: (...a: unknown[]) => queryRaw(...a),
+    $executeRaw: (...a: unknown[]) => executeRaw(...a),
+    $transaction: (f: (t: typeof tx) => unknown) => (urutan.push("transaksi"), f(tx)),
+  },
+}));
 
 const { cobaBatasTamu, idPerangkatTamu, sidikBatas } = await import("./batas-tamu");
 
@@ -16,6 +27,7 @@ const daftar = () => [
 beforeEach(() => {
   queryRaw.mockReset();
   executeRaw.mockReset();
+  urutan.length = 0;
 });
 
 describe("cobaBatasTamu", () => {
@@ -54,6 +66,26 @@ describe("cobaBatasTamu", () => {
     queryRaw.mockRejectedValue(new Error("koneksi ditolak"));
     vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(await cobaBatasTamu(daftar())).toBeNull();
+  });
+});
+
+describe("cobaBatasTamu: permintaan serentak antre", () => {
+  it("mengunci semua kunci di dalam transaksi sebelum menghitung dan mencatat", async () => {
+    queryRaw.mockResolvedValue([]);
+    const [perangkat, ip] = daftar();
+    await cobaBatasTamu(daftar());
+    expect(urutan).toEqual(["transaksi", "kunci", "hitung dan catat"]);
+    const kunci = JSON.stringify(executeRaw.mock.calls[0]);
+    expect(kunci).toContain(perangkat.kunci);
+    expect(kunci).toContain(ip.kunci);
+    expect(kunci).toContain("pg_advisory_xact_lock");
+  });
+
+  it("panjang jendela bisa diatur: satu menit untuk rem akun", async () => {
+    queryRaw.mockResolvedValue([{ kunci: "k", tunggu: null }]);
+    const r = await cobaBatasTamu([{ kunci: "k", batas: 5 }], 60);
+    expect(JSON.stringify(queryRaw.mock.calls[0])).toContain("60");
+    expect(r).toEqual({ tunggu: 60, penuh: ["k"] }); // tanpa data tunggu: sepanjang jendela
   });
 });
 
