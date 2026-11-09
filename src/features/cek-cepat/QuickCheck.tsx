@@ -122,7 +122,9 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const mengirim = useRef(false);
 
   // Nomor langkah: jalan "sudah tahu" tidak punya langkah nilai terpisah (Prestasi mengisi nilai di langkah isian).
-  const urutan: Phase[] = jalur ? ["jalur", "nisn", "isian", "hasil"] : ["jalur", "nisn", "isian", "nilai", "hasil"];
+  // Di langkah pertama, jumlahnya langsung mengikuti jawaban yang sedang dipilih.
+  const jalanSingkat = phase === "jalur" ? tahu === "ya" : jalur !== null;
+  const urutan: Phase[] = jalanSingkat ? ["jalur", "nisn", "isian", "hasil"] : ["jalur", "nisn", "isian", "nilai", "hasil"];
   const judul: Record<Phase, string> = {
     jalur: "Sudah tahu jalurnya?",
     nisn: "Masukkan NISN anak",
