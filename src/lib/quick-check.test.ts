@@ -124,7 +124,9 @@ describe("Cek Cepat", () => {
       // Status KETM yang belum pasti tidak membuka Afirmasi.
       expect(isianUntukJalur(ISIAN, "AFIRMASI").ketm).toBe("tidak");
       expect(isianUntukJalur({ ...ISIAN, pindahTugas: false }, "MUTASI").pindahTugas).toBe(true);
-      expect(isianUntukJalur(ISIAN, "PRESTASI")).toMatchObject({ ketm: "tidak", pindahTugas: false, tkaBin: 75, nilai: ISIAN.nilai });
+      expect(isianUntukJalur(ISIAN, "PRESTASI")).toMatchObject({ ketm: "tidak", pindahTugas: false, tkaBin: 75, nilai: ISIAN.nilai, lokasi: null });
+      // Jalur lain tetap membawa titik rumah.
+      expect(isianUntukJalur(ISIAN, "AFIRMASI").lokasi).toEqual(RUMAH);
     });
 
     it("meminta isian wajib setiap jalur", () => {
@@ -138,10 +140,11 @@ describe("Cek Cepat", () => {
       expect(kurangUntukJalur(ISIAN, "DOMISILI")).toBeNull();
     });
 
-    it("hanya Domisili yang mengirim kecamatan; Prestasi boleh tanpa titik rumah", () => {
+    it("hanya Domisili yang mengirim kecamatan; Prestasi tidak mengirim titik rumah", () => {
       expect(isianUntukJalur(ISIAN, "DOMISILI").kecamatan).toBe("Beji");
       for (const j of ["AFIRMASI", "PRESTASI", "MUTASI"] as const) expect(isianUntukJalur(ISIAN, j).kecamatan).toBe("");
-      const p = toRequest(isianUntukJalur(ISIAN, "PRESTASI"), "0101234567", null);
+      const prestasi = isianUntukJalur(ISIAN, "PRESTASI");
+      const p = toRequest(prestasi, "0101234567", prestasi.lokasi);
       expect(p).not.toHaveProperty("kecamatan");
       expect(p).not.toHaveProperty("lokasi");
       // Isian tanpa kecamatan tetap sah; kecamatan yang diisi tetap harus ada di daftar.
