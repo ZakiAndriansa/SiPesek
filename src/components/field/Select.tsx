@@ -221,7 +221,7 @@ export function Select({
                   ref={cariRef}
                   type="text"
                   className="field__select-cari-input"
-                  placeholder={`Cari ${label.toLowerCase()}`}
+                  placeholder="Ketik untuk mencari"
                   aria-label={`Cari ${label}`}
                   role="combobox"
                   aria-expanded="true"

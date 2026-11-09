@@ -18,10 +18,14 @@ import {
   ringkasan,
   ringkasJalur,
   strategi,
+  JALUR_UTAMA,
+  type JalurPilihan,
   type PilihanStrategi,
   type QuickCheckInput,
 } from "@/lib/quick-check";
 import { LaporanCetak } from "./LaporanCetak";
+
+const namaJalurUtama = (kode: JalurPilihan) => JALUR_UTAMA.find(([k]) => k === kode)?.[1] ?? kode;
 
 /** ["a", "b", "c"] menjadi "a, b dan c". */
 const gabung = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} dan ${xs[xs.length - 1]}`);
@@ -44,6 +48,8 @@ export function HasilCepat({
   onEdit,
   onRestart,
   date,
+  jalurDipilih,
+  onCekSemuaJalur,
   children,
 }: {
   result: ResponsPeluang;
@@ -54,6 +60,10 @@ export function HasilCepat({
   onEdit?: () => void;
   onRestart?: () => void;
   date: string;
+  /** Jalur yang dipilih orang tua di awal Cek Cepat; hasil sudah disaring ke jalur ini. null: semua jalur. */
+  jalurDipilih?: JalurPilihan | null;
+  /** Pindah ke Cek Cepat semua jalur tanpa mengisi ulang. */
+  onCekSemuaJalur?: () => void;
   /** Tombol tambahan di baris tombol bawah. */
   children?: ReactNode;
 }) {
@@ -68,6 +78,24 @@ export function HasilCepat({
       {/* Tampilan layar tidak ikut dicetak; yang dicetak adalah LaporanCetak di bawah. */}
       <div className="stack quick__result no-print" data-reveal-live="">
         <KartuHasil result={result} onEdit={onEdit} />
+
+        {/* Hasil satu jalur: tetap tawarkan semua jalur, karena jalur lain bisa jadi lebih aman. */}
+        {jalurDipilih && (
+          <Alert
+            kind="info"
+            title={`Hasil ini hanya untuk ${namaJalurUtama(jalurDipilih)}`}
+            action={
+              onCekSemuaJalur && (
+                <Button variant="secondary" icon="arrow-right" onClick={onCekSemuaJalur}>
+                  Cek semua jalur
+                </Button>
+              )
+            }
+          >
+            Ingin tahu peluang di jalur lain? Lengkapi isian kondisi anak, lalu SiPesek menilai semua jalur yang terbuka dan
+            menyarankan yang paling aman.
+          </Alert>
+        )}
 
         {catatanHasil(result, input).map((note) => (
           <Alert key={note} kind="info">
@@ -134,9 +162,11 @@ export function HasilCepat({
               </ul>
             </Lipat>
           )}
-          <Lipat judul="Ringkasan per jalur">
+          <Lipat judul={jalurDipilih ? `Ringkasan ${namaJalurUtama(jalurDipilih)}` : "Ringkasan per jalur"}>
             <ul className="hasil-lipat__daftar">
-              {ringkasJalur(result.hasil, input).map((j) => (
+              {ringkasJalur(result.hasil, input)
+                .filter((j) => !jalurDipilih || j.kode === jalurDipilih)
+                .map((j) => (
                 <li key={j.kode}>
                   <strong>{j.nama}</strong>
                   <span>{j.teks}</span>

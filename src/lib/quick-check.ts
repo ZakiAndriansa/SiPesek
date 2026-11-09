@@ -164,6 +164,76 @@ const KE_JALUR = new Map<string, string>(SUB_JALUR.map((s) => [s.kode, s.jalurKo
 /** Kode jalur utama dari kode sub-jalur, mis. "PRESTASI_AKD_RAPOR" menjadi "PRESTASI". */
 export const jalurUtama = (subJalurKode: string) => KE_JALUR.get(subJalurKode) ?? null;
 
+// ---------- Jalur yang sudah dipilih orang tua ----------
+
+/** Jalur yang bisa langsung dipilih di Cek Cepat bila orang tua sudah tahu jalurnya. */
+export type JalurPilihan = (typeof JALUR_UTAMA)[number][0];
+
+const URUT_LABEL: Record<LabelPeluang, number> = { PELUANG_BESAR: 0, MASIH_MUNGKIN: 1, PELUANG_KECIL: 2, TIDAK_DIHITUNG: 3 };
+const NILAI_KOSONG = {
+  nilai: Array<number | null>(SEMESTER_COUNT).fill(null),
+  tkaBin: null,
+  tkaMtk: null,
+  mapel: { bin: null, mtk: null, ipa: null, ips: null, bing: null },
+} satisfies Partial<QuickCheckInput>;
+
+/**
+ * Isian yang tidak dipakai jalur pilihan dikosongkan, agar mesin hanya menilai jalur itu dan hasilnya tidak
+ * bercampur dengan isian dari jalur lain yang sempat dicoba. Prestasi tetap memakai nilai; jalur lain tidak.
+ */
+export function isianUntukJalur(input: QuickCheckInput, jalur: JalurPilihan): QuickCheckInput {
+  const dasar: QuickCheckInput = { ...input, ketm: "tidak", disabilitas: false, pindahTugas: false };
+  switch (jalur) {
+    case "DOMISILI":
+      return { ...dasar, ...NILAI_KOSONG };
+    case "AFIRMASI":
+      return { ...dasar, ...NILAI_KOSONG, ketm: input.ketm === "ya" ? "ya" : "tidak", disabilitas: input.disabilitas };
+    case "MUTASI":
+      return { ...dasar, ...NILAI_KOSONG, pindahTugas: true };
+    case "PRESTASI":
+      return dasar;
+  }
+}
+
+/**
+ * Isian wajib jalur pilihan yang belum ada, sebagai pesan untuk orang tua; null bila lengkap.
+ * Prestasi wajib bernilai: mesin membuang jalur skor yang belum terhitung bila sekolah punya jalur lain
+ * yang terhitung (misalnya Domisili), sehingga tanpa nilai baris Prestasi tidak akan muncul sama sekali.
+ */
+export function kurangUntukJalur(input: QuickCheckInput, jalur: JalurPilihan): string | null {
+  if (jalur === "AFIRMASI" && input.ketm !== "ya" && !input.disabilitas) {
+    return "Jalur Afirmasi hanya untuk keluarga KETM atau anak penyandang disabilitas.";
+  }
+  if (jalur === "MUTASI" && !input.pindahTugas) {
+    return "Jalur Mutasi di Cek Cepat hanya untuk orang tua yang pindah tugas ke Depok.";
+  }
+  if (jalur === "PRESTASI") {
+    if (isi(input.nilai).length === 0) return "Isi rata-rata rapor, paling sedikit satu semester, agar Jalur Prestasi bisa dihitung.";
+    if (input.jenjang === "sma" && (input.tkaBin === null || input.tkaMtk === null)) {
+      return "Isi kedua nilai TKA. Jalur Prestasi SMA dihitung dari rapor dan TKA.";
+    }
+  }
+  return null;
+}
+
+/**
+ * Hasil mesin yang disaring ke satu jalur: jalur lain dibuang, sekolah yang tidak punya jalur itu tidak
+ * ditampilkan, lalu label terbaik dan urutannya dihitung ulang (label terbaik dulu, lalu yang terdekat).
+ * Skor akhir anak hanya ditampilkan untuk Jalur Prestasi.
+ */
+export function saringJalur(r: ResponsPeluang, jalur: JalurPilihan): ResponsPeluang {
+  const hasil = r.hasil
+    .flatMap((h) => {
+      const j = h.jalur.filter((x) => KE_JALUR.get(x.subJalurKode) === jalur).sort((a, b) => URUT_LABEL[a.label] - URUT_LABEL[b.label]);
+      return j.length ? [{ ...h, jalur: j, labelTerbaik: j[0].label }] : [];
+    })
+    .sort(
+      (a, b) =>
+        URUT_LABEL[a.labelTerbaik] - URUT_LABEL[b.labelTerbaik] || (a.jarakMeter ?? Infinity) - (b.jarakMeter ?? Infinity),
+    );
+  return { ...r, hasil, skorAnak: jalur === "PRESTASI" ? r.skorAnak : [] };
+}
+
 /** Ringkasan per jalur utama: berapa sekolah per label, atau alasan jalur itu belum dihitung. */
 export function ringkasJalur(hasil: HasilSekolah[], input: QuickCheckInput | null): RingkasJalur[] {
   return JALUR_UTAMA.map(([kode, nama]) => {
