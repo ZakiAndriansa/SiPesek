@@ -8,6 +8,7 @@ import { periksaNisn, sidikNisn } from "@/lib/nisn";
 import { bacaIdAnak, COOKIE_ANAK_AKTIF } from "@/lib/anak-aktif";
 import {
   BATAS_ANAK,
+  denganKunciAkun,
   hasilTerakhirAnakAktif,
   keAnakRingkas,
   orangTuaMasuk,
@@ -46,28 +47,31 @@ export async function POST(request: NextRequest) {
   const nisn = periksaNisn(masukan.data.nisn);
   if (!nisn.sah) return galat(nisn.pesan, 400);
 
-  if ((await prisma.anak.count({ where: { orangTuaId: ortu.id } })) >= BATAS_ANAK) {
-    return galat(`Satu akun paling banyak ${BATAS_ANAK} anak.`, 422);
-  }
-
   const sidik = sidikNisn(nisn.nisn);
-  const ada = await prisma.anak.findUnique({ where: { sidikNisn: sidik }, select: { orangTuaId: true } });
-  if (ada) return galat(pesanNisnTerpakai(ada.orangTuaId === ortu.id), 409);
-
   try {
-    const anak = await prisma.anak.create({
-      data: {
-        orangTuaId: ortu.id,
-        nama: masukan.data.nama,
-        sidikNisn: sidik,
-        nisnAkhir: nisn.nisnAkhir,
-        nisnLazim: nisn.lazim,
-      },
-      select: pilihAnak,
+    // Hitung, periksa, lalu buat di bawah kunci akun, agar permintaan serentak tidak bisa melewati batas 5 anak.
+    const hasil = await denganKunciAkun(ortu.id, async (tx) => {
+      if ((await tx.anak.count({ where: { orangTuaId: ortu.id } })) >= BATAS_ANAK) {
+        return { galat: galat(`Satu akun paling banyak ${BATAS_ANAK} anak.`, 422) };
+      }
+      const ada = await tx.anak.findUnique({ where: { sidikNisn: sidik }, select: { orangTuaId: true } });
+      if (ada) return { galat: galat(pesanNisnTerpakai(ada.orangTuaId === ortu.id), 409) };
+      const anak = await tx.anak.create({
+        data: {
+          orangTuaId: ortu.id,
+          nama: masukan.data.nama,
+          sidikNisn: sidik,
+          nisnAkhir: nisn.nisnAkhir,
+          nisnLazim: nisn.lazim,
+        },
+        select: pilihAnak,
+      });
+      return { anak };
     });
-    return Response.json(keAnakRingkas(anak) satisfies AnakRingkas, { status: 201 });
+    if ("galat" in hasil) return hasil.galat;
+    return Response.json(keAnakRingkas(hasil.anak) satisfies AnakRingkas, { status: 201 });
   } catch (e) {
-    // Dua permintaan bersamaan dengan NISN yang sama: yang kalah mendapat pesan yang sama.
+    // Akun lain mendaftarkan NISN yang sama tepat bersamaan (kunci hanya berlaku per akun).
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return galat(pesanNisnTerpakai(false), 409);
     }

@@ -16,6 +16,7 @@ import type {
 import { hitungPeluang } from "@/lib/peluang/mesin";
 import { muatDataMesin, muatIdSubJalur } from "@/lib/peluang/muat";
 import { tentukanAnakAktif } from "@/lib/anak-aktif";
+import { cobaBatasTamu, sidikBatas } from "@/lib/batas-tamu";
 
 export const BATAS_ANAK = 5;
 /**
@@ -37,14 +38,15 @@ export const pesanNisnTerpakai = (milikSendiri: boolean) =>
  * atau null bila masih boleh.
  */
 export async function tolakBilaTerlaluCepat(orangTuaId: number): Promise<Response | null> {
-  const terbaru = await prisma.cekPeluang.findMany({
-    where: { anak: { orangTuaId }, dibuatPada: { gte: new Date(Date.now() - SEMENIT_MS) } },
-    orderBy: { dibuatPada: "asc" },
-    select: { dibuatPada: true },
-    take: BATAS_CEK_PER_MENIT,
-  });
-  if (terbaru.length < BATAS_CEK_PER_MENIT) return null;
-  const tunggu = Math.max(1, Math.ceil((terbaru[0].dibuatPada.getTime() + SEMENIT_MS - Date.now()) / 1000));
+  // Pembatas bersama dengan Cek Cepat tamu: hitung dan catat dalam satu langkah yang antre per akun, sehingga
+  // permintaan serentak tidak bisa lolos bersamaan. Dulu dihitung dari CekPeluang (hitung dulu, simpan belakangan),
+  // dan di produksi 8 dari 10 permintaan serentak lolos padahal batasnya 5.
+  const tolak = await cobaBatasTamu(
+    [{ kunci: sidikBatas("akun", String(orangTuaId)), batas: BATAS_CEK_PER_MENIT }],
+    SEMENIT_MS / 1000,
+  );
+  if (!tolak) return null;
+  const { tunggu } = tolak;
   const respons = Response.json(
     {
       galat:
@@ -253,4 +255,16 @@ export async function hasilTerakhirAnakAktif(
     select: { token: true, tahunAcuan: true, dibuatPada: true, hasil: true },
   });
   return cek ? keResponsHasil(cek, aktif) : null;
+}
+
+/**
+ * Jalankan `f` di dalam transaksi yang memegang kunci Postgres untuk satu akun. Permintaan serentak dari akun
+ * yang sama (dua tab, atau skrip) menunggu giliran, sehingga pemeriksaan "hitung dulu, lalu buat" seperti batas
+ * 5 anak dan "NISN ini sudah ada di akun" tidak bisa disela.
+ */
+export async function denganKunciAkun<T>(orangTuaId: number, f: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`anak:${orangTuaId}`}))`;
+    return f(tx);
+  });
 }

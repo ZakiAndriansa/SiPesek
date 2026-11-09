@@ -5,6 +5,12 @@ const deleteMany = vi.fn();
 const anakFindMany = vi.fn();
 const queryRaw = vi.fn();
 const findUnique = vi.fn();
+const cobaBatas = vi.fn();
+const executeRaw = vi.fn();
+vi.mock("@/lib/batas-tamu", () => ({
+  cobaBatasTamu: (...a: unknown[]) => cobaBatas(...a),
+  sidikBatas: (jenis: string, nilai: string) => `${jenis}:${nilai}`,
+}));
 vi.mock("@/lib/db", () => ({
   prisma: {
     cekPeluang: {
@@ -14,14 +20,21 @@ vi.mock("@/lib/db", () => ({
     },
     anak: { findMany: (...a: unknown[]) => anakFindMany(...a) },
     $queryRaw: (...a: unknown[]) => queryRaw(...a),
+    $transaction: (f: (t: unknown) => unknown) => f({ $executeRaw: (...a: unknown[]) => executeRaw(...a), dariTransaksi: true }),
   },
 }));
 
-const { BATAS_CEK_PER_MENIT, SIMPAN_CEK_PER_ANAK, hapusCekLama, hasilTerakhirAnakAktif, salinanAkun, tolakBilaTerlaluCepat } =
-  await import("./ortu");
+const {
+  BATAS_CEK_PER_MENIT,
+  SIMPAN_CEK_PER_ANAK,
+  denganKunciAkun,
+  hapusCekLama,
+  hasilTerakhirAnakAktif,
+  salinanAkun,
+  tolakBilaTerlaluCepat,
+} = await import("./ortu");
 
 const SEKARANG = new Date("2026-11-08T10:00:00Z");
-const detikLalu = (s: number) => ({ dibuatPada: new Date(SEKARANG.getTime() - s * 1000) });
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -31,31 +44,44 @@ beforeEach(() => {
   anakFindMany.mockReset();
   queryRaw.mockReset();
   findUnique.mockReset();
+  cobaBatas.mockReset();
+  executeRaw.mockReset();
 });
 afterEach(() => vi.useRealTimers());
 
 describe("tolakBilaTerlaluCepat", () => {
-  it("boleh selama cek satu menit terakhir di bawah batas", async () => {
-    findMany.mockResolvedValue([detikLalu(50), detikLalu(30), detikLalu(20), detikLalu(5)]);
+  it("boleh selama pembatas akun belum penuh", async () => {
+    cobaBatas.mockResolvedValue(null);
     expect(BATAS_CEK_PER_MENIT).toBe(5);
     expect(await tolakBilaTerlaluCepat(7)).toBeNull();
   });
 
-  it("menolak cek ke-6 dalam semenit dengan lama tunggu sampai cek tertua lewat semenit", async () => {
-    findMany.mockResolvedValue([detikLalu(45), detikLalu(30), detikLalu(20), detikLalu(10), detikLalu(2)]);
+  it("memakai pembatas bersama yang antre per akun: kunci akun, batas 5, jendela 60 detik", async () => {
+    cobaBatas.mockResolvedValue(null);
+    await tolakBilaTerlaluCepat(7);
+    expect(cobaBatas).toHaveBeenCalledWith([{ kunci: "akun:7", batas: BATAS_CEK_PER_MENIT }], 60);
+  });
+
+  it("menolak dengan lama tunggu dari pembatas", async () => {
+    cobaBatas.mockResolvedValue({ tunggu: 15, penuh: ["akun:7"] });
     const r = await tolakBilaTerlaluCepat(7);
     expect(r?.status).toBe(429);
     expect(r?.headers.get("Retry-After")).toBe("15");
     expect((await r!.json()).galat).toContain("Tunggu 15 detik");
   });
+});
 
-  it("hanya menghitung cek akun itu dalam satu menit terakhir", async () => {
-    findMany.mockResolvedValue([]);
-    await tolakBilaTerlaluCepat(7);
-    const { where, take } = findMany.mock.calls[0][0];
-    expect(where.anak).toEqual({ orangTuaId: 7 });
-    expect(where.dibuatPada.gte).toEqual(new Date(SEKARANG.getTime() - 60_000));
-    expect(take).toBe(BATAS_CEK_PER_MENIT);
+describe("denganKunciAkun", () => {
+  it("mengunci akun di dalam transaksi sebelum menjalankan isinya", async () => {
+    const urutan: string[] = [];
+    executeRaw.mockImplementation(async () => urutan.push("kunci"));
+    const hasil = await denganKunciAkun(7, async (t) => {
+      urutan.push("isi");
+      return (t as unknown as { dariTransaksi: boolean }).dariTransaksi;
+    });
+    expect(urutan).toEqual(["kunci", "isi"]);
+    expect(hasil).toBe(true); // isi memakai klien transaksi, bukan klien biasa
+    expect(JSON.stringify(executeRaw.mock.calls[0])).toContain("anak:7");
   });
 });
 
