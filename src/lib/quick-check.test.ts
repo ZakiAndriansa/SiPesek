@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { HasilJalur, HasilSekolah, LabelPeluang } from "./kontrak";
-import { diWilayah, ringkasan, ringkasJalur, strategi, toRequest, validateInput, type QuickCheckInput } from "./quick-check";
+import type { ResponsPeluang } from "./kontrak";
+import {
+  diWilayah,
+  isianUntukJalur,
+  kurangUntukJalur,
+  ringkasan,
+  ringkasJalur,
+  saringJalur,
+  strategi,
+  toRequest,
+  validateInput,
+  type QuickCheckInput,
+} from "./quick-check";
 
 const RUMAH = { lat: -6.3831, lng: 106.8191 };
 const ISIAN: QuickCheckInput = {
@@ -101,5 +113,49 @@ describe("Cek Cepat", () => {
     });
     expect(ringkasan([mungkin, kecil]).sorotan).toEqual({ label: "MASIH_MUNGKIN", n: 1, total: 2 });
     expect(ringkasan([kecil]).sorotan).toBeNull();
+  });
+
+  describe("jalur yang sudah dipilih orang tua", () => {
+    it("mengosongkan isian jalur lain agar mesin hanya menilai jalur pilihan", () => {
+      const domisili = isianUntukJalur({ ...ISIAN, ketm: "ya", disabilitas: true }, "DOMISILI");
+      expect(domisili).toMatchObject({ ketm: "tidak", disabilitas: false, pindahTugas: false, tkaBin: null, kecamatan: "Beji" });
+      expect(domisili.nilai.every((v) => v === null)).toBe(true);
+      expect(isianUntukJalur({ ...ISIAN, ketm: "ya" }, "AFIRMASI")).toMatchObject({ ketm: "ya", pindahTugas: false, tkaBin: null });
+      // Status KETM yang belum pasti tidak membuka Afirmasi.
+      expect(isianUntukJalur(ISIAN, "AFIRMASI").ketm).toBe("tidak");
+      expect(isianUntukJalur({ ...ISIAN, pindahTugas: false }, "MUTASI").pindahTugas).toBe(true);
+      expect(isianUntukJalur(ISIAN, "PRESTASI")).toMatchObject({ ketm: "tidak", pindahTugas: false, tkaBin: 75, nilai: ISIAN.nilai });
+    });
+
+    it("meminta isian wajib setiap jalur", () => {
+      expect(kurangUntukJalur({ ...ISIAN, ketm: "ragu", disabilitas: false }, "AFIRMASI")).toMatch(/KETM/);
+      expect(kurangUntukJalur({ ...ISIAN, disabilitas: true }, "AFIRMASI")).toBeNull();
+      expect(kurangUntukJalur({ ...ISIAN, pindahTugas: false }, "MUTASI")).toMatch(/pindah tugas/);
+      expect(kurangUntukJalur({ ...ISIAN, nilai: [null, null, null, null, null] }, "PRESTASI")).toMatch(/rapor/);
+      // SMA butuh kedua nilai TKA; SMK cukup rapor.
+      expect(kurangUntukJalur(ISIAN, "PRESTASI")).toMatch(/TKA/);
+      expect(kurangUntukJalur({ ...ISIAN, jenjang: "smk" }, "PRESTASI")).toBeNull();
+      expect(kurangUntukJalur(ISIAN, "DOMISILI")).toBeNull();
+    });
+
+    it("menyaring hasil ke jalur pilihan dan mengurutkan ulang", () => {
+      const r = {
+        hasil: [
+          sekolah(1, "PELUANG_BESAR", jalur("DOMISILI", "PELUANG_BESAR"), jalur("PRESTASI_AKD_RAPOR", "PELUANG_KECIL")),
+          sekolah(2, "MASIH_MUNGKIN", jalur("PRESTASI_AKD_RAPOR", "MASIH_MUNGKIN")),
+          sekolah(3, "PELUANG_BESAR", jalur("DOMISILI", "PELUANG_BESAR")),
+        ],
+        skorAnak: [{ nilai: 300 }],
+      } as unknown as ResponsPeluang;
+      const prestasi = saringJalur(r, "PRESTASI");
+      // Sekolah 3 tidak punya Prestasi; sekolah 2 (Masih mungkin) kini di atas sekolah 1 (Peluang kecil).
+      expect(prestasi.hasil.map((h) => [h.sekolah.id, h.labelTerbaik])).toEqual([[2, "MASIH_MUNGKIN"], [1, "PELUANG_KECIL"]]);
+      expect(prestasi.hasil[1].jalur.map((j) => j.subJalurKode)).toEqual(["PRESTASI_AKD_RAPOR"]);
+      expect(prestasi.skorAnak).toHaveLength(1);
+      const domisili = saringJalur(r, "DOMISILI");
+      expect(domisili.hasil.map((h) => h.sekolah.id)).toEqual([1, 3]);
+      expect(domisili.skorAnak).toEqual([]);
+      expect(saringJalur(r, "MUTASI").hasil).toEqual([]);
+    });
   });
 });
