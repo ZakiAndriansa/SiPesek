@@ -138,6 +138,16 @@ describe("Cek Cepat", () => {
       expect(kurangUntukJalur(ISIAN, "DOMISILI")).toBeNull();
     });
 
+    it("hanya Domisili yang mengirim kecamatan; Prestasi boleh tanpa titik rumah", () => {
+      expect(isianUntukJalur(ISIAN, "DOMISILI").kecamatan).toBe("Beji");
+      for (const j of ["AFIRMASI", "PRESTASI", "MUTASI"] as const) expect(isianUntukJalur(ISIAN, j).kecamatan).toBe("");
+      const p = toRequest(isianUntukJalur(ISIAN, "PRESTASI"), "0101234567", null);
+      expect(p).not.toHaveProperty("kecamatan");
+      expect(p).not.toHaveProperty("lokasi");
+      // Isian tanpa kecamatan tetap sah; kecamatan yang diisi tetap harus ada di daftar.
+      expect(validateInput({ ...ISIAN, kecamatan: "" })).toBeNull();
+    });
+
     it("menyaring hasil ke jalur pilihan dan mengurutkan ulang", () => {
       const r = {
         hasil: [

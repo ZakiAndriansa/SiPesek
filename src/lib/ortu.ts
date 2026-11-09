@@ -91,7 +91,7 @@ export async function hitungDanSimpan(
       token,
       anakId: anak.id,
       tahunAcuan: hasil.tahunAcuan,
-      kecamatan: p.kecamatan,
+      kecamatan: p.kecamatan ?? null,
       jenjang: p.jenjang,
       jalurDicek: [...new Set(hasil.hasil.flatMap((h) => h.jalur.map((j) => j.subJalurKode)))],
       rentangSkor: bawah === null ? null : `${bawah}-${bawah + 9}`,
