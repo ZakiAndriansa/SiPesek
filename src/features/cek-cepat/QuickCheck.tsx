@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ambil, pesanGagal } from "@/lib/ambil";
 import {
   Alert,
@@ -31,7 +31,10 @@ import { HasilCepat } from "./HasilCepat";
 import { HomePicker } from "./HomePicker";
 import { setDraft } from "./draft-store";
 
-type Phase = "nisn" | "isian" | "hasil";
+// Nilai rapor dipisah ke langkah sendiri yang boleh dilewati: hanya Jalur Prestasi yang memakainya, sedangkan
+// Domisili, Afirmasi, dan Mutasi cukup dihitung dari lokasi dan kondisi. Jalur tidak dipilih orang tua di awal,
+// karena kebingungan memilih jalur justru masalah yang diselesaikan SiPesek; mesin menilai semua jalur yang terbuka.
+type Phase = "nisn" | "isian" | "nilai" | "hasil";
 type Props = { loggedIn: boolean; canSave: boolean; parentName?: string };
 
 const EMPTY: QuickCheckInput = {
@@ -46,12 +49,14 @@ const EMPTY: QuickCheckInput = {
   kecamatan: "",
   lokasi: null,
 };
-const PHASE_NO: Record<Phase, number> = { nisn: 1, isian: 2, hasil: 3 };
+const PHASE_NO: Record<Phase, number> = { nisn: 1, isian: 2, nilai: 3, hasil: 4 };
 const PHASE_TITLE: Record<Phase, string> = {
   nisn: "Masukkan NISN anak",
-  isian: "Isi data anak",
+  isian: "Tempat tinggal dan kondisi anak",
+  nilai: "Nilai rapor (boleh dilewati)",
   hasil: "Hasil perkiraan",
 };
+const TANPA_NILAI = { nilai: EMPTY.nilai, tkaBin: null, tkaMtk: null, mapel: EMPTY.mapel } satisfies Partial<QuickCheckInput>;
 const dateText = () =>
   new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 const teksNilai = (v: number | null) => (v === null ? "" : String(v).replace(".", ","));
@@ -75,7 +80,6 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("nisn");
   const [input, setInput] = useState<QuickCheckInput>(EMPTY);
-  const [jenjang, setJenjang] = useState<QuickCheckInput["jenjang"]>(EMPTY.jenjang);
   const [lokasi, setLokasi] = useState<Titik | null>(null);
   const [result, setResult] = useState<ResponsPeluang | null>(null);
   const [error, setError] = useState("");
@@ -111,17 +115,15 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     setPhase("isian");
   }
 
-  async function submitIsian() {
+  /** Isian langkah 2 (tempat tinggal dan kondisi). Nilai yang sudah diisi sebelumnya tetap disimpan. */
+  function submitIsian() {
     const form = document.getElementById("isian-form") as HTMLFormElement | null;
-    if (!form || mengirim.current) return;
+    if (!form) return;
     const data = new FormData(form);
     const text = (k: string) => String(data.get(k) ?? "");
     const next: QuickCheckInput = {
+      ...input,
       jenjang: text("jenjang") as QuickCheckInput["jenjang"],
-      nilai: Array.from({ length: SEMESTER_COUNT }, (_, i) => angkaAtauNull(text(`nilai-${i + 1}`))),
-      tkaBin: angkaAtauNull(text("tka-bin")),
-      tkaMtk: angkaAtauNull(text("tka-mtk")),
-      mapel: Object.fromEntries(MAPEL.map(([k]) => [k, angkaAtauNull(text(`mapel-${k}`))])) as QuickCheckInput["mapel"],
       ketm: text("ketm") as QuickCheckInput["ketm"],
       disabilitas: data.get("disabilitas") === "ya",
       pindahTugas: data.get("pindah-tugas") === "ya",
@@ -130,10 +132,43 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     };
     setInput(next);
     setError("");
-    setBatas(null);
     const invalid = validateInput(next);
     if (invalid) return setError(invalid);
     if (!lokasi) return setError("Tandai titik rumah di peta, atau tekan Gunakan lokasi saya. Jarak ke sekolah dihitung dari titik ini.");
+    setPhase("nilai");
+  }
+
+  /** Nilai dari formulir langkah 3, digabung dengan isian langkah 2. */
+  function bacaNilai(): QuickCheckInput {
+    const form = document.getElementById("nilai-form") as HTMLFormElement | null;
+    if (!form) return input;
+    const data = new FormData(form);
+    const text = (k: string) => String(data.get(k) ?? "");
+    return {
+      ...input,
+      nilai: Array.from({ length: SEMESTER_COUNT }, (_, i) => angkaAtauNull(text(`nilai-${i + 1}`))),
+      tkaBin: angkaAtauNull(text("tka-bin")),
+      tkaMtk: angkaAtauNull(text("tka-mtk")),
+      mapel: Object.fromEntries(MAPEL.map(([k]) => [k, angkaAtauNull(text(`mapel-${k}`))])) as QuickCheckInput["mapel"],
+    };
+  }
+
+  function kembaliKeIsian() {
+    setInput(bacaNilai());
+    setError("");
+    setBatas(null);
+    setPhase("isian");
+  }
+
+  /** Langkah 3: hitung dengan nilai yang diisi, atau tanpa nilai bila orang tua menekan Lewati. */
+  async function hitung(lewati: boolean) {
+    if (mengirim.current || !lokasi) return;
+    const next = lewati ? { ...input, ...TANPA_NILAI } : bacaNilai();
+    setInput(next);
+    setError("");
+    setBatas(null);
+    const invalid = validateInput(next);
+    if (invalid) return setError(invalid);
 
     mengirim.current = true;
     setBusy(true);
@@ -166,17 +201,22 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   function restart() {
     nisn.current = "";
     setInput(EMPTY);
-    setJenjang(EMPTY.jenjang);
     setLokasi(null);
     setResult(null);
     setError("");
     setPhase("nisn");
   }
 
+  const pesanGalat = error && (
+    <Alert kind="danger" title="Belum bisa dihitung">
+      {error}
+    </Alert>
+  );
+
   return (
     <div className="quick">
       <div className="no-print">
-        <Stepper step={PHASE_NO[phase]} total={3} />
+        <Stepper step={PHASE_NO[phase]} total={4} />
       </div>
       <div ref={focusRef} tabIndex={-1} className="quick__focus">
         <h1 className="text-heading-lg quick__title">{PHASE_TITLE[phase]}</h1>
@@ -232,22 +272,17 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
       {phase === "isian" && (
         <div className="card quick__card">
           <Form id="isian-form" onValid={submitIsian}>
-            <div onChange={(e: ChangeEvent<HTMLDivElement>) => {
-              const t = e.target as unknown as HTMLInputElement;
-              if (t.name === "jenjang") setJenjang(t.value as QuickCheckInput["jenjang"]);
-            }}>
-              <ChoiceGroup legend="Jenjang tujuan" errorName="jenjang">
-                {(
-                  [
-                    ["sma", "SMA"],
-                    ["smk", "SMK"],
-                    ["belum", "Belum tahu"],
-                  ] as const
-                ).map(([value, title]) => (
-                  <Choice key={value} type="radio" name="jenjang" value={value} title={title} checked={input.jenjang === value} required errorRequired="Pilih jenjang tujuan." />
-                ))}
-              </ChoiceGroup>
-            </div>
+            <ChoiceGroup legend="Jenjang tujuan" errorName="jenjang">
+              {(
+                [
+                  ["sma", "SMA"],
+                  ["smk", "SMK"],
+                  ["belum", "Belum tahu"],
+                ] as const
+              ).map(([value, title]) => (
+                <Choice key={value} type="radio" name="jenjang" value={value} title={title} checked={input.jenjang === value} required errorRequired="Pilih jenjang tujuan." />
+              ))}
+            </ChoiceGroup>
 
             <Select
               id="kecamatan"
@@ -260,45 +295,6 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               errorRequired="Pilih kecamatan sesuai Kartu Keluarga."
             />
             <HomePicker value={lokasi} onChange={setLokasi} />
-
-            <fieldset className="quick__nilai">
-              <legend className="choice-group__legend">Rata-rata nilai rapor per semester</legend>
-              <p>
-                <HelpLink opens="dlg-rapor-cepat">Di mana nilai ada di rapor?</HelpLink>
-              </p>
-              {Array.from({ length: SEMESTER_COUNT }, (_, i) => (
-                <Field
-                  key={i}
-                  id={`nilai-${i + 1}`}
-                  label={`Semester ${i + 1}`}
-                  optional
-                  placeholder="Contoh: 85,5"
-                  errorPattern="Nilai ditulis dengan angka, misalnya 85,5."
-                  inputMode="decimal"
-                  pattern="[0-9]{1,3}([,.][0-9]{1,2})?"
-                  defaultValue={teksNilai(input.nilai[i])}
-                />
-              ))}
-            </fieldset>
-
-            {jenjang !== "smk" && (
-              <fieldset className="quick__nilai">
-                <legend className="choice-group__legend">Nilai TKA (untuk Jalur Prestasi SMA)</legend>
-                <p className="field__hint">Boleh dikosongkan bila belum ada. Tanpa TKA, Jalur Prestasi SMA belum bisa dihitung.</p>
-                <Field id="tka-bin" label="TKA Bahasa Indonesia" optional placeholder="Contoh: 78" inputMode="decimal" pattern="[0-9]{1,3}([,.][0-9]{1,2})?" errorPattern="Nilai ditulis dengan angka, misalnya 78." defaultValue={teksNilai(input.tkaBin)} />
-                <Field id="tka-mtk" label="TKA Matematika" optional placeholder="Contoh: 72,5" inputMode="decimal" pattern="[0-9]{1,3}([,.][0-9]{1,2})?" errorPattern="Nilai ditulis dengan angka, misalnya 72,5." defaultValue={teksNilai(input.tkaMtk)} />
-              </fieldset>
-            )}
-
-            {jenjang !== "sma" && (
-              <fieldset className="quick__nilai">
-                <legend className="choice-group__legend">Rata-rata 5 mapel selama 5 semester (untuk Kelas Industri SMK)</legend>
-                <p className="field__hint">Boleh dikosongkan. Isi kelimanya agar jalur Kelas Industri SMK bisa dihitung.</p>
-                {MAPEL.map(([k, label]) => (
-                  <Field key={k} id={`mapel-${k}`} label={label} optional placeholder="Contoh: 84" inputMode="decimal" pattern="[0-9]{1,3}([,.][0-9]{1,2})?" errorPattern="Nilai ditulis dengan angka, misalnya 84." defaultValue={teksNilai(input.mapel[k])} />
-                ))}
-              </fieldset>
-            )}
 
             <ChoiceGroup
               legend="Apakah keluarga termasuk kurang mampu (KETM)?"
@@ -320,11 +316,72 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               <Choice type="checkbox" name="pindah-tugas" value="ya" title="Orang tua pindah tugas ke Depok" desc="Membuka Jalur Mutasi. Perlu surat penugasan dari instansi." checked={input.pindahTugas} />
             </ChoiceGroup>
 
-            {error && (
-              <Alert kind="danger" title="Belum bisa dihitung">
-                {error}
-              </Alert>
+            {pesanGalat}
+            <ButtonGroup>
+              <Button variant="primary" block type="submit" icon="arrow-right">
+                Lanjut
+              </Button>
+              <Button variant="secondary" block iconLeft="chevron-left" onClick={() => setPhase("nisn")}>
+                Kembali
+              </Button>
+            </ButtonGroup>
+          </Form>
+          <Dialog id="dlg-ketm-cepat" title="Apa itu KETM?">
+            <p>
+              KETM adalah Keluarga Ekonomi Tidak Mampu. Syarat Jalur Afirmasi adalah terdaftar di DTSEN (Data Tunggal Sosial dan Ekonomi Nasional) pada desil 1 sampai 5. Keluarga ini biasanya juga menerima PKH atau KIP. Bila belum yakin, pilih Belum yakin.
+            </p>
+          </Dialog>
+        </div>
+      )}
+
+      {phase === "nilai" && (
+        <div className="card quick__card">
+          <Form id="nilai-form" onValid={() => hitung(false)}>
+            <Alert kind="info" title="Langkah ini boleh dilewati">
+              Nilai hanya dipakai untuk Jalur Prestasi. Bila dilewati, hasil tetap menampilkan jalur lain yang terbuka untuk anak,
+              seperti Jalur Domisili. Peluang Jalur Prestasi baru bisa dihitung bila nilai diisi.
+            </Alert>
+
+            <fieldset className="quick__nilai">
+              <legend className="choice-group__legend">Rata-rata nilai rapor per semester</legend>
+              <p>
+                <HelpLink opens="dlg-rapor-cepat">Di mana nilai ada di rapor?</HelpLink>
+              </p>
+              {Array.from({ length: SEMESTER_COUNT }, (_, i) => (
+                <Field
+                  key={i}
+                  id={`nilai-${i + 1}`}
+                  label={`Semester ${i + 1}`}
+                  optional
+                  placeholder="Contoh: 85,5"
+                  errorPattern="Nilai ditulis dengan angka, misalnya 85,5."
+                  inputMode="decimal"
+                  pattern="[0-9]{1,3}([,.][0-9]{1,2})?"
+                  defaultValue={teksNilai(input.nilai[i])}
+                />
+              ))}
+            </fieldset>
+
+            {input.jenjang !== "smk" && (
+              <fieldset className="quick__nilai">
+                <legend className="choice-group__legend">Nilai TKA (untuk Jalur Prestasi SMA)</legend>
+                <p className="field__hint">Boleh dikosongkan bila belum ada. Tanpa TKA, Jalur Prestasi SMA belum bisa dihitung.</p>
+                <Field id="tka-bin" label="TKA Bahasa Indonesia" optional placeholder="Contoh: 78" inputMode="decimal" pattern="[0-9]{1,3}([,.][0-9]{1,2})?" errorPattern="Nilai ditulis dengan angka, misalnya 78." defaultValue={teksNilai(input.tkaBin)} />
+                <Field id="tka-mtk" label="TKA Matematika" optional placeholder="Contoh: 72,5" inputMode="decimal" pattern="[0-9]{1,3}([,.][0-9]{1,2})?" errorPattern="Nilai ditulis dengan angka, misalnya 72,5." defaultValue={teksNilai(input.tkaMtk)} />
+              </fieldset>
             )}
+
+            {input.jenjang !== "sma" && (
+              <fieldset className="quick__nilai">
+                <legend className="choice-group__legend">Rata-rata 5 mapel selama 5 semester (untuk Kelas Industri SMK)</legend>
+                <p className="field__hint">Boleh dikosongkan. Isi kelimanya agar jalur Kelas Industri SMK bisa dihitung.</p>
+                {MAPEL.map(([k, label]) => (
+                  <Field key={k} id={`mapel-${k}`} label={label} optional placeholder="Contoh: 84" inputMode="decimal" pattern="[0-9]{1,3}([,.][0-9]{1,2})?" errorPattern="Nilai ditulis dengan angka, misalnya 84." defaultValue={teksNilai(input.mapel[k])} />
+                ))}
+              </fieldset>
+            )}
+
+            {pesanGalat}
             {batas && (
               <Alert
                 kind="info"
@@ -343,7 +400,10 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               <Button variant="primary" block type="submit" icon="arrow-right">
                 {busy ? "Menghitung…" : "Lihat Hasil"}
               </Button>
-              <Button variant="secondary" block iconLeft="chevron-left" onClick={() => setPhase("nisn")}>
+              <Button variant="secondary" block icon="arrow-right" onClick={() => hitung(true)}>
+                Lewati, lihat hasil tanpa nilai
+              </Button>
+              <Button variant="ghost" block iconLeft="chevron-left" onClick={kembaliKeIsian}>
                 Kembali
               </Button>
             </ButtonGroup>
@@ -351,11 +411,6 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
           <Dialog id="dlg-rapor-cepat" title="Di mana nilai ada di rapor?">
             <p>
               Buka halaman terakhir rapor tiap semester, lalu cari baris <strong>Nilai rata-rata</strong>. Tulis angkanya apa adanya, misalnya 85,5. Semester yang belum ada boleh dikosongkan.
-            </p>
-          </Dialog>
-          <Dialog id="dlg-ketm-cepat" title="Apa itu KETM?">
-            <p>
-              KETM adalah Keluarga Ekonomi Tidak Mampu. Syarat Jalur Afirmasi adalah terdaftar di DTSEN (Data Tunggal Sosial dan Ekonomi Nasional) pada desil 1 sampai 5. Keluarga ini biasanya juga menerima PKH atau KIP. Bila belum yakin, pilih Belum yakin.
             </p>
           </Dialog>
         </div>
