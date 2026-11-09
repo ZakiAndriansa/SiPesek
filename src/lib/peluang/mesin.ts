@@ -80,7 +80,7 @@ function berlaku(s: StatistikMesin, sekolah: SekolahMesin, p: PermintaanPeluang,
     case "DOMISILI":
       // SMA memakai rayon (juknis 2026). SMK tidak memakai rayon.
       if (sekolah.jenjang === "SMK") return true;
-      return sekolah.rayonKode !== null && (data.rayon.get(sekolah.rayonKode)?.has(p.kecamatan) ?? false);
+      return sekolah.rayonKode !== null && !!p.kecamatan && (data.rayon.get(sekolah.rayonKode)?.has(p.kecamatan) ?? false);
     case "AFIRMASI_KETM":
       return p.kondisi.ketm;
     case "AFIRMASI_MBK":
@@ -131,6 +131,7 @@ function nilaiJalur(
   }
 
   if (s.metrik === "JARAK_METER") {
+    if (!p.lokasi) return tidakDihitung("Titik rumah belum diisi, jadi jarak ke sekolah belum bisa dihitung.");
     if (jarak === null) return tidakDihitung(`Lokasi ${sekolah.nama} belum tercatat, jadi jaraknya belum bisa dihitung.`);
     const label = labelJarak(jarak, s);
     return {
@@ -165,8 +166,10 @@ function nilaiJalur(
 const cocokJenjang = (j: Jenjang, minat: PermintaanPeluang["jenjang"]) => minat === "SEMUA" || minat === j;
 
 export function hitungPeluang(p: PermintaanPeluang, data: DataMesin): HasilMesin {
+  // Tanpa titik rumah, semua jarak null: jalur jarak belum dihitung dan daftar swasta terdekat kosong.
+  const rumah = p.lokasi;
   const jarakKe = (s: SekolahMesin) =>
-    s.lat !== null && s.lng !== null ? jarakMeter(p.lokasi, { lat: s.lat, lng: s.lng }) : null;
+    rumah && s.lat !== null && s.lng !== null ? jarakMeter(rumah, { lat: s.lat, lng: s.lng }) : null;
 
   const hasil: HasilSekolah[] = [];
   for (const sekolah of data.sekolah) {

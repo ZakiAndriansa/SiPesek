@@ -71,9 +71,16 @@ export type PermintaanPeluang = {
   /** Wajib di mode tamu: hanya diperiksa (10 digit, kewajaran tahun lahir), tidak disimpan. */
   nisn?: string;
   jenjang: Jenjang | "SEMUA";
-  lokasi: { lat: number; lng: number };
-  /** Kecamatan sesuai KK: salah satu KECAMATAN_DEPOK, KECAMATAN_IRISAN_LUAR, atau "Lainnya". */
-  kecamatan: string;
+  /**
+   * Titik rumah, untuk jarak ke sekolah. Opsional: tanpa titik, jalur berbasis jarak (Domisili, Afirmasi, Mutasi)
+   * belum bisa dihitung, jarak tidak ditampilkan, dan daftar swasta terdekat kosong. Jalur Prestasi tetap dihitung.
+   */
+  lokasi?: { lat: number; lng: number };
+  /**
+   * Kecamatan sesuai KK: salah satu KECAMATAN_DEPOK, KECAMATAN_IRISAN_LUAR, atau "Lainnya". Hanya dipakai untuk
+   * rayon Jalur Domisili SMA; tanpa kecamatan, Domisili SMA tidak terbuka. Opsional untuk jalur lain.
+   */
+  kecamatan?: string;
   kondisi: {
     ketm: boolean;
     disabilitas: boolean;

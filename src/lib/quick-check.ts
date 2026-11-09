@@ -79,7 +79,8 @@ export function validateInput(input: unknown): string | null {
   if (!i || typeof i !== "object") return "Isian tidak terbaca. Coba isi ulang.";
   if (!JENJANG.includes(i.jenjang as never)) return "Pilih jenjang tujuan.";
   if (!KETM.includes(i.ketm as never)) return "Pilih jawaban untuk kondisi keluarga.";
-  if (!i.kecamatan || !KECAMATAN_KK.includes(i.kecamatan)) return "Pilih kecamatan sesuai Kartu Keluarga.";
+  // Kecamatan boleh kosong (hanya diminta untuk Domisili dan jalan "belum tahu"; formulirnya yang mewajibkan).
+  if (i.kecamatan && !KECAMATAN_KK.includes(i.kecamatan)) return "Pilih kecamatan sesuai Kartu Keluarga.";
   if (i.lokasi != null && !diWilayah(i.lokasi)) return "Titik rumah di luar Depok dan sekitarnya. Tandai ulang di peta.";
   if (!Array.isArray(i.nilai) || i.nilai.length !== SEMESTER_COUNT) return "Nilai semester tidak terbaca.";
   if (!i.nilai.every(nilaiSah) || !nilaiSah(i.tkaBin ?? null) || !nilaiSah(i.tkaMtk ?? null)) return PESAN_NILAI;
@@ -91,7 +92,7 @@ const rata = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 const isi = (xs: (number | null)[]) => xs.filter((v): v is number => v !== null);
 
 /** Isian Cek Cepat ke permintaan POST /api/peluang mode tamu. */
-export function toRequest(input: QuickCheckInput, nisn: string, lokasi: Titik): PermintaanPeluang {
+export function toRequest(input: QuickCheckInput, nisn: string, lokasi: Titik | null): PermintaanPeluang {
   const semester = isi(input.nilai);
   const mapel = MAPEL.map(([k]) => input.mapel[k]);
   const nilai: NonNullable<PermintaanPeluang["nilai"]> = {};
@@ -104,8 +105,8 @@ export function toRequest(input: QuickCheckInput, nisn: string, lokasi: Titik): 
   return {
     nisn,
     jenjang: input.jenjang === "sma" ? "SMA" : input.jenjang === "smk" ? "SMK" : "SEMUA",
-    lokasi,
-    kecamatan: input.kecamatan,
+    ...(lokasi ? { lokasi } : {}),
+    ...(input.kecamatan ? { kecamatan: input.kecamatan } : {}),
     kondisi: { ketm: input.ketm === "ya", disabilitas: input.disabilitas, anakGuruSekolahId: null, pindahTugas: input.pindahTugas },
     nilai,
   };
@@ -182,7 +183,8 @@ const NILAI_KOSONG = {
  * bercampur dengan isian dari jalur lain yang sempat dicoba. Prestasi tetap memakai nilai; jalur lain tidak.
  */
 export function isianUntukJalur(input: QuickCheckInput, jalur: JalurPilihan): QuickCheckInput {
-  const dasar: QuickCheckInput = { ...input, ketm: "tidak", disabilitas: false, pindahTugas: false };
+  // Kecamatan hanya dipakai rayon Domisili SMA, jadi jalur lain tidak mengirimnya.
+  const dasar: QuickCheckInput = { ...input, kecamatan: jalur === "DOMISILI" ? input.kecamatan : "", ketm: "tidak", disabilitas: false, pindahTugas: false };
   switch (jalur) {
     case "DOMISILI":
       return { ...dasar, ...NILAI_KOSONG };
@@ -329,6 +331,9 @@ export function ringkasan(hasil: HasilSekolah[]): Ringkasan {
 export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput | null): string[] {
   const catatan: string[] = [];
   if (r.nisnLazim === false) catatan.push("NISN ini tidak lazim untuk calon siswa SMA atau SMK. Pastikan NISN sudah benar di situs resmi.");
+  if (input && !input.lokasi) {
+    catatan.push("Titik rumah tidak diisi, jadi jarak ke sekolah dan sekolah swasta terdekat tidak ditampilkan.");
+  }
   const semester = isi(input?.nilai ?? []).length;
   if (semester > 0 && semester < SEMESTER_COUNT) {
     catatan.push(`Rata-rata rapor dihitung dari ${semester} semester yang diisi. Lengkapi 5 semester agar perkiraan Jalur Prestasi lebih tepat.`);

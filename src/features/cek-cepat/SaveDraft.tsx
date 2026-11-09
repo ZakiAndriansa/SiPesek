@@ -36,7 +36,7 @@ export function SaveDraft() {
   }, []);
 
   if (draft === undefined) return null;
-  if (!draft || !draft.input.lokasi) {
+  if (!draft) {
     return (
       <Alert
         kind="info"
@@ -53,7 +53,7 @@ export function SaveDraft() {
     );
   }
   const { input, nisn } = draft;
-  const lokasi = draft.input.lokasi;
+  const lokasi = draft.input.lokasi ?? null;
   const semester = input.nilai.filter((v) => v !== null).length;
 
   async function submit() {
@@ -119,7 +119,7 @@ export function SaveDraft() {
       <ul className="quick__summary">
         <li>NISN berakhiran {nisn.slice(-3)}</li>
         <li>Jenjang tujuan: {JENJANG[input.jenjang]}</li>
-        <li>Kecamatan sesuai KK: {input.kecamatan}</li>
+        {input.kecamatan && <li>Kecamatan sesuai KK: {input.kecamatan}</li>}
         <li>Kondisi keluarga: {KETM[input.ketm]}</li>
         <li>Hasil peluang di tiap sekolah beserta skor akhirnya</li>
       </ul>

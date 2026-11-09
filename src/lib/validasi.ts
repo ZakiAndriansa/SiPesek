@@ -29,8 +29,9 @@ export const skemaPermintaanPeluang = z.object({
   anakId: z.number().int().positive().optional(),
   nisn: z.string().trim().max(20).optional(),
   jenjang: z.enum(["SMA", "SMK", "SEMUA"]),
-  lokasi: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
-  kecamatan: z.string().min(1).max(60),
+  // Opsional: Cek Cepat Jalur Prestasi boleh tanpa titik rumah, dan kecamatan hanya dipakai rayon Domisili SMA.
+  lokasi: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }).optional(),
+  kecamatan: z.string().min(1).max(60).optional(),
   kondisi: z.object({
     ketm: z.boolean(),
     disabilitas: z.boolean(),

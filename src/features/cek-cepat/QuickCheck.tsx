@@ -224,7 +224,10 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     setBatas(null);
     const invalid = validateInput(next);
     if (invalid) return setError(invalid);
-    if (!lokasi) return setError("Tandai titik rumah di peta, atau tekan Gunakan lokasi saya. Jarak ke sekolah dihitung dari titik ini.");
+    // Titik rumah wajib, kecuali Jalur Prestasi yang diurutkan dari skor.
+    if (!lokasi && jalur !== "PRESTASI") {
+      return setError("Tandai titik rumah di peta, atau tekan Gunakan lokasi saya. Jarak ke sekolah dihitung dari titik ini.");
+    }
     if (jalur === null) return setPhase("nilai");
     const kurang = kurangUntukJalur(next, jalur);
     if (kurang) return setError(kurang);
@@ -257,7 +260,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   }
 
   async function hitung(dikirim: QuickCheckInput) {
-    if (mengirim.current || !lokasi) return;
+    if (mengirim.current) return;
     mengirim.current = true;
     setBusy(true);
     try {
@@ -575,6 +578,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               </ChoiceGroup>
             </div>
 
+            {/* Kecamatan hanya dipakai rayon Domisili SMA: diminta untuk Domisili dan jalan "belum tahu". */}
+            {(jalur === null || jalur === "DOMISILI") && (
             <Select
               id="kecamatan"
               label="Kecamatan sesuai Kartu Keluarga"
@@ -585,7 +590,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               required
               errorRequired="Pilih kecamatan sesuai Kartu Keluarga."
             />
-            <HomePicker value={lokasi} onChange={setLokasi} />
+            )}
+            <HomePicker value={lokasi} onChange={setLokasi} opsional={jalur === "PRESTASI"} />
 
             {jalur === null && (
               <>

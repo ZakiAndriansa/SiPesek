@@ -215,7 +215,7 @@ function DataIsian({ input }: { input: QuickCheckInput }) {
             <th>Jenjang tujuan</th>
             <td>{JENJANG[input.jenjang]}</td>
             <th>Kecamatan sesuai KK</th>
-            <td>{input.kecamatan}</td>
+            <td>{input.kecamatan || "Tidak diisi"}</td>
           </tr>
           <tr>
             <th>Rata-rata rapor</th>

@@ -131,6 +131,32 @@ describe("mesin peluang: jalur skor dan aturan lain", () => {
   });
 });
 
+describe("mesin peluang: tanpa titik rumah atau kecamatan", () => {
+  it("tetap menghitung Jalur Prestasi tanpa titik rumah, tanpa jarak dan tanpa swasta terdekat", () => {
+    const r = hitungPeluang(minta({ lokasi: undefined, nilai: { rataRapor: 90, tkaBin: 80, tkaMtk: 75 } }), data);
+    const sman9 = r.hasil.find((h) => h.sekolah.id === 9);
+    expect(sman9?.jarakMeter).toBeNull();
+    expect(sman9?.jalur.find((j) => j.subJalurKode === "PRESTASI_AKD_RAPOR")).toMatchObject({ nilaiAnak: 302.5, label: "MASIH_MUNGKIN" });
+    // Domisili belum terhitung, jadi tersembunyi di balik jalur Prestasi yang terhitung.
+    expect(sman9?.jalur.find((j) => j.subJalurKode === "DOMISILI")).toBeUndefined();
+    expect(r.swasta).toEqual({ SMA: [], SMK: [] });
+  });
+
+  it("menyebut titik rumah yang kosong sebagai alasan jalur jarak belum dihitung", () => {
+    const [domisili] = jalurSman9(minta({ lokasi: undefined }));
+    expect(domisili).toMatchObject({ subJalurKode: "DOMISILI", label: "TIDAK_DIHITUNG" });
+    expect(domisili.kalimat).toMatch(/Titik rumah belum diisi/);
+  });
+
+  it("tidak membuka Domisili SMA tanpa kecamatan, tetapi tetap membuka Afirmasi", () => {
+    const disabilitas = { ketm: false, disabilitas: true, anakGuruSekolahId: null, pindahTugas: false };
+    const jalur = jalurSman9(minta({ kecamatan: undefined, kondisi: disabilitas }));
+    expect(jalur.find((j) => j.subJalurKode === "DOMISILI")).toBeUndefined();
+    // Afirmasi tidak memakai rayon, jadi tetap terbuka (di data uji: terlalu sedikit diterima untuk diberi label).
+    expect(jalur.find((j) => j.subJalurKode === "AFIRMASI_MBK")).toBeDefined();
+  });
+});
+
 describe("rumus skor juknis 2026 dengan nilai sempurna", () => {
   const nilai = { rataRapor: 100, tkaBin: 100, tkaMtk: 100, mapel: { bin: 100, mtk: 100, ipa: 100, ips: 100, bing: 100 } };
   it("SMA rapor = 350, SMK rapor = 500, kelas industri = 1.100", () => {

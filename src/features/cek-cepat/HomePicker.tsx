@@ -16,7 +16,16 @@ const PetaRumah = dynamic(() => import("./PetaRumah"), {
  * Penanda titik rumah. Titik hanya disimpan di state (memori tab) dan dikirim ke server SiPesek saat
  * menghitung, lalu dibuang. Peta memakai ubin OpenStreetMap; titik rumah tidak pernah dikirim ke sana.
  */
-export function HomePicker({ value, onChange }: { value: Titik | null; onChange: (p: Titik | null) => void }) {
+export function HomePicker({
+  value,
+  onChange,
+  opsional = false,
+}: {
+  value: Titik | null;
+  onChange: (p: Titik | null) => void;
+  /** Titik rumah boleh dilewati (Jalur Prestasi): hanya untuk jarak dan sekolah swasta terdekat. */
+  opsional?: boolean;
+}) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [sekolah, setSekolah] = useState<SekolahPeta[]>([]);
@@ -80,7 +89,15 @@ export function HomePicker({ value, onChange }: { value: Titik | null; onChange:
   return (
     <div className="stack quick__picker">
       <div className="quick__picker-head">
-        <h3 className="field__label">Titik rumah</h3>
+        <h3 className="field__label">
+          Titik rumah{opsional && <span className="field__optional"> (boleh dikosongkan)</span>}
+        </h3>
+        {opsional && (
+          <p className="field__hint">
+            Jalur Prestasi diurutkan dari skor, bukan jarak. Titik rumah hanya dipakai untuk menampilkan jarak ke sekolah dan
+            sekolah swasta terdekat sebagai cadangan.
+          </p>
+        )}
         <p className="field__hint" id="peta-hint">
           Ketuk lokasi rumah di peta, atau pakai lokasi HP saat berada di rumah. Dengan keyboard: fokuskan peta, geser dengan
           tombol panah, lalu tekan &quot;Tandai titik di tengah peta&quot;. Titik rumah hanya dipakai untuk menghitung jarak dan
