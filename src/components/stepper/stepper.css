@@ -64,3 +64,53 @@
   transform-origin: left;
   animation: grow-x var(--duration-slow) var(--ease-out) both;
 }
+
+/* Bar yang bisa diklik: tiap segmen dibungkus area ketuk setinggi 1,5rem agar mudah disentuh di HP,
+   tanpa mengubah tebal bar yang terlihat. */
+.stepper__bar--klik {
+  margin: calc(var(--space-2) * -1) 0;
+}
+
+.stepper__item {
+  display: block;
+  min-width: 0;
+}
+
+.stepper__tombol,
+.stepper__diam {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: none;
+}
+
+.stepper__tombol {
+  cursor: pointer;
+}
+
+.stepper__tombol .stepper__segment,
+.stepper__diam .stepper__segment {
+  display: block;
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+/* Langkah di depan yang sudah pernah dicapai: oranye pudar, tanda bisa dibuka lagi. */
+.stepper__tombol--maju .stepper__segment {
+  background: var(--color-primary);
+  opacity: 0.35;
+}
+
+.stepper__tombol:hover .stepper__segment {
+  background: var(--color-primary-text);
+  opacity: 1;
+  transform: scaleY(1.6);
+}
+
+.stepper__tombol:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

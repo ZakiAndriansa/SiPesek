@@ -65,6 +65,8 @@ const PILIHAN_JALUR: [JalurPilihan, string, string][] = [
   ["MUTASI", "Mutasi (orang tua pindah tugas)", "Untuk anak yang orang tuanya pindah tugas ke Depok, dengan surat penugasan."],
 ];
 const NAMA_JALUR = Object.fromEntries(JALUR_UTAMA) as Record<JalurPilihan, string>;
+/** Nama singkat tiap langkah untuk bar langkah (tooltip dan pembaca layar). */
+const NAMA_LANGKAH: Record<Phase, string> = { nisn: "NISN", jalur: "Jalur", isian: "Data anak", nilai: "Nilai rapor", hasil: "Hasil" };
 
 const dateText = () =>
   new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -98,7 +100,7 @@ function jamCobaLagi(res: Response): string | null {
  */
 export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const router = useRouter();
-  const [phase, setPhase] = useState<Phase>("jalur");
+  const [phase, setPhase] = useState<Phase>("nisn");
   // Jalur pilihan orang tua; null berarti belum tahu, sehingga semua jalur dinilai.
   const [jalur, setJalur] = useState<JalurPilihan | null>(null);
   // Jawaban "sudah tahu jalur?" di langkah 1, agar daftar empat jalur muncul begitu "Sudah tahu" dipilih.
@@ -115,16 +117,22 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const [busy, setBusy] = useState(false);
   const [leaving, setLeaving] = useState(false);
   // NISN hanya di memori tab: dikirim untuk diperiksa server, dan ikut draf simpan bila orang tua menekan Simpan.
-  const nisn = useRef("");
+  const [nisnAnak, setNisnAnak] = useState("");
   const focusRef = useRef<HTMLDivElement>(null);
   const first = useRef(true);
   // Penjaga klik ganda: state `busy` baru berubah setelah render, jadi dua klik cepat bisa sama-sama lolos.
   const mengirim = useRef(false);
+  // Langkah terjauh yang sudah dicapai (indeks di `urutan`): bar langkah boleh dibuka sampai sini.
+  const [terjauh, setTerjauh] = useState(0);
+  // Sidik isian yang menghasilkan `result`. Langkah Hasil hanya bisa dibuka lagi bila isiannya belum berubah,
+  // agar hasil yang tampil tidak pernah berasal dari isian lama.
+  const [kunciHasil, setKunciHasil] = useState<string | null>(null);
 
   // Nomor langkah: jalan "sudah tahu" tidak punya langkah nilai terpisah (Prestasi mengisi nilai di langkah isian).
-  // Di langkah pertama, jumlahnya langsung mengikuti jawaban yang sedang dipilih.
-  const jalanSingkat = phase === "jalur" ? tahu === "ya" : jalur !== null;
-  const urutan: Phase[] = jalanSingkat ? ["jalur", "nisn", "isian", "hasil"] : ["jalur", "nisn", "isian", "nilai", "hasil"];
+  // NISN diisi paling awal, agar pindah jalur (Ganti jalur, atau Cek semua jalur) tidak perlu mengetik NISN lagi.
+  // Sebelum jalur dipastikan, jumlah langkah langsung mengikuti jawaban yang sedang dipilih.
+  const jalanSingkat = phase === "nisn" || phase === "jalur" ? tahu === "ya" : jalur !== null;
+  const urutan: Phase[] = jalanSingkat ? ["nisn", "jalur", "isian", "hasil"] : ["nisn", "jalur", "isian", "nilai", "hasil"];
   const judul: Record<Phase, string> = {
     jalur: "Sudah tahu jalurnya?",
     nisn: "Masukkan NISN anak",
@@ -134,6 +142,12 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   };
   // Isian yang benar-benar dikirim: pada jalur pilihan, isian jalur lain dikosongkan.
   const isianEfektif = jalur ? isianUntukJalur(input, jalur) : input;
+  const kunciDari = (isian: QuickCheckInput, titik: Titik | null, n: string, j: JalurPilihan | null) =>
+    JSON.stringify([j ? isianUntukJalur(isian, j) : isian, titik, n, j]);
+
+  // Catat langkah terjauh yang pernah dibuka (disesuaikan saat render, pola yang dianjurkan React).
+  const indeksSekarang = urutan.indexOf(phase);
+  if (indeksSekarang > terjauh) setTerjauh(indeksSekarang);
 
   // Pindahkan fokus ke judul tiap pindah langkah (pembaca layar + keyboard).
   useEffect(() => {
@@ -154,24 +168,27 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     if (!form) return;
     const data = new FormData(form);
     const dipilih = data.get("tahu") === "ya" ? ((data.get("jalur") as JalurPilihan | null) ?? null) : null;
+    // Jalur berganti: langkah sesudahnya harus dilalui lagi lewat Lanjut.
+    if (dipilih !== jalur) setTerjauh(1);
     setJalur(dipilih);
     setAfirmasi(null);
     setError("");
-    setPhase("nisn");
+    setBatas(null);
+    setJenjang(input.jenjang);
+    setPhase("isian");
   }
 
   function submitNisn() {
     const value = document.querySelector<HTMLInputElement>("#nisn")?.value ?? "";
     if (!isValidNisn(value)) return;
-    nisn.current = value;
-    setJenjang(input.jenjang);
-    setPhase("isian");
+    setNisnAnak(value);
+    setPhase("jalur");
   }
 
-  /** Langkah isian: tempat tinggal, lalu kondisi atau nilai sesuai jalur. Isian lain yang sudah ada tetap disimpan. */
-  function submitIsian() {
+  /** Isian langkah isian tanpa validasi: tempat tinggal, lalu kondisi atau nilai sesuai jalur. */
+  function bacaIsian(): QuickCheckInput {
     const form = document.getElementById("isian-form") as HTMLFormElement | null;
-    if (!form) return;
+    if (!form) return input;
     const data = new FormData(form);
     const text = (k: string) => String(data.get(k) ?? "");
     const dasar: QuickCheckInput = {
@@ -196,6 +213,12 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     } else if (jalur === "PRESTASI") {
       next = { ...dasar, ...nilaiDari(data) };
     }
+    return next;
+  }
+
+  /** Langkah isian. Isian lain yang sudah ada tetap disimpan. */
+  function submitIsian() {
+    const next = bacaIsian();
     setInput(next);
     setError("");
     setBatas(null);
@@ -241,13 +264,14 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
       const res = await ambil("/api/peluang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toRequest(dikirim, nisn.current, lokasi)),
+        body: JSON.stringify(toRequest(dikirim, nisnAnak, lokasi)),
       });
       const body = await res.json().catch(() => null);
       if (res.status === 429 && !loggedIn) return setBatas({ pesan: body?.galat ?? "", jam: jamCobaLagi(res) });
       if (!res.ok) return setError(body?.galat ?? body?.pesan ?? "Hasil belum bisa dihitung. Coba lagi sebentar lagi.");
       const r = body as ResponsPeluang;
       setResult(jalur ? saringJalur(r, jalur) : r);
+      setKunciHasil(kunciDari(dikirim, lokasi, nisnAnak, jalur));
       setPhase("hasil");
     } catch (e) {
       setError(pesanGagal(e));
@@ -261,6 +285,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   function cekSemuaJalur() {
     setJalur(null);
     setTahu("belum");
+    setTerjauh(2);
     setResult(null);
     setError("");
     setBatas(null);
@@ -270,13 +295,13 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
 
   function save() {
     // Titik rumah ikut draf karena server menghitung ulang hasilnya saat menyimpan (titiknya tetap tidak disimpan).
-    setDraft({ input: { ...isianEfektif, lokasi }, nisn: nisn.current });
+    setDraft({ input: { ...isianEfektif, lokasi }, nisn: nisnAnak });
     setLeaving(true);
     router.push(canSave ? "/cek-cepat/simpan" : "/masuk?next=%2Fcek-cepat%2Fsimpan");
   }
 
   function restart() {
-    nisn.current = "";
+    setNisnAnak("");
     setInput(EMPTY);
     setJalur(null);
     setTahu(null);
@@ -285,7 +310,61 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     setResult(null);
     setError("");
     setBatas(null);
-    setPhase("jalur");
+    setTerjauh(0);
+    setKunciHasil(null);
+    setPhase("nisn");
+  }
+
+  /** Bar langkah: mundur ke langkah mana pun, maju hanya ke langkah yang sudah pernah dicapai. */
+  function bisaDibuka(nomor: number): boolean {
+    const tujuan = urutan[nomor - 1];
+    if (!tujuan || tujuan === phase) return false;
+    if (tujuan === "hasil") return result !== null && kunciHasil === kunciDari(input, lokasi, nisnAnak, jalur);
+    return nomor - 1 <= terjauh;
+  }
+
+  /**
+   * Pindah lewat bar langkah. Isian di langkah yang ditinggalkan disimpan tanpa validasi agar tidak hilang;
+   * validasi tetap terjadi saat menekan Lanjut atau Lihat Hasil. Bila isian berubah, Hasil tidak dibuka
+   * dan orang tua diminta menghitung ulang.
+   */
+  function pindahKeLangkah(nomor: number) {
+    let tujuan = urutan[nomor - 1];
+    if (!tujuan || !bisaDibuka(nomor)) return;
+    let isianBaru = input;
+    let nisnBaru = nisnAnak;
+    let jalurBaru = jalur;
+    if (phase === "nisn") {
+      const v = document.querySelector<HTMLInputElement>("#nisn")?.value ?? "";
+      if (isValidNisn(v)) nisnBaru = v;
+    } else if (phase === "isian") {
+      isianBaru = bacaIsian();
+    } else if (phase === "nilai") {
+      isianBaru = bacaNilai();
+    } else if (phase === "jalur") {
+      const form = document.getElementById("jalur-form") as HTMLFormElement | null;
+      const data = form ? new FormData(form) : null;
+      const jawab = data?.get("tahu");
+      const pilih = (data?.get("jalur") ?? null) as JalurPilihan | null;
+      // Jawaban jalur yang sudah lengkap ikut dipakai; bila jalurnya berubah, lanjut ke isian jalur itu.
+      if (jawab === "belum") jalurBaru = null;
+      else if (jawab === "ya" && pilih) jalurBaru = pilih;
+      if (jalurBaru !== jalur) {
+        setJalur(jalurBaru);
+        setAfirmasi(null);
+        setTerjauh(1);
+        if (nomor > 2) tujuan = "isian";
+      }
+    }
+    setNisnAnak(nisnBaru);
+    setInput(isianBaru);
+    setError("");
+    setBatas(null);
+    if (tujuan === "hasil" && kunciHasil !== kunciDari(isianBaru, lokasi, nisnBaru, jalurBaru)) {
+      return setError("Isian sudah berubah sejak hasil dihitung. Tekan Lihat Hasil untuk menghitung ulang.");
+    }
+    if (tujuan === "isian") setJenjang(isianBaru.jenjang);
+    setPhase(tujuan);
   }
 
   const pesanGalat = error && (
@@ -377,7 +456,13 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   return (
     <div className="quick">
       <div className="no-print">
-        <Stepper step={urutan.indexOf(phase) + 1} total={urutan.length} />
+        <Stepper
+          step={indeksSekarang + 1}
+          total={urutan.length}
+          labels={urutan.map((ph) => NAMA_LANGKAH[ph])}
+          bisaDibuka={bisaDibuka}
+          onPilih={pindahKeLangkah}
+        />
       </div>
       <div ref={focusRef} tabIndex={-1} className="quick__focus">
         <h1 className="text-heading-lg quick__title">{judul[phase]}</h1>
@@ -421,6 +506,9 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               <Button variant="primary" block type="submit" icon="arrow-right">
                 Lanjut
               </Button>
+              <Button variant="secondary" block iconLeft="chevron-left" onClick={() => setPhase("nisn")}>
+                Kembali
+              </Button>
             </ButtonGroup>
           </Form>
         </div>
@@ -441,6 +529,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               maxLength={10}
               autoComplete="off"
               placeholder="Contoh: 0012345678"
+              defaultValue={nisnAnak}
             />
             <ChoiceGroup legend="Sebelum mulai" errorName="mengerti">
               <Choice
@@ -451,15 +540,14 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
                 desc="NISN dan titik rumah dikirim ke server SiPesek hanya untuk dihitung, lalu dibuang. Tidak ada yang disimpan, kecuali Bapak/Ibu memilih menyimpan hasilnya ke akun."
                 required
                 errorRequired="Centang ini untuk melanjutkan."
+                checked={nisnAnak !== ""}
               />
             </ChoiceGroup>
             <ButtonGroup>
               <Button variant="primary" block type="submit" icon="arrow-right">
                 Lanjut
               </Button>
-              <Button variant="secondary" block iconLeft="chevron-left" onClick={() => setPhase("jalur")}>
-                Kembali
-              </Button>
+
             </ButtonGroup>
           </Form>
         </div>
@@ -566,7 +654,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
                   desc="Perlu surat penugasan dari instansi. Jalur Mutasi untuk anak guru belum bisa dicek di Cek Cepat."
                   checked={input.pindahTugas}
                   required
-                  errorRequired="Centang bila orang tua memang pindah tugas. Bila tidak, kembali dan pilih jalur lain."
+                  errorRequired="Centang bila orang tua memang pindah tugas. Bila tidak, tekan Ganti jalur."
                 />
               </ChoiceGroup>
             )}
@@ -579,8 +667,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               <Button variant="primary" block type="submit" icon="arrow-right">
                 {jalur === null ? "Lanjut" : busy ? "Menghitung…" : "Lihat Hasil"}
               </Button>
-              <Button variant="secondary" block iconLeft="chevron-left" onClick={() => setPhase("nisn")}>
-                Kembali
+              <Button variant="secondary" block iconLeft="chevron-left" onClick={() => setPhase("jalur")}>
+                Ganti jalur
               </Button>
             </ButtonGroup>
           </Form>
