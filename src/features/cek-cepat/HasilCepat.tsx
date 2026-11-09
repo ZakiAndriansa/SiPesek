@@ -97,7 +97,7 @@ export function HasilCepat({
           </Alert>
         )}
 
-        {catatanHasil(result, input).map((note) => (
+        {catatanHasil(result, input, jalurDipilih).map((note) => (
           <Alert key={note} kind="info">
             {note}
           </Alert>

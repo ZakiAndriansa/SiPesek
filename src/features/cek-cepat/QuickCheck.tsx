@@ -143,7 +143,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   // Isian yang benar-benar dikirim: pada jalur pilihan, isian jalur lain dikosongkan.
   const isianEfektif = jalur ? isianUntukJalur(input, jalur) : input;
   const kunciDari = (isian: QuickCheckInput, titik: Titik | null, n: string, j: JalurPilihan | null) =>
-    JSON.stringify([j ? isianUntukJalur(isian, j) : isian, titik, n, j]);
+    JSON.stringify([j ? isianUntukJalur(isian, j) : isian, j === "PRESTASI" ? null : titik, n, j]);
 
   // Catat langkah terjauh yang pernah dibuka (disesuaikan saat render, pola yang dianjurkan React).
   const indeksSekarang = urutan.indexOf(phase);
@@ -224,7 +224,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
     setBatas(null);
     const invalid = validateInput(next);
     if (invalid) return setError(invalid);
-    // Titik rumah wajib, kecuali Jalur Prestasi yang diurutkan dari skor.
+    // Titik rumah wajib, kecuali Jalur Prestasi yang tidak menanyakannya.
     if (!lokasi && jalur !== "PRESTASI") {
       return setError("Tandai titik rumah di peta, atau tekan Gunakan lokasi saya. Jarak ke sekolah dihitung dari titik ini.");
     }
@@ -267,7 +267,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
       const res = await ambil("/api/peluang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toRequest(dikirim, nisnAnak, lokasi)),
+        // Titik rumah ikut isian yang dikirim; Jalur Prestasi tidak pernah mengirimnya (lihat isianUntukJalur).
+        body: JSON.stringify(toRequest(dikirim, nisnAnak, dikirim.lokasi)),
       });
       const body = await res.json().catch(() => null);
       if (res.status === 429 && !loggedIn) return setBatas({ pesan: body?.galat ?? "", jam: jamCobaLagi(res) });
@@ -298,7 +299,7 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
 
   function save() {
     // Titik rumah ikut draf karena server menghitung ulang hasilnya saat menyimpan (titiknya tetap tidak disimpan).
-    setDraft({ input: { ...isianEfektif, lokasi }, nisn: nisnAnak });
+    setDraft({ input: { ...isianEfektif, lokasi: jalur === "PRESTASI" ? null : lokasi }, nisn: nisnAnak });
     setLeaving(true);
     router.push(canSave ? "/cek-cepat/simpan" : "/masuk?next=%2Fcek-cepat%2Fsimpan");
   }
@@ -591,7 +592,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
               errorRequired="Pilih kecamatan sesuai Kartu Keluarga."
             />
             )}
-            <HomePicker value={lokasi} onChange={setLokasi} opsional={jalur === "PRESTASI"} />
+            {/* Jalur Prestasi diurutkan dari skor, jadi tidak menanyakan titik rumah sama sekali. */}
+            {jalur !== "PRESTASI" && <HomePicker value={lokasi} onChange={setLokasi} />}
 
             {jalur === null && (
               <>

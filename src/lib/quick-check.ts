@@ -193,7 +193,8 @@ export function isianUntukJalur(input: QuickCheckInput, jalur: JalurPilihan): Qu
     case "MUTASI":
       return { ...dasar, ...NILAI_KOSONG, pindahTugas: true };
     case "PRESTASI":
-      return dasar;
+      // Diurutkan dari skor: titik rumah tidak ditanyakan dan tidak dikirim.
+      return { ...dasar, lokasi: null };
   }
 }
 
@@ -328,11 +329,15 @@ export function ringkasan(hasil: HasilSekolah[]): Ringkasan {
 }
 
 /** Catatan yang perlu diperhatikan di atas hasil (hanya bila ada). `input` null untuk hasil tersimpan. */
-export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput | null): string[] {
+export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput | null, jalur?: JalurPilihan | null): string[] {
   const catatan: string[] = [];
   if (r.nisnLazim === false) catatan.push("NISN ini tidak lazim untuk calon siswa SMA atau SMK. Pastikan NISN sudah benar di situs resmi.");
   if (input && !input.lokasi) {
-    catatan.push("Titik rumah tidak diisi, jadi jarak ke sekolah dan sekolah swasta terdekat tidak ditampilkan.");
+    catatan.push(
+      jalur === "PRESTASI"
+        ? "Jalur Prestasi diurutkan dari skor, jadi jarak ke sekolah tidak ditampilkan. Sekolah swasta terdekat muncul bila Bapak/Ibu mengecek semua jalur."
+        : "Titik rumah tidak diisi, jadi jarak ke sekolah dan sekolah swasta terdekat tidak ditampilkan.",
+    );
   }
   const semester = isi(input?.nilai ?? []).length;
   if (semester > 0 && semester < SEMESTER_COUNT) {
