@@ -256,6 +256,11 @@
   text-decoration: underline;
 }
 
+/* Ajakan di bawah hasil (simpan, masuk, cek anak lain): berjarak dari lipatan di atasnya. */
+.hasil-bawah {
+  margin-top: var(--space-8);
+}
+
 /* Bagian bertajuk di dalam hasil: 3 pilihan teratas dan sekolah lainnya. */
 .hasil-bagian {
   display: grid;
