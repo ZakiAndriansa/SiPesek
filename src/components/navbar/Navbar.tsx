@@ -458,7 +458,8 @@ export function FocusBar({
 }) {
   return (
     <header className="navbar navbar--focus">
-      <div className="navbar__inner">
+      {/* Dengan chip privasi (Cek Cepat), judul diletakkan tepat di tengah bar. */}
+      <div className={`navbar__inner${privasi ? " navbar__inner--tengah" : ""}`}>
         {brandHref ? (
           <Brand href={brandHref} />
         ) : (

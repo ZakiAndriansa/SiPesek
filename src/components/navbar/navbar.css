@@ -400,6 +400,24 @@
   line-height: 1.2;
 }
 
+/* Judul di tengah: kolom kiri (logo) dan kanan (aksi) sama lebar, jadi judul benar-benar di tengah bar. */
+.navbar__inner--tengah {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.navbar__inner--tengah > .brand {
+  justify-self: start;
+}
+
+.navbar__inner--tengah > .navbar__focus {
+  justify-self: center;
+}
+
+.navbar__inner--tengah > .navbar__actions {
+  justify-self: end;
+}
+
 /* Chip privasi: gembok saja di HP, gembok dan label di layar lebar. Diketuk: penjelasan singkat. */
 .navbar__privasi {
   position: relative;
