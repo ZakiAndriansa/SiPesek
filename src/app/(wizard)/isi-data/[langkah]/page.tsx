@@ -86,7 +86,7 @@ async function IsiLangkah({ params, searchParams }: Props) {
         dasar="/isi-data/"
         terbuka={Math.min((session?.child?.steps ?? 0) + 1, TOTAL)}
       />
-      <PageHeader title={step.title} desc={step.desc} />
+      <PageHeader polos title={step.title} desc={step.desc} />
 
       <div className="card wizard__card">
         <WizardForm step={n} next={next}>

@@ -24,6 +24,7 @@ export function PageHeader({
   actions,
   art,
   reveal,
+  polos,
 }: {
   title: ReactNode;
   desc?: string;
@@ -31,11 +32,13 @@ export function PageHeader({
   art?: string;
   /** Header muncul pelan saat halaman dibuka. */
   reveal?: boolean;
+  /** Tanpa panel berlatar: judul langsung di halaman (wizard Isi Data Anak). */
+  polos?: boolean;
 }) {
   const buttons = actions && <div className="page-header__actions">{actions}</div>;
   return (
     <header
-      className={`page-header${art ? " page-header--art" : actions ? " page-header--split" : ""}`}
+      className={`page-header${art ? " page-header--art" : actions ? " page-header--split" : ""}${polos ? " page-header--polos" : ""}`}
       {...(reveal ? { "data-reveal": "", "data-reveal-live": "" } : {})}
     >
       <div>
