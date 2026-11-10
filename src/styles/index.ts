@@ -30,5 +30,4 @@ import "../components/sidebar/sidebar.css";
 import "../components/upload/upload.css";
 import "./pages.css";
 import "./quick.css";
-import "./ortu.css";
 import "./motion.css";

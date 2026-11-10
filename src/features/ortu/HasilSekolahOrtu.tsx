@@ -70,7 +70,8 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
     [hasil.hasil, kodeJalur, jenjang],
   );
   const jumlah = (l: LabelPeluang) => dasar.filter(({ j }) => j.label === l).length;
-  const daftar = label ? dasar.filter(({ j }) => j.label === label) : dasar;
+  // Dimemo: identitas array ini dipakai peta (fitBounds) sebagai dependensi, jadi tidak boleh berubah tiap render.
+  const daftar = useMemo(() => (label ? dasar.filter(({ j }) => j.label === label) : dasar), [dasar, label]);
   const totalHalaman = Math.max(1, Math.ceil(daftar.length / PER_HALAMAN));
   const hal = Math.min(halaman, totalHalaman - 1);
   const tampil = daftar.slice(hal * PER_HALAMAN, (hal + 1) * PER_HALAMAN);
