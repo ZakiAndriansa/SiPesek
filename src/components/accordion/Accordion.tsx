@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
 import { Icon } from "../icon/Icon";
 
 /**
  * items: [pertanyaan, jawaban?]. Native <details>, bisa dibuka dengan keyboard tanpa JS.
+ * Jawaban berupa teks dibungkus paragraf; jawaban berupa elemen (misalnya tabel) ditampilkan apa adanya.
  * Item tanpa jawaban tampil sebagai baris statis.
  */
 export function Accordion({
@@ -9,7 +11,7 @@ export function Accordion({
   openFirst,
   noHint,
 }: {
-  items: readonly (readonly [q: string, a?: string])[];
+  items: readonly (readonly [q: string, a?: ReactNode])[];
   openFirst?: boolean;
   noHint?: boolean;
 }) {
@@ -38,7 +40,7 @@ export function Accordion({
                 {icon}
               </summary>
               <div className="accordion__panel">
-                <p>{a}</p>
+                {typeof a === "string" ? <p>{a}</p> : a}
               </div>
             </details>
           ) : (

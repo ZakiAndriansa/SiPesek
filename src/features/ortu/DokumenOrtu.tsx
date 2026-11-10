@@ -1,38 +1,45 @@
 "use client";
+import Link from "next/link";
 import type { ChangeEvent } from "react";
-import { Badge, Button, ButtonGroup, ChoiceGroup, Choice, NextStep, PageHeader, Table } from "@/components";
+import { Badge, Button, Table } from "@/components";
+import type { ResponsPeluang } from "@/lib/kontrak";
 import { formatJarak } from "@/lib/peluang/jarak";
 import { jalurUtama, namaLabel } from "@/lib/quick-check";
 import { useBerkas, usePilihan } from "./pilihan";
-import { DenganHasil, tanggalCek, type DataTahap } from "./Wadah";
+import { DenganHasil, JudulOrtu, LanjutOrtu, tanggalCek, type DataTahap } from "./Wadah";
 
 const JENJANG = { SMA: "SMA", SMK: "SMK", SEMUA: "SMA dan SMK" } as const;
 
-type Berkas = { value: string; title: string; desc: string };
+/** `catatan`: keterangan singkat di kanan baris; penjelasan lengkap ada di juknis SPMB. */
+type Berkas = { value: string; title: string; catatan?: string };
 
 const BERKAS_UMUM: Berkas[] = [
-  { value: "kk", title: "Kartu Keluarga", desc: "Alamat di KK menentukan rayon Jalur Domisili. Cek syarat lama terbitnya di juknis." },
-  { value: "akta", title: "Akta kelahiran", desc: "Untuk memastikan usia calon siswa." },
-  { value: "rapor", title: "Rapor semester 1 sampai 5", desc: "Dipakai untuk Jalur Prestasi nilai rapor." },
-  { value: "skl", title: "Surat keterangan lulus atau ijazah SMP", desc: "Dari SMP atau MTs asal." },
-  { value: "nisn", title: "Bukti NISN", desc: "Pastikan NISN sama dengan yang tercatat di situs resmi NISN." },
+  { value: "kk", title: "Kartu Keluarga", catatan: "menentukan rayon Domisili" },
+  { value: "akta", title: "Akta kelahiran" },
+  { value: "rapor", title: "Rapor semester 1 sampai 5", catatan: "untuk Jalur Prestasi" },
+  { value: "skl", title: "Surat keterangan lulus atau ijazah SMP" },
+  { value: "nisn", title: "Bukti NISN", catatan: "cek di situs resmi NISN" },
 ];
 
 /** Berkas tambahan untuk jalur yang ikut dihitung di hasil cek (artinya kondisinya dipilih saat cek). */
 function berkasJalur(jalur: Set<string>): Berkas[] {
   const tambahan: Berkas[] = [];
   if (jalur.has("AFIRMASI")) {
-    tambahan.push({
-      value: "afirmasi",
-      title: "Bukti KETM atau keterangan disabilitas",
-      desc: "Misalnya bukti terdaftar di DTSEN atau kartu bantuan sosial, atau surat keterangan dari dokter atau psikolog.",
-    });
+    tambahan.push({ value: "afirmasi", title: "Bukti KETM atau keterangan disabilitas", catatan: "DTSEN, kartu bansos, atau surat dokter" });
   }
   if (jalur.has("MUTASI")) {
-    tambahan.push({ value: "mutasi", title: "Surat penugasan atau pindah tugas orang tua", desc: "Dari instansi atau perusahaan tempat orang tua bekerja." });
+    tambahan.push({ value: "mutasi", title: "Surat penugasan atau pindah tugas orang tua", catatan: "dari instansi atau perusahaan" });
   }
-  tambahan.push({ value: "sertifikat", title: "Sertifikat lomba (bila ada)", desc: "Untuk Jalur Prestasi hasil lomba." });
+  tambahan.push({ value: "sertifikat", title: "Sertifikat lomba", catatan: "bila ada" });
   return tambahan;
+}
+
+/** Daftar berkas untuk satu hasil cek: berkas umum ditambah berkas jalur yang ikut dihitung. Dipakai juga Data Anak. */
+export function daftarBerkasUntuk(hasil: ResponsPeluang): Berkas[] {
+  const jalurDihitung = new Set(
+    hasil.hasil.flatMap((h) => h.jalur.filter((j) => j.label !== "TIDAK_DIHITUNG").map((j) => jalurUtama(j.subJalurKode) ?? "")),
+  );
+  return [...BERKAS_UMUM, ...berkasJalur(jalurDihitung)];
 }
 
 /** Dokumen untuk akun Google: ringkasan strategi siap cetak dan centang berkas, dari data tersimpan. */
@@ -47,24 +54,27 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
   const swasta = [...hasil.swasta.SMA, ...hasil.swasta.SMK]
     .sort((a, b) => (a.jarakMeter ?? Infinity) - (b.jarakMeter ?? Infinity))
     .slice(0, 3);
-  const jalurDihitung = new Set(
-    hasil.hasil.flatMap((h) => h.jalur.filter((j) => j.label !== "TIDAK_DIHITUNG").map((j) => jalurUtama(j.subJalurKode) ?? "")),
-  );
-  const daftarBerkas = [...BERKAS_UMUM, ...berkasJalur(jalurDihitung)];
+  const daftarBerkas = daftarBerkasUntuk(hasil);
   const siap = daftarBerkas.filter((b) => berkas.siap.includes(b.value)).length;
   const hariIni = tanggalCek(new Date().toISOString());
 
   return (
     <>
-      <PageHeader art="docs" title={`Dokumen ${nama}`} desc="Ringkasan strategi siap cetak dan daftar berkas yang perlu disiapkan." />
+      {/* Dokumen (usulan A): aksi utama (Cetak) langsung di samping judul, bukan di bawah kertas. */}
+      <JudulOrtu
+        judul={`Dokumen ${nama}`}
+        konteks="Ringkasan satu halaman untuk dibawa saat mendaftar."
+        aksi={
+          <Button variant="primary" iconLeft="print" print>
+            Cetak atau simpan PDF
+          </Button>
+        }
+      />
       <div className="stack stack--lg">
         <section className="stack" aria-labelledby="d-ringkasan">
-          <div className="block-head no-print">
-            <h2 className="text-heading-md" id="d-ringkasan">
-              Ringkasan strategi
-            </h2>
-            <p className="text-secondary">Satu halaman untuk dibawa saat berdiskusi dengan keluarga atau saat mendaftar.</p>
-          </div>
+          <h2 className="visually-hidden" id="d-ringkasan">
+            Ringkasan strategi
+          </h2>
 
           <article className="paper dokumen">
             <header className="dokumen__kepala">
@@ -140,50 +150,54 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
             </p>
           </article>
 
-          <div className="no-print">
-            <ButtonGroup>
-              <Button variant="primary" iconLeft="print" print>
-                Cetak atau simpan PDF
-              </Button>
-              <Button variant="secondary" href="/strategi">
-                Ubah pilihan
-              </Button>
-            </ButtonGroup>
-            <p className="text-caption text-secondary">Untuk menyimpan PDF, pilih &quot;Simpan sebagai PDF&quot; di jendela cetak.</p>
-          </div>
+          <p className="ortu-meta no-print">
+            <Link className="link" href="/strategi">
+              Ubah pilihan di Strategi
+            </Link>
+            {" · "}Untuk PDF, pilih &quot;Simpan sebagai PDF&quot; di jendela cetak.
+          </p>
         </section>
 
-        <section className="stack no-print" aria-labelledby="d-berkas">
-          <div className="block-head">
-            <h2 className="text-heading-md" id="d-berkas">
+        <section className="ortu-bagian no-print" aria-labelledby="d-berkas">
+          <div className="ortu-alat">
+            <h2 className="ortu-bagian__judul" id="d-berkas">
               Berkas yang perlu disiapkan
             </h2>
-            <p className="text-secondary">
-              {siap} dari {daftarBerkas.length} siap. Centang yang sudah ada di rumah; tanda centang tersimpan di perangkat ini.
-              Daftar resmi ada di juknis SPMB.
-            </p>
+            <span className="ortu-saran__judul" aria-live="polite">
+              {siap} dari {daftarBerkas.length} siap
+            </span>
           </div>
           <div
-            onChange={(e: ChangeEvent<HTMLDivElement>) => {
+            className="ortu-progres"
+            role="progressbar"
+            aria-label="Berkas siap"
+            aria-valuemin={0}
+            aria-valuemax={daftarBerkas.length}
+            aria-valuenow={siap}
+          >
+            <span style={{ width: `${(siap / daftarBerkas.length) * 100}%` }} />
+          </div>
+          <ul
+            className="ortu-cek"
+            onChange={(e: ChangeEvent<HTMLUListElement>) => {
               const t = e.target as unknown as HTMLInputElement;
               if (t.type === "checkbox") berkas.ubah(t.value, t.checked);
             }}
           >
-            <ChoiceGroup legend="Berkas pendaftaran">
-              {daftarBerkas.map((b) => (
-                <Choice key={b.value} type="checkbox" name="berkas" value={b.value} title={b.title} desc={b.desc} checked={berkas.siap.includes(b.value)} />
-              ))}
-            </ChoiceGroup>
-          </div>
+            {daftarBerkas.map((b) => (
+              <li key={b.value}>
+                <label>
+                  <input type="checkbox" name="berkas" value={b.value} defaultChecked={berkas.siap.includes(b.value)} />
+                  {b.title}
+                  {b.catatan && <small>{b.catatan}</small>}
+                </label>
+              </li>
+            ))}
+          </ul>
+          <p className="ortu-meta">Centang tersimpan di perangkat ini. Daftar resmi ada di juknis SPMB.</p>
         </section>
       </div>
-      <NextStep
-        step="Semua tahap selesai"
-        title="Strategi siap dibawa"
-        text="Simpan ringkasan ini, siapkan berkasnya, lalu daftar lewat situs SPMB resmi. Bapak/Ibu bisa kembali kapan saja untuk melihat anak lain."
-        href="/anak-saya"
-        label="Kembali ke Data Anak"
-      />
+      <LanjutOrtu href="/anak-saya" label="Kembali ke Data Anak" />
     </>
   );
 }

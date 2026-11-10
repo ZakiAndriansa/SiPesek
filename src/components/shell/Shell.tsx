@@ -12,6 +12,7 @@ import {
   type Session,
 } from "@/lib/accounts";
 import { MenuAnakOrtu } from "@/features/ortu/MenuAnakOrtu";
+import { STEPS } from "@/features/isi-data/steps";
 import { POLICY } from "@/lib/nav";
 import { getSession } from "@/lib/session";
 import { BottomNav } from "../bottom-nav/BottomNav";
@@ -105,6 +106,9 @@ export async function LandingChrome({ children }: { children: ReactNode }) {
   );
 }
 
+/** Judul langkah wizard akun Google, sama dengan LANGKAH di features/ortu/WizardOrtu.tsx. */
+const JUDUL_LANGKAH_ORTU = ["Data anak", "Nilai", "Kondisi keluarga", "Titik rumah"];
+
 /** Cangkang wizard (mode fokus): tanpa menu utama, footer, dan navigasi bawah. */
 const KELUAR_WIZARD = { href: "/anak-saya", label: "Simpan & keluar" };
 
@@ -131,7 +135,15 @@ async function WizardBar({ step: langkah }: { step: Promise<number> }) {
     <FocusBar
       title={google ? "Isi data anak" : name ? `Data ${name}` : "Data anak baru"}
       subtitle={`Langkah ${Math.min(step, total)} dari ${total}`}
-      progress={{ step: Math.min(step, total), total }}
+      progress={{
+        step: Math.min(step, total),
+        total,
+        labels: google ? JUDUL_LANGKAH_ORTU : STEPS.map((s) => s.title),
+        dasar: "/isi-data/",
+        // Akun contoh: progres tersimpan di sesi. Akun Google: dibaca dari isian di perangkat (lihat BarLangkahOrtu).
+        terbuka: google ? undefined : Math.min((session?.child?.steps ?? 0) + 1, total),
+        dariIsianOrtu: google,
+      }}
       exit={KELUAR_WIZARD}
     />
   );

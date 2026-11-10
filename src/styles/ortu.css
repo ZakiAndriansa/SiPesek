@@ -1,0 +1,586 @@
+/*
+ * Halaman orang tua (Data Anak, Hasil Sekolah, Strategi, Dokumen): satu fokus per halaman.
+ * Hierarki dibangun dari jarak dan judul, bukan kotak; hanya bagian fokus yang diberi permukaan putih.
+ */
+
+/* ---------- Judul halaman polos (pengganti kotak judul berilustrasi) ---------- */
+.ortu-judul {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block: var(--space-6) var(--space-6);
+}
+
+.ortu-judul h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.ortu-judul__konteks {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-md);
+}
+
+/* ---------- Bagian fokus ---------- */
+.ortu-fokus {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-card-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.ortu-fokus--peringatan {
+  border: 1.5px solid #f6c3a8;
+  background: var(--color-primary-tint);
+  box-shadow: none;
+}
+
+.ortu-fokus--aman {
+  border: 1.5px solid rgba(5, 150, 105, 0.25);
+  background: var(--color-success-bg);
+  box-shadow: none;
+}
+
+.ortu-fokus__judul {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ortu-fokus--peringatan .ortu-fokus__judul {
+  color: var(--color-primary-text);
+}
+
+.ortu-fokus__teks {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-body-lg);
+  line-height: 1.5;
+}
+
+.ortu-meta {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+.ortu-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Penutup halaman: satu baris catatan dan satu tautan lanjut ---------- */
+.ortu-lanjut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: var(--border-thin) solid var(--color-border-subtle);
+}
+
+.ortu-lanjut__catatan {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+.ortu-lanjut__tautan {
+  margin-left: auto;
+  font-weight: var(--weight-semibold);
+}
+
+.ortu-bagian {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.ortu-bagian__judul {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-heading-sm);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---------- Data Anak (usulan A): satu kartu, dua sisi seimbang ---------- */
+.ortu-anak {
+  overflow: hidden;
+  border-radius: var(--radius-card-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.ortu-anak__kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+}
+
+.ortu-anak__nama {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-heading);
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+}
+
+.ortu-anak__peringatan {
+  padding: var(--space-4) var(--space-6) 0;
+}
+
+.ortu-anak__isi {
+  display: grid;
+}
+
+/* Kiri: jawaban. Kanan: angka dan aksi. Bobot keduanya seimbang (sama lebar, isi di tengah secara vertikal). */
+.ortu-anak__status,
+.ortu-anak__aksi {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+}
+
+.ortu-anak__aksi {
+  border-top: var(--border-thin) solid var(--color-border-subtle);
+  background: var(--color-canvas);
+}
+
+.ortu-anak__kedua {
+  align-self: center;
+  font-weight: var(--weight-semibold);
+}
+
+.ortu-mini {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.ortu-mini__angka {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+}
+
+.ortu-mini__angka b {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.ortu-mini__angka--aman {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.ortu-mini__angka--bersaing {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.ortu-mini__angka--berisiko {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.ortu-anak-lain {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.ortu-anak-lain li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+}
+
+.ortu-anak-lain li:last-child {
+  border-bottom: 0;
+}
+
+.ortu-anak-lain span {
+  display: grid;
+}
+
+.ortu-anak-lain small {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+@media (min-width: 720px) {
+  .ortu-anak__isi {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .ortu-anak__status,
+  .ortu-anak__aksi {
+    padding: var(--space-8);
+  }
+
+  .ortu-anak__aksi {
+    border-top: 0;
+    border-left: var(--border-thin) solid var(--color-border-subtle);
+  }
+}
+
+
+
+
+
+
+.ortu-aksi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.ortu-saran {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: var(--border-thin) solid var(--color-border-subtle);
+}
+
+.ortu-saran__judul {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+}
+
+
+
+
+
+
+
+
+
+
+.ortu-lipat > summary {
+  cursor: pointer;
+  font-weight: var(--weight-semibold);
+}
+
+.ortu-lipat[open] > summary {
+  margin-bottom: var(--space-3);
+}
+
+/* ---------- Hasil Sekolah: tab tampilan, angka label, tabel berhalaman ---------- */
+.ortu-seg {
+  display: inline-flex;
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+}
+
+.ortu-seg button {
+  min-height: 2.5rem;
+  padding: 0 var(--space-5);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.ortu-seg button[aria-selected="true"] {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.ortu-angka {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.ortu-angka__tombol {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ortu-angka__tombol:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.ortu-angka__tombol[aria-pressed="true"] {
+  border-color: currentColor;
+}
+
+.ortu-angka__tombol b {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.ortu-angka__tombol span {
+  font-size: var(--text-body-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.ortu-angka__tombol--aman {
+  color: var(--color-success-text);
+}
+
+.ortu-angka__tombol--bersaing {
+  color: var(--color-warning-text);
+}
+
+.ortu-angka__tombol--berisiko {
+  color: var(--color-danger-text);
+}
+
+.ortu-angka__tombol--info {
+  color: var(--color-ink-soft);
+}
+
+.ortu-sorot {
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-tint);
+}
+
+.ortu-tabel {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.ortu-tabel__gulir {
+  overflow-x: auto;
+}
+
+.ortu-tabel table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+}
+
+.ortu-tabel th {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-align: left;
+}
+
+.ortu-tabel td {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+.ortu-tabel__nama {
+  display: grid;
+  gap: 2px;
+}
+
+.ortu-tabel__nama a {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.ortu-tabel__nama a:hover {
+  text-decoration: underline;
+}
+
+.ortu-tabel__nama span {
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+
+.ortu-tabel__kaki {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+.ortu-alat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.ortu-alat .field {
+  min-width: 12rem;
+}
+
+/* ---------- Strategi: baris pilihan ringkas ---------- */
+.ortu-pilihan {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ortu-pilihan__baris {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.ortu-pilihan__no {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.ortu-pilihan__isi {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.ortu-pilihan__isi strong {
+  font-size: var(--text-body-lg);
+}
+
+.ortu-pilihan__isi span {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+.ortu-pilihan__aksi {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ---------- Dokumen: daftar centang satu wadah dan bar progres ---------- */
+.ortu-progres {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+}
+
+.ortu-progres span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+.ortu-cek {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ortu-cek label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3.25rem;
+  padding: var(--space-2) var(--space-1);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+  font-size: var(--text-body-lg);
+  cursor: pointer;
+}
+
+.ortu-cek li:last-child label {
+  border-bottom: 0;
+}
+
+.ortu-cek input {
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.ortu-cek small {
+  margin-left: auto;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+  text-align: right;
+}
+
+@media (min-width: 720px) {
+  .ortu-angka {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ortu-fokus {
+    padding: var(--space-8);
+  }
+}
+
+
+@media print {
+  .ortu-judul .button,
+  .ortu-lanjut {
+    display: none;
+  }
+}

@@ -15,8 +15,9 @@ export type StageItem = {
 const LOCK_HINT = "Lengkapi data anak dulu";
 
 /**
- * Satu tahap perjalanan orang tua. Tahap terkunci tetap tampil (gembok) dan
- * mengarah ke langkah data yang belum selesai, bukan ke halaman error.
+ * Satu menu area orang tua (Data Anak, Hasil Sekolah, Strategi, Dokumen). Tampil sebagai menu ber-ikon,
+ * bukan langkah bernomor: halaman-halaman ini boleh dibuka dengan urutan apa pun begitu data anak lengkap.
+ * Menu terkunci tetap tampil (gembok) dan mengarah ke langkah data yang belum selesai, bukan ke halaman error.
  */
 export function StageLink({
   stage,
@@ -30,25 +31,17 @@ export function StageLink({
   variant: "top" | "bottom";
 }) {
   const locked = stage.state === "terkunci";
-  const status = locked ? `, terkunci. ${LOCK_HINT}` : stage.state === "selesai" ? ", selesai" : "";
-  const marker = locked ? (
-    <Icon name="lock" className="icon stage__lock" />
-  ) : stage.state === "selesai" && !active ? (
-    <Icon name="check" className="icon stage__check" />
-  ) : (
-    <span aria-hidden="true">{stage.n}</span>
-  );
   return (
     <Link
       className={`stage stage--${variant}${locked ? " stage--locked" : ""}`}
       href={locked ? lockedHref : stage.href}
       aria-current={active ? "page" : undefined}
-      aria-label={`Tahap ${stage.n}: ${stage.label}${status}`}
+      aria-label={locked ? `${stage.label}, terkunci. ${LOCK_HINT}` : stage.label}
       title={locked ? LOCK_HINT : undefined}
     >
       {variant === "top" ? (
         <>
-          <span className="stage__num">{marker}</span>
+          <Icon name={locked ? "lock" : stage.icon} className="icon stage__ikon" />
           <span className="stage__label">{stage.label}</span>
         </>
       ) : (

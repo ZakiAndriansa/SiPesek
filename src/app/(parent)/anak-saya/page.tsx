@@ -18,8 +18,7 @@ import {
   WIZARD_TOTAL,
   type Child,
 } from "@/lib/accounts";
-import { HakDataOrtu } from "@/features/ortu/HakDataOrtu";
-import { RiwayatAnak } from "@/features/riwayat/RiwayatAnak";
+import { RingkasanAnak } from "@/features/ortu/RingkasanAnak";
 import { HELP_URL } from "@/lib/nav";
 import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
@@ -27,7 +26,8 @@ import { addChild, selectChild } from "@/lib/session-actions";
 
 export const metadata: Metadata = {
   title: "Data Anak",
-  description: "Pilih anak, lihat sampai tahap mana datanya, lalu lanjutkan ke langkah berikutnya.",
+  description:
+    "Pilih anak, lihat sampai tahap mana datanya, lalu lanjutkan ke langkah berikutnya.",
 };
 
 /** Kartu satu anak: 4 tahap sebagai progres + satu tombol ke tahap berikutnya. */
@@ -36,7 +36,9 @@ function ChildCard({ child, active }: { child: Child; active: boolean }) {
   const target = continueTarget(child);
   const done = isComplete(child);
   return (
-    <article className={`card child-card${active ? " child-card--active" : ""}`}>
+    <article
+      className={`card child-card${active ? " child-card--active" : ""}`}
+    >
       <div className="child-card__top">
         <h2 className="card__title">{child.name}</h2>
         {active && <span className="badge badge--brand">Sedang dilihat</span>}
@@ -48,7 +50,10 @@ function ChildCard({ child, active }: { child: Child; active: boolean }) {
       </p>
       <ol className="journey" aria-label={`Tahap ${child.name}`}>
         {STAGES.map((s) => (
-          <li key={s.key} className={`journey__step journey__step--${status[s.key]}`}>
+          <li
+            key={s.key}
+            className={`journey__step journey__step--${status[s.key]}`}
+          >
             <span className="journey__num" aria-hidden="true">
               {status[s.key] === "selesai" ? (
                 <Icon name="check" className="icon icon--sm" />
@@ -81,20 +86,30 @@ export default async function AnakSayaPage() {
   const kids = session?.children ?? [];
   // Akun Google: anak dan riwayat cek asli dari database. Kartu prototipe hanya untuk anak yang diisi lewat wizard.
   const akunGoogle = session?.account === "google";
-  if (akunGoogle) await pramuatDataOrtu();
+  if (akunGoogle) {
+    await pramuatDataOrtu();
+    // Akun Google: ringkasan anak (usulan B) dengan data asli dari database.
+    return (
+      <Container>
+        <RingkasanAnak />
+      </Container>
+    );
+  }
   return (
     <>
       <Container>
         <PageHeader
-        art="profile"
+          art="profile"
           title="Data Anak"
           desc="Pilih anak yang ingin dilihat. Data dan hasil tiap anak tersimpan terpisah."
         />
-        {akunGoogle && <RiwayatAnak />}
-        {akunGoogle && kids.length === 0 ? null : kids.length === 0 ? (
+        {kids.length === 0 ? (
           <div className="card empty-state">
             <h2 className="card__title">Belum ada data anak</h2>
-            <p className="card__text">Mulai dengan mengisi data singkat anak. Sekitar 8 menit, dan isian tersimpan otomatis.</p>
+            <p className="card__text">
+              Mulai dengan mengisi data singkat anak. Sekitar 8 menit, dan isian
+              tersimpan otomatis.
+            </p>
             <form action={addChild}>
               <Button variant="primary" lg type="submit" icon="arrow-right">
                 Mulai isi data anak
@@ -104,7 +119,11 @@ export default async function AnakSayaPage() {
         ) : (
           <div className="card-grid">
             {kids.map((c) => (
-              <ChildCard key={c.id} child={c} active={c.id === session?.child?.id} />
+              <ChildCard
+                key={c.id}
+                child={c}
+                active={c.id === session?.child?.id}
+              />
             ))}
           </div>
         )}
@@ -120,27 +139,28 @@ export default async function AnakSayaPage() {
             title="Hak & Privasi Akun Keluarga"
             desc="Bapak/Ibu memegang kendali penuh atas data yang telah dimasukkan."
           />
-          {akunGoogle ? (
-            <HakDataOrtu />
-          ) : (
-            <div className="card">
-              <p className="card__text">
-                Semua perhitungan peluang disimpan secara privat. Bapak/Ibu bisa mengunduh salinan data atau menghapus seluruh data kapan saja.
-              </p>
-              <ButtonGroup>
-                <Button
-                  variant="secondary"
-                  iconLeft="download"
-                  toast={{ message: "Salinan data keluarga sedang disiapkan untuk diunduh.", variant: "info" }}
-                >
-                  Unduh Salinan Data
-                </Button>
-                <Button variant="ghost" iconLeft="trash" opens="dlg-hapus">
-                  Hapus Seluruh Data
-                </Button>
-              </ButtonGroup>
-            </div>
-          )}
+          <div className="card">
+            <p className="card__text">
+              Semua perhitungan peluang disimpan secara privat. Bapak/Ibu bisa
+              mengunduh salinan data atau menghapus seluruh data kapan saja.
+            </p>
+            <ButtonGroup>
+              <Button
+                variant="secondary"
+                iconLeft="download"
+                toast={{
+                  message:
+                    "Salinan data keluarga sedang disiapkan untuk diunduh.",
+                  variant: "info",
+                }}
+              >
+                Unduh Salinan Data
+              </Button>
+              <Button variant="ghost" iconLeft="trash" opens="dlg-hapus">
+                Hapus Seluruh Data
+              </Button>
+            </ButtonGroup>
+          </div>
         </Section>
         <Section>
           <CtaBand
@@ -153,7 +173,7 @@ export default async function AnakSayaPage() {
           </CtaBand>
         </Section>
       </Container>
-      {!akunGoogle && (
+      {
         <Dialog
           id="dlg-hapus"
           title="Hapus seluruh data?"
@@ -165,7 +185,10 @@ export default async function AnakSayaPage() {
               <Button
                 variant="primary"
                 closes
-                toast={{ message: "Seluruh data anak sudah dihapus.", variant: "info" }}
+                toast={{
+                  message: "Seluruh data anak sudah dihapus.",
+                  variant: "info",
+                }}
               >
                 Ya, hapus permanen
               </Button>
@@ -178,7 +201,7 @@ export default async function AnakSayaPage() {
               : "Seluruh data akun akan terhapus permanen."}
           </p>
         </Dialog>
-      )}
+      }
     </>
   );
 }

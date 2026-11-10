@@ -217,7 +217,7 @@
   align-items: center;
   gap: var(--space-2);
   min-height: 2.5rem;
-  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+  padding: var(--space-1) var(--space-4);
   border-radius: var(--radius-full);
   color: var(--color-ink-soft);
   font-size: 0.9375rem;
@@ -232,24 +232,16 @@
   color: var(--color-ink);
 }
 
-.stage__num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
+/* Menu ber-ikon (bukan langkah bernomor), ikon sama dengan navigasi bawah HP. */
+.stage__ikon {
+  width: 1.125rem;
+  height: 1.125rem;
   flex-shrink: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-surface-muted);
-  color: var(--color-ink);
-  font-family: var(--font-heading);
-  font-size: var(--text-caption);
-  font-weight: var(--weight-bold);
+  color: var(--color-ink-muted);
 }
 
-.stage__num .icon {
-  width: 0.875rem;
-  height: 0.875rem;
+.stage--top:hover .stage__ikon {
+  color: var(--color-ink);
 }
 
 .stage--top[aria-current="page"] {
@@ -258,23 +250,17 @@
   font-weight: var(--weight-semibold);
 }
 
-.stage--top[aria-current="page"] .stage__num {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.stage__check {
-  color: var(--color-success-text);
+.stage--top[aria-current="page"] .stage__ikon {
+  color: currentColor;
 }
 
 .stage--top.stage--locked {
   color: var(--color-ink-muted);
 }
 
-.stage--top.stage--locked .stage__num {
-  background: transparent;
-  border: var(--border-thin) dashed var(--color-border-control);
-  color: var(--color-ink-muted);
+.stage--top.stage--locked .stage__ikon {
+  width: 1rem;
+  height: 1rem;
 }
 
 @media (min-width: 1024px) {

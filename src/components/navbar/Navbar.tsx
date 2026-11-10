@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { openDialog } from "@/lib/dialog";
 import { stageOf } from "@/lib/accounts";
 import { HELP_URL, PUBLIC_NAV } from "@/lib/nav";
-import { lupakanDataOrtu } from "@/features/ortu/store";
+import { bacaIsian } from "@/features/ortu/isian";
+import { lupakanDataOrtu, useOrtu } from "@/features/ortu/store";
 import { addChild, selectChild, signOut } from "@/lib/session-actions";
 import { Brand } from "../brand/Brand";
 import { Button } from "../button/Button";
@@ -221,7 +222,7 @@ export function Navbar(props: NavbarProps) {
       <header className="navbar">
         <div className="navbar__inner">
           <Brand href="/anak-saya" />
-          <nav className="navbar__stages" aria-label="Tahap">
+          <nav className="navbar__stages" aria-label="Menu">
             <ol className="navbar__stage-list">
               {props.stages.map((s) => (
                 <li key={s.key}>
@@ -237,6 +238,7 @@ export function Navbar(props: NavbarProps) {
               photo={props.photo}
               role="Orang tua"
               links={[
+                ["/anak-saya#privasi", "Data dan privasi"],
                 ["/panduan", "Panduan Jalur"],
                 ["/tanya-jawab", "Tanya Jawab"],
                 [HELP_URL, "Butuh bantuan? (WhatsApp)"],
@@ -437,6 +439,75 @@ function TombolKeluar({ href, label, konfirmasi }: Required<KeluarFokus>) {
   );
 }
 
+type ProgresFokus = {
+  step: number;
+  total: number;
+  /** Nama tiap langkah, untuk tooltip dan pembaca layar. */
+  labels?: string[];
+  /** Awal alamat tiap langkah, misalnya "/isi-data/" untuk /isi-data/1 dan seterusnya. Tanpa ini, bar tidak bisa diklik. */
+  dasar?: string;
+  /** Langkah terjauh yang boleh dibuka lewat bar (langkah sebelum langkah aktif selalu boleh). */
+  terbuka?: number;
+  /** Akun Google: langkah terjauh dibaca dari isian anak aktif yang tersimpan di perangkat. */
+  dariIsianOrtu?: boolean;
+};
+
+/**
+ * Bar langkah wizard di header. Segmen menjadi tautan ke langkahnya: mundur ke langkah mana pun, maju sampai
+ * langkah terjauh yang sudah dicapai. Isian wizard tersimpan otomatis tiap berubah, jadi pindah langkah lewat
+ * bar tidak membuang ketikan (sama seperti tombol Kembali).
+ */
+function BarLangkah({ step, total, labels, dasar, terbuka }: ProgresFokus & { terbuka: number }) {
+  const nama = (k: number) => (labels?.[k - 1] ? `Langkah ${k}: ${labels[k - 1]}` : `Langkah ${k}`);
+  return (
+    <ol className="stepper__bar stepper__bar--klik" aria-label="Langkah">
+      {Array.from({ length: total }, (_, i) => {
+        const k = i + 1;
+        const kelas = `stepper__segment${k <= step ? " stepper__segment--done" : ""}`;
+        const boleh = !!dasar && k !== step && (k < step || k <= terbuka);
+        return (
+          <li key={i} className="stepper__item">
+            {boleh ? (
+              <Link
+                href={`${dasar}${k}`}
+                className={`stepper__tombol${k > step ? " stepper__tombol--maju" : ""}`}
+                title={`Buka ${nama(k).toLowerCase()}`}
+                aria-label={`Buka ${nama(k).toLowerCase()}`}
+              >
+                <span className={kelas} />
+              </Link>
+            ) : (
+              <span
+                className="stepper__diam"
+                title={labels?.[i]}
+                role="img"
+                aria-label={k === step ? `${nama(k)}, langkah ini` : `${nama(k)}, belum bisa dibuka`}
+                aria-current={k === step ? "step" : undefined}
+              >
+                <span className={kelas} />
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/** Wizard akun Google: batas langkah dari isian anak aktif di perangkat, dibaca setelah hidrasi. */
+function BarLangkahOrtu(props: ProgresFokus) {
+  const { aktif } = useOrtu();
+  // Menambah anak baru (?baru=1): anak aktif masih anak lain, jadi belum ada langkah lain yang boleh dibuka.
+  const baru = useSearchParams().get("baru") === "1";
+  const [terbuka, setTerbuka] = useState(1);
+  useEffect(() => {
+    // Isian ada di localStorage, baru bisa dibaca di browser setelah hidrasi.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTerbuka(aktif && !baru ? Math.min((bacaIsian(aktif.id)?.langkah ?? 0) + 1, props.total) : 1);
+  }, [aktif, baru, props.total, props.step]);
+  return <BarLangkah {...props} terbuka={terbuka} />;
+}
+
 /** Header mode fokus (wizard dan Cek Cepat): tanpa menu utama agar orang tua tidak keluar tanpa sengaja. */
 export function FocusBar({
   title,
@@ -449,7 +520,7 @@ export function FocusBar({
   title: string;
   /** Baris kecil di samping judul (wizard: "Langkah x dari y"). Tanpa subjudul, judul tampil lebih besar. */
   subtitle?: string;
-  progress?: { step: number; total: number };
+  progress?: ProgresFokus;
   /** Bila diisi, logo menjadi tautan. Di wizard dibiarkan kosong agar tidak keluar tanpa sengaja. */
   brandHref?: string;
   /** Chip gembok di samping judul (Cek Cepat: "Tidak disimpan"). */
@@ -475,16 +546,12 @@ export function FocusBar({
             {subtitle && <span>{subtitle}</span>}
           </p>
           {privasi && <ChipPrivasi label={privasi.label} isi={privasi.isi} />}
-          {progress && (
-            <ol className="stepper__bar" aria-hidden="true">
-              {Array.from({ length: progress.total }, (_, i) => (
-                <li
-                  key={i}
-                  className={`stepper__segment${i < progress.step ? " stepper__segment--done" : ""}`}
-                />
-              ))}
-            </ol>
-          )}
+          {progress &&
+            (progress.dariIsianOrtu ? (
+              <BarLangkahOrtu {...progress} />
+            ) : (
+              <BarLangkah {...progress} terbuka={progress.terbuka ?? progress.step} />
+            ))}
         </div>
         <div className="navbar__actions">
           <Button variant="ghost" sm href={HELP_URL} newTab iconLeft="message" className="navbar__help">
