@@ -9,8 +9,9 @@
   border-radius: var(--radius-sm);
 }
 
-/* Tautan yang berupa <button> (aksi di halaman, mis. "Ubah isian"): tanpa bingkai dan latar bawaan tombol. */
-button.link {
+/* Tautan yang berupa <button> (aksi di halaman, mis. "Ubah isian"): tanpa bingkai dan latar bawaan tombol.
+   :where() menjaga bobotnya setara .link, agar varian di bawahnya (link--help, link--standalone) tetap menang. */
+.link:where(button) {
   display: inline;
   padding: 0;
   border: 0;
