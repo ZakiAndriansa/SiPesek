@@ -364,6 +364,7 @@ export function ringkasan(hasil: HasilSekolah[]): Ringkasan {
 /** Catatan yang perlu diperhatikan di atas hasil (hanya bila ada). `input` null untuk hasil tersimpan. */
 export function catatanHasil(r: ResponsPeluang, input: QuickCheckInput | null, jalur?: JalurPilihan | null): string[] {
   const catatan: string[] = [];
+  // Catatan NISN selalu yang pertama: TampilanHasil menaruhnya di atas, catatan lain di bawah 3 pilihan terbaik.
   if (r.nisnLazim === false) catatan.push("NISN ini tidak lazim untuk calon siswa SMA atau SMK. Pastikan NISN sudah benar di situs resmi.");
   if (input && !input.lokasi) {
     catatan.push(

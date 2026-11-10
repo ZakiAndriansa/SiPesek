@@ -201,6 +201,11 @@ export function TampilanHasil({
     );
 
   const jumlahTampil = tampilan === "peta" ? daftar.length : lainnya.length;
+  // Catatan NISN tidak lazim (selalu yang pertama bila ada) tetap di atas; catatan lain di bawah 3 pilihan terbaik,
+  // agar jawaban utama terbaca lebih dulu.
+  const catatan = catatanHasil(hasil, input, jalurDipilih);
+  const catatanAtas = hasil.nisnLazim === false ? catatan.slice(0, 1) : [];
+  const catatanBawah = catatan.slice(catatanAtas.length);
 
   // Satu bentuk tabel untuk pilihan teratas dan sekolah lainnya. Kolom terakhir hanya ada di mode pilih (tombol Pilih).
   const tabel = (baris: Baris[], namaTabel: string) => (
@@ -360,7 +365,7 @@ export function TampilanHasil({
             </p>
           )}
           {sebelumTabel}
-          {catatanHasil(hasil, input, jalurDipilih).map((c) => (
+          {catatanAtas.map((c) => (
             <Alert key={c} kind="info">
               {c}
             </Alert>
@@ -397,6 +402,11 @@ export function TampilanHasil({
               {tabel(teratas, "Pilihan terbaik")}
             </section>
           )}
+          {catatanBawah.map((c) => (
+            <Alert key={c} kind="info">
+              {c}
+            </Alert>
+          ))}
 
           <section className="hasil-bagian" aria-labelledby="h-lainnya">
             <div className="ortu-alat">
@@ -489,7 +499,7 @@ export function TampilanHasil({
           </div>
         </div>
 
-        {bawah}
+        {bawah && <div className="hasil-bawah">{bawah}</div>}
 
         {lanjut ? (
           <LanjutOrtu

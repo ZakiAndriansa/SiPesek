@@ -14,11 +14,11 @@ const JENJANG = { SMA: "SMA", SMK: "SMK", SEMUA: "SMA dan SMK" } as const;
 type Berkas = { value: string; title: string; catatan?: string };
 
 const BERKAS_UMUM: Berkas[] = [
-  { value: "kk", title: "Kartu Keluarga", catatan: "menentukan rayon Domisili" },
+  { value: "kk", title: "Kartu Keluarga", catatan: "Menentukan rayon Domisili" },
   { value: "akta", title: "Akta kelahiran" },
-  { value: "rapor", title: "Rapor semester 1 sampai 5", catatan: "untuk Jalur Prestasi" },
+  { value: "rapor", title: "Rapor semester 1 sampai 5", catatan: "Untuk Jalur Prestasi" },
   { value: "skl", title: "Surat keterangan lulus atau ijazah SMP" },
-  { value: "nisn", title: "Bukti NISN", catatan: "cek di situs resmi NISN" },
+  { value: "nisn", title: "Bukti NISN", catatan: "Cek di situs resmi NISN" },
 ];
 
 /** Berkas tambahan untuk jalur yang ikut dihitung di hasil cek (artinya kondisinya dipilih saat cek). */
@@ -28,9 +28,9 @@ function berkasJalur(jalur: Set<string>): Berkas[] {
     tambahan.push({ value: "afirmasi", title: "Bukti KETM atau keterangan disabilitas", catatan: "DTSEN, kartu bansos, atau surat dokter" });
   }
   if (jalur.has("MUTASI")) {
-    tambahan.push({ value: "mutasi", title: "Surat penugasan atau pindah tugas orang tua", catatan: "dari instansi atau perusahaan" });
+    tambahan.push({ value: "mutasi", title: "Surat penugasan atau pindah tugas orang tua", catatan: "Dari instansi atau perusahaan" });
   }
-  tambahan.push({ value: "sertifikat", title: "Sertifikat lomba", catatan: "bila ada" });
+  tambahan.push({ value: "sertifikat", title: "Sertifikat lomba", catatan: "Bila ada" });
   return tambahan;
 }
 

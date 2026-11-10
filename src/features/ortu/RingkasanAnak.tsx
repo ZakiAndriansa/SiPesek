@@ -58,9 +58,11 @@ export function RingkasanAnak() {
         <summary>Data dan privasi akun</summary>
         <HakDataOrtu />
       </details>
-      <p className="ortu-lanjut__catatan ortu-lanjut">
-        Butuh bantuan mengisi data? <ExternalLink href={HELP_URL}>Chat lewat WhatsApp</ExternalLink>
-      </p>
+      <div className="ortu-lanjut">
+        <p className="ortu-lanjut__catatan">
+          Butuh bantuan mengisi data? <ExternalLink href={HELP_URL}>Chat lewat WhatsApp</ExternalLink>
+        </p>
+      </div>
     </>
   );
 

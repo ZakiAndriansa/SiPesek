@@ -9,6 +9,17 @@
   border-radius: var(--radius-sm);
 }
 
+/* Tautan yang berupa <button> (aksi di halaman, mis. "Ubah isian"): tanpa bingkai dan latar bawaan tombol. */
+button.link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  text-align: inherit;
+}
+
 .link:hover {
   color: var(--color-primary-hover);
   text-decoration-thickness: var(--border-thick);
