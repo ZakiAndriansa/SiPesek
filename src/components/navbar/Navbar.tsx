@@ -238,6 +238,7 @@ export function Navbar(props: NavbarProps) {
               photo={props.photo}
               role="Orang tua"
               links={[
+                ["/anak-saya#privasi", "Data dan privasi"],
                 ["/panduan", "Panduan Jalur"],
                 ["/tanya-jawab", "Tanya Jawab"],
                 [HELP_URL, "Butuh bantuan? (WhatsApp)"],
