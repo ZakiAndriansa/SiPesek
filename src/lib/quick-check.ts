@@ -293,6 +293,8 @@ export type PilihanStrategi = {
   sekolahId: number;
   name: string;
   role: string;
+  /** Sub-jalur yang dipakai pilihan ini, mis. "PRESTASI_AKD_RAPOR". */
+  subJalurKode: string;
   jalur: string;
   kind: string;
   label: LabelPeluang;
@@ -306,28 +308,41 @@ const PERAN: Record<LabelPeluang, string> = {
   TIDAK_DIHITUNG: "Pilihan tambahan",
 };
 
-/** Strategi 3 pilihan: satu ambisius (Masih mungkin), dua aman (Peluang besar), dari hasil yang sudah terurut. */
-export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
-  const terhitung = hasil.filter((h) => h.labelTerbaik !== "TIDAK_DIHITUNG");
-  const ambisius = terhitung.find((h) => h.labelTerbaik === "MASIH_MUNGKIN");
-  const aman = terhitung.filter((h) => h.labelTerbaik === "PELUANG_BESAR");
-  const pilih = [ambisius, aman[0], aman[1]].filter((h): h is HasilSekolah => !!h);
-  for (const h of terhitung) if (pilih.length < 3 && !pilih.includes(h)) pilih.push(h);
-  return pilih.map((h) => keStrategi(h));
+/**
+ * Rekomendasi 3 pilihan dari baris sekolah yang sudah terurut, masing-masing dengan jalur yang mewakilinya: satu
+ * ambisius (Masih mungkin) dan dua aman (Peluang besar), lalu diisi sekolah terhitung berikutnya bila kurang.
+ * Dipakai untuk semua jalur (jalur terbaik tiap sekolah) maupun satu jalur yang sedang dipilih.
+ */
+export function rekomendasi<T extends { h: HasilSekolah; j: HasilJalur }>(baris: T[]): T[] {
+  const terhitung = baris.filter((b) => b.j.label !== "TIDAK_DIHITUNG");
+  const ambisius = terhitung.find((b) => b.j.label === "MASIH_MUNGKIN");
+  const aman = terhitung.filter((b) => b.j.label === "PELUANG_BESAR");
+  const pilih = [ambisius, aman[0], aman[1]].filter((b): b is T => !!b);
+  for (const b of terhitung) if (pilih.length < 3 && !pilih.includes(b)) pilih.push(b);
+  return pilih;
 }
 
-/** Satu sekolah sebagai baris pilihan; `role` mengikuti label terbaiknya bila tidak diberikan. */
-export function keStrategi(h: HasilSekolah, role = PERAN[h.labelTerbaik]): PilihanStrategi {
+/** Strategi 3 pilihan dari semua jalur: rekomendasi() atas jalur terbaik tiap sekolah. */
+export function strategi(hasil: HasilSekolah[]): PilihanStrategi[] {
+  return rekomendasi(hasil.map((h) => ({ h, j: h.jalur[0] }))).map(({ h, j }) => keStrategi(h, j));
+}
+
+/** Satu sekolah sebagai baris pilihan lewat jalur `j` (bawaan: jalur terbaik); `role` mengikuti label jalur itu. */
+export function keStrategi(h: HasilSekolah, j: HasilJalur = h.jalur[0], role = PERAN[j.label]): PilihanStrategi {
   return {
     sekolahId: h.sekolah.id,
     name: h.sekolah.nama,
     role,
-    jalur: jalurLengkap(h.jalur[0]),
-    kind: KIND[h.labelTerbaik],
-    label: h.labelTerbaik,
+    subJalurKode: j.subJalurKode,
+    jalur: jalurLengkap(j),
+    kind: KIND[j.label],
+    label: j.label,
     jarakMeter: h.jarakMeter,
   };
 }
+
+/** Peran pilihan menurut label jalurnya, mis. "Pilihan aman". */
+export const peranPilihan = (l: LabelPeluang) => PERAN[l];
 
 export type Ringkasan = {
   /** Label terbaik yang dimiliki sekolah, mis. "Peluang besar di 11 dari 15"; null bila semua kecil. */
