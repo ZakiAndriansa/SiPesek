@@ -738,6 +738,16 @@
   }
 }
 
+/* Judul tanpa panel (wizard Isi Data Anak): spesifisitas dinaikkan agar menang atas aturan panel di atas. */
+.page-header.page-header--polos {
+  margin-block: var(--space-2) var(--space-6);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
 .wizard__help {
   display: inline-block;
   padding: var(--space-3) var(--space-5);

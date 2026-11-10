@@ -108,7 +108,7 @@ function Kerangka({
     <>
       {/* Bar langkah di halaman, bukan di header; judul langkah polos tanpa kotak berilustrasi. */}
       <Stepper step={n} total={WIZARD_TOTAL_ORTU} labels={JUDUL_LANGKAH} tampilLabel dasar="/isi-data/" terbuka={terbuka} />
-      <PageHeader title={LANGKAH[n - 1].title} desc={LANGKAH[n - 1].desc} />
+      <PageHeader polos title={LANGKAH[n - 1].title} desc={LANGKAH[n - 1].desc} />
       {anak && (
         <p className="text-secondary wizard-ortu__anak">
           Untuk <strong>{anak.nama}</strong> (NISN berakhiran {anak.nisnAkhir}).{" "}
