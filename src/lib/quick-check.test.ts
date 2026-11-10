@@ -4,7 +4,9 @@ import type { ResponsPeluang } from "./kontrak";
 import {
   diWilayah,
   isianUntukJalur,
+  jalurLengkap,
   kurangUntukJalur,
+  rekomendasi,
   ringkasan,
   ringkasJalur,
   saringJalur,
@@ -98,6 +100,31 @@ describe("Cek Cepat", () => {
     ]);
     // Pilihan dibawa ke Strategi dan Dokumen lewat id sekolah, jadi id harus ikut.
     expect(strategi(hasil).map((s) => s.sekolahId)).toEqual([3, 1, 2]);
+  });
+
+  it("rekomendasi per jalur memakai label jalur itu, bukan label terbaik sekolah", () => {
+    const hasil = [
+      sekolah(1, "PELUANG_BESAR", jalur("DOMISILI", "PELUANG_BESAR"), jalur("PRESTASI_AKD_RAPOR", "PELUANG_KECIL")),
+      sekolah(2, "PELUANG_BESAR", jalur("PRESTASI_AKD_RAPOR", "PELUANG_BESAR")),
+      sekolah(3, "MASIH_MUNGKIN", jalur("PRESTASI_AKD_RAPOR", "MASIH_MUNGKIN")),
+    ];
+    const prestasi = hasil.flatMap((h) => h.jalur.filter((j) => j.subJalurKode === "PRESTASI_AKD_RAPOR").map((j) => ({ h, j })));
+    expect(rekomendasi(prestasi).map(({ h, j }) => [h.sekolah.id, j.label])).toEqual([
+      [3, "MASIH_MUNGKIN"],
+      [2, "PELUANG_BESAR"],
+      [1, "PELUANG_KECIL"],
+    ]);
+    // Strategi semua jalur tetap memakai jalur terbaik dan menyimpan sub-jalurnya.
+    expect(strategi(hasil).map((s) => [s.sekolahId, s.subJalurKode])).toEqual([
+      [3, "PRESTASI_AKD_RAPOR"],
+      [1, "DOMISILI"],
+      [2, "PRESTASI_AKD_RAPOR"],
+    ]);
+  });
+
+  it("nama jalur lengkap: jalur utama lalu sub-jalurnya", () => {
+    expect(jalurLengkap(jalur("DOMISILI", "PELUANG_BESAR"))).toBe("Jalur Domisili");
+    expect(jalurLengkap({ ...jalur("PRESTASI_AKD_RAPOR", "PELUANG_BESAR"), namaJalur: "Nilai rapor" })).toBe("Jalur Prestasi, nilai rapor");
   });
   it("ringkasan menjawab lebih dulu, sesuai label terbaik", () => {
     const besar = sekolah(1, "PELUANG_BESAR", jalur("DOMISILI", "PELUANG_BESAR"));

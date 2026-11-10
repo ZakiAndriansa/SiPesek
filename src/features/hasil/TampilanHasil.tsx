@@ -21,7 +21,9 @@ import {
   KIND,
   namaJalurUtama,
   namaLabel,
+  peranPilihan,
   posisiSkor,
+  rekomendasi,
   ringkasJalur,
   type JalurPilihan,
   type QuickCheckInput,
@@ -131,7 +133,7 @@ export function TampilanHasil({
   const [tampilan, setTampilan] = useState<"daftar" | "peta">("daftar");
   const [halaman, setHalaman] = useState(0);
   const [rinci, setRinci] = useState<HasilSekolah | null>(null);
-  // Mode pilih: susunan orang tua per hasil. Mode lain: tanpa kunci, jadi isinya rekomendasi strategi().
+  // Pilihan anak yang tersimpan (mode pilih): tombol Pilih, Dipilih, dan Jadikan pilihan. Mode lain tidak memakainya.
   const pilihan = usePilihan(mode === "pilih" ? hasil.token : null, hasil.hasil);
   const kodeJalur = JALUR_UTAMA.find(([, nama]) => nama === jalur)?.[0] ?? null;
 
@@ -149,14 +151,15 @@ export function TampilanHasil({
   const jumlah = (l: LabelPeluang) => dasar.filter(({ j }) => j.label === l).length;
   // Dimemo: identitas array ini dipakai peta (fitBounds) sebagai dependensi, jadi tidak boleh berubah tiap render.
   const daftar = useMemo(() => (label ? dasar.filter(({ j }) => j.label === label) : dasar), [dasar, label]);
-  // 3 pilihan teratas dipisah dari daftar: susunan orang tua (mode pilih) atau rekomendasi strategi(). Barisnya memakai
-  // jalur yang dipakai rekomendasi itu, jadi tidak ikut filter; sisanya tampil di tabel kedua dan ikut filter.
-  const perId = new Map(hasil.hasil.map((h) => [h.sekolah.id, h]));
-  const teratas: Baris[] = pilihan.pilihan.flatMap((p, i) => {
-    const h = perId.get(p.sekolahId);
-    return h ? [{ h, j: h.jalur[0], no: i + 1, peran: p.role }] : [];
-  });
+  // 3 pilihan terbaik dipisah dari daftar dan ikut filter jalur dan jenjang (tidak ikut filter label): satu ambisius dan
+  // dua aman di jalur itu. Semua jalur: jalur terbaik tiap sekolah. Sisanya tampil di tabel kedua.
+  const teratas: Baris[] = rekomendasi(dasar).map((b, i) => ({ ...b, no: i + 1, peran: peranPilihan(b.j.label) }));
   const idTeratas = new Set(teratas.map(({ h }) => h.sekolah.id));
+  // Mode pilih: rekomendasi ini bisa langsung dijadikan pilihan anak (bila belum sama persis).
+  const butirTeratas = teratas.map(({ h, j }) => ({ id: h.sekolah.id, jalur: j.subJalurKode }));
+  const sudahDipakai =
+    butirTeratas.length === pilihan.pilihan.length &&
+    butirTeratas.every((b, i) => b.id === pilihan.pilihan[i].sekolahId && b.jalur === pilihan.pilihan[i].subJalurKode);
   const lainnya = daftar.filter(({ h }) => !idTeratas.has(h.sekolah.id));
   const totalHalaman = Math.max(1, Math.ceil(lainnya.length / PER_HALAMAN));
   const hal = Math.min(halaman, totalHalaman - 1);
@@ -269,7 +272,7 @@ export function TampilanHasil({
                         variant="ghost"
                         sm
                         iconLeft="plus"
-                        onClick={() => pilihan.tambah(h.sekolah.id)}
+                        onClick={() => pilihan.tambah(h.sekolah.id, j.subJalurKode)}
                         aria-label={`Tambahkan ${h.sekolah.nama} ke pilihan`}
                         toast={
                           pilihan.penuh
@@ -366,26 +369,35 @@ export function TampilanHasil({
             </Alert>
           ))}
 
-          {(teratas.length > 0 || mode === "pilih") && (
+          {teratas.length > 0 && (
             <section className="hasil-bagian" aria-labelledby="h-teratas">
               <div className="ortu-alat">
                 <div>
                   <h2 className="hasil-bagian__judul" id="h-teratas">
-                    {mode === "pilih" ? `3 pilihan ${namaAnak ?? "anak"}` : "Rekomendasi 3 pilihan"}
+                    {kodeJalur ? `3 pilihan terbaik di ${jalur}` : "3 pilihan terbaik"}
                   </h2>
                   <p className="ortu-meta">
-                    {mode === "pilih" && pilihan.disusunSendiri
-                      ? "Disusun sendiri. Urutannya bisa diubah di Strategi."
-                      : "Satu ambisius dan dua aman, dari jalur terbaik tiap sekolah."}
+                    {kodeJalur ? "Satu ambisius dan dua aman di jalur ini." : "Satu ambisius dan dua aman, dari jalur terbaik tiap sekolah."}
                   </p>
                 </div>
-                {mode === "pilih" && <p className="ortu-meta">{`Pilihan ${pilihan.pilihan.length} dari ${MAKS_PILIHAN}`}</p>}
+                {mode === "pilih" && (
+                  <div className="ortu-aksi">
+                    <p className="ortu-meta">{`Pilihan ${namaAnak ?? "anak"}: ${pilihan.pilihan.length} dari ${MAKS_PILIHAN}`}</p>
+                    {!sudahDipakai && (
+                      <Button
+                        variant="secondary"
+                        sm
+                        iconLeft="check"
+                        onClick={() => pilihan.atur(butirTeratas)}
+                        toast={{ message: `${teratas.length} sekolah ini menjadi pilihan${namaAnak ? ` ${namaAnak}` : ""}. Urutannya bisa diubah di Strategi.`, variant: "success" }}
+                      >
+                        Jadikan pilihan
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
-              {teratas.length === 0 ? (
-                <p className="text-secondary">Belum ada sekolah yang dipilih. Tekan Pilih di daftar sekolah lainnya.</p>
-              ) : (
-                tabel(teratas, "Pilihan teratas")
-              )}
+              {tabel(teratas, "Pilihan terbaik")}
             </section>
           )}
 
