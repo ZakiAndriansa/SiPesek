@@ -123,11 +123,8 @@ export function TampilanHasil({
   tanggalCetak,
   lanjut,
 }: Props) {
-  // Hasil akun Google (terbaru dan lama) dibuka di Jalur Prestasi. Cek Cepat satu jalur dibuka di jalur itu.
-  const [jalur, setJalur] = useState(() => {
-    const kode = jalurDipilih ?? (mode === "saran" ? null : "PRESTASI");
-    return kode && adaJalur(hasil, kode) ? namaJalurUtama(kode) : SEMUA_JALUR;
-  });
+  // Dibuka di Semua jalur. Cek Cepat satu jalur dibuka di jalur itu.
+  const [jalur, setJalur] = useState(() => (jalurDipilih && adaJalur(hasil, jalurDipilih) ? namaJalurUtama(jalurDipilih) : SEMUA_JALUR));
   const [jenjang, setJenjang] = useState(SEMUA_JENJANG);
   const [label, setLabel] = useState<LabelPeluang | null>(null);
   const [tampilan, setTampilan] = useState<"daftar" | "peta">("daftar");
