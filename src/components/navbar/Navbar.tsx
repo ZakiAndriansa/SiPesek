@@ -222,7 +222,7 @@ export function Navbar(props: NavbarProps) {
       <header className="navbar">
         <div className="navbar__inner">
           <Brand href="/anak-saya" />
-          <nav className="navbar__stages" aria-label="Tahap">
+          <nav className="navbar__stages" aria-label="Menu">
             <ol className="navbar__stage-list">
               {props.stages.map((s) => (
                 <li key={s.key}>
