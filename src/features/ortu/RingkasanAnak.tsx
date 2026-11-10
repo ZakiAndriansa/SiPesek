@@ -1,16 +1,16 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Badge, Button, Dialog, ExternalLink, Icon } from "@/components";
+import { Alert, Button, Dialog, ExternalLink, Icon } from "@/components";
+import { Menu } from "@/components/navbar/Menu";
 import { ambil } from "@/lib/ambil";
 import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
+import { openDialog } from "@/lib/dialog";
 import type { RiwayatCek } from "@/lib/kontrak";
 import { HELP_URL } from "@/lib/nav";
 import { HapusHasil } from "./HapusHasil";
-import { daftarBerkasUntuk } from "./DokumenOrtu";
 import { HakDataOrtu } from "./HakDataOrtu";
 import { bacaIsian, CEK_LAGI_HREF, hapusIsian, lanjutIsiHref } from "./isian";
-import { useBerkas, usePilihan } from "./pilihan";
 import { pilihAnakAktif, segarkanOrtu, useHasilAktif } from "./store";
 import { GagalMuat, JudulOrtu, Memuat, SesiBerakhir, tanggalCek } from "./Wadah";
 
@@ -18,25 +18,24 @@ const BATAS_ANAK = 5;
 const JENJANG: Record<RiwayatCek["jenjang"], string> = { SMA: "SMA", SMK: "SMK", SEMUA: "SMA dan SMK" };
 
 /** Kalimat status dari ringkasan hasil terakhir: langsung menjawab "apakah anak aman?". */
-function statusHasil(r: RiwayatCek["ringkas"]): string {
-  if (r.peluangBesar > 0) return `${r.peluangBesar} sekolah negeri berpeluang besar`;
-  if (r.masihMungkin > 0) return "Belum ada sekolah negeri yang aman";
-  return "Peluang di sekolah negeri masih kecil";
+function statusHasil(r: RiwayatCek["ringkas"]): { judul: string; teks: string } {
+  if (r.peluangBesar > 0) return { judul: `${r.peluangBesar} sekolah negeri berpeluang besar`, teks: "Ada pilihan aman. Susun urutan pilihan di Strategi." };
+  if (r.masihMungkin > 0) return { judul: "Belum ada sekolah negeri yang aman", teks: "Siapkan sekolah swasta sebagai cadangan." };
+  return { judul: "Peluang di sekolah negeri masih kecil", teks: "Siapkan sekolah swasta terdekat sebagai cadangan." };
 }
 
 /**
- * Data Anak (usulan B) untuk akun Google: anak dipilih lewat pill di samping judul, lalu dua kolom seimbang.
- * Kiri: status hasil terakhir dan satu langkah yang disarankan. Kanan: pintasan ke Hasil, Strategi, dan Dokumen
- * beserta angkanya, ditambah riwayat cek dan hapus anak yang dilipat. Privasi akun dilipat di bawah.
+ * Data Anak (usulan A) untuk akun Google: satu kartu fokus untuk anak yang sedang dilihat, dibagi dua sisi seimbang.
+ * Kiri: jawaban (status hasil terakhir). Kanan: angka per label dan satu aksi utama. Aksi lain (perbarui, riwayat,
+ * hapus) ada di menu Kelola, anak lain di bawah kartu, dan privasi akun dilipat di bagian bawah.
  */
 export function RingkasanAnak() {
   const { status, anak, aktif, terakhir, hasil } = useHasilAktif();
-  const pilihan = usePilihan(terakhir?.token ?? null, hasil?.hasil ?? []);
-  const berkas = useBerkas(aktif?.id ?? null);
   const privasi = useRef<HTMLDetailsElement>(null);
+  const [riwayat, setRiwayat] = useState(false);
   const [galatHapus, setGalatHapus] = useState("");
 
-  // Tautan "Data & privasi" di menu akun membuka bagian privasi yang dilipat.
+  // Tautan "Data dan privasi" di menu akun membuka bagian privasi yang dilipat.
   useEffect(() => {
     if (window.location.hash === "#privasi" && privasi.current) privasi.current.open = true;
   }, []);
@@ -52,27 +51,6 @@ export function RingkasanAnak() {
     hapusIsian(id);
     await segarkanOrtu();
   }
-
-  const pil = (
-    <div className="ortu-anak-pil" role="group" aria-label="Pilih anak">
-      {anak.map((a) => (
-        <button
-          key={a.id}
-          type="button"
-          className="ortu-anak-pil__item"
-          aria-pressed={a.id === aktif?.id}
-          onClick={() => pilihAnakAktif(a.id)}
-        >
-          {a.nama}
-        </button>
-      ))}
-      {anak.length < BATAS_ANAK && (
-        <Link className="ortu-anak-pil__item ortu-anak-pil__item--tambah" href="/isi-data/1?baru=1">
-          + Tambah anak
-        </Link>
-      )}
-    </div>
-  );
 
   const kaki = (
     <>
@@ -111,38 +89,63 @@ export function RingkasanAnak() {
   const langkah = bacaIsian(aktif.id)?.langkah ?? 0;
   const setengah = langkah > 0 && langkah < WIZARD_TOTAL_ORTU;
   const swasta = hasil ? hasil.swasta.SMA.length + hasil.swasta.SMK.length : 0;
-  const aman = (terakhir?.ringkas.peluangBesar ?? 0) > 0;
-  const daftarBerkas = hasil ? daftarBerkasUntuk(hasil) : [];
-  const siap = daftarBerkas.filter((b) => berkas.siap.includes(b.value)).length;
+  const r = terakhir?.ringkas;
+  const st = r ? statusHasil(r) : null;
   const dialog = `dlg-hapus-anak-${aktif.id}`;
+  const lain = anak.filter((a) => a.id !== aktif.id);
 
-  // Satu langkah yang disarankan, sesuai keadaan anak.
-  const saran = setengah
-    ? { judul: "Lanjutkan isi data", label: `Lanjutkan isi data (langkah ${langkah + 1} dari ${WIZARD_TOTAL_ORTU})`, href: lanjutIsiHref(aktif.id) }
-    : !terakhir
-      ? { judul: "Isi data anak untuk melihat peluang", label: "Isi data anak", href: lanjutIsiHref(aktif.id) }
-      : !aman
-        ? { judul: "Langkah yang disarankan: siapkan cadangan swasta", label: swasta > 0 ? `Lihat ${swasta} swasta terdekat` : "Lihat sekolah swasta terdekat", href: "/cadangan" }
-        : { judul: "Langkah berikutnya: susun urutan pilihan", label: "Lihat hasil", href: "/peta-sekolah" };
+  // Satu aksi utama sesuai keadaan anak, dan satu tautan kedua bila perlu.
+  const utama = setengah
+    ? { label: `Lanjutkan isi data (langkah ${langkah + 1} dari ${WIZARD_TOTAL_ORTU})`, href: lanjutIsiHref(aktif.id) }
+    : !r
+      ? { label: "Isi data anak", href: lanjutIsiHref(aktif.id) }
+      : r.peluangBesar === 0
+        ? { label: swasta > 0 ? `Lihat ${swasta} swasta terdekat` : "Lihat sekolah swasta terdekat", href: "/cadangan" }
+        : { label: "Lihat hasil", href: "/peta-sekolah" };
+  const kedua = r && utama.href !== "/peta-sekolah" ? { label: "Lihat hasil semua sekolah", href: "/peta-sekolah" } : null;
 
   return (
     <>
-      <JudulOrtu judul="Data Anak" aksi={pil} />
+      <JudulOrtu judul="Data Anak" konteks={anak.length > 1 ? "Pilih anak untuk melihat hasilnya." : undefined} />
       {galatHapus && <Alert kind="danger">{galatHapus}</Alert>}
 
-      <div className={terakhir ? "ortu-dua" : undefined}>
-        <section className="ortu-fokus" aria-labelledby="anak-status">
-          <p className="ortu-meta">
-            {[
-              terakhir && JENJANG[terakhir.jenjang],
-              terakhir?.kecamatan && `KK ${terakhir.kecamatan}`,
-              `NISN berakhiran ${aktif.nisnAkhir}`,
-              terakhir && `cek ${tanggalCek(terakhir.dibuatPada)}`,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-          {!aktif.nisnLazim && (
+      <article className="ortu-anak" aria-labelledby="anak-nama">
+        <header className="ortu-anak__kepala">
+          <div>
+            <h2 className="ortu-anak__nama" id="anak-nama">
+              {aktif.nama}
+            </h2>
+            <p className="ortu-meta">
+              {[
+                terakhir && JENJANG[terakhir.jenjang],
+                terakhir?.kecamatan && `KK ${terakhir.kecamatan}`,
+                `NISN berakhiran ${aktif.nisnAkhir}`,
+                terakhir && `cek ${tanggalCek(terakhir.dibuatPada)}`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          </div>
+          <Menu id={`menu-anak-${aktif.id}`} label={`Kelola data ${aktif.nama}`} trigger={<span>Kelola</span>}>
+            <Link className="menu__item" href={setengah ? lanjutIsiHref(aktif.id) : CEK_LAGI_HREF}>
+              <Icon name="refresh" className="icon icon--sm" />
+              {setengah ? "Lanjutkan isi data" : "Perbarui data dan cek lagi"}
+            </Link>
+            {aktif.riwayat.length > 0 && (
+              <button type="button" className="menu__item" onClick={() => setRiwayat(true)}>
+                <Icon name="clipboard" className="icon icon--sm" />
+                Riwayat cek ({aktif.riwayat.length})
+              </button>
+            )}
+            <button type="button" className="menu__item" onClick={(e) => openDialog(dialog, e.currentTarget)}>
+              <Icon name="trash" className="icon icon--sm" />
+              Hapus data anak
+            </button>
+          </Menu>
+        </header>
+
+        {!aktif.nisnLazim && (
+          <div className="ortu-anak__peringatan">
             <Alert kind="warning" title="NISN tidak lazim">
               Pastikan sudah benar di{" "}
               <a href="https://nisn.data.kemendikdasmen.go.id/" target="_blank" rel="noopener">
@@ -150,70 +153,101 @@ export function RingkasanAnak() {
               </a>
               .
             </Alert>
-          )}
-          <h2 className="ortu-fokus__judul" id="anak-status">
-            {terakhir ? statusHasil(terakhir.ringkas) : `Data ${aktif.nama} belum lengkap`}
-          </h2>
-          {terakhir && (
-            <div className="ortu-label">
-              {terakhir.ringkas.peluangBesar > 0 && <Badge kind="aman">{`Peluang besar ${terakhir.ringkas.peluangBesar}`}</Badge>}
-              {terakhir.ringkas.masihMungkin > 0 && <Badge kind="bersaing">{`Masih mungkin ${terakhir.ringkas.masihMungkin}`}</Badge>}
-              {terakhir.ringkas.peluangKecil > 0 && <Badge kind="berisiko">{`Peluang kecil ${terakhir.ringkas.peluangKecil}`}</Badge>}
-            </div>
-          )}
-          <div className="ortu-saran">
-            <p className="ortu-saran__judul">{saran.judul}</p>
-            <div className="ortu-aksi">
-              <Button variant="primary" lg href={saran.href} icon="arrow-right">
-                {saran.label}
-              </Button>
-              {terakhir && (
-                <Button variant="ghost" href={CEK_LAGI_HREF}>
-                  Perbarui data
-                </Button>
-              )}
-            </div>
           </div>
-        </section>
-
-        {terakhir && (
-          <nav className="ortu-pintasan" aria-label={`Ringkasan ${aktif.nama}`}>
-            <Pintasan href="/peta-sekolah" ikon="map-pin" judul="Hasil Sekolah" teks={hasil ? `${hasil.hasil.length} sekolah negeri dihitung` : "Memuat…"} />
-            <Pintasan href="/strategi" ikon="clipboard" judul="Strategi" teks={hasil ? `${pilihan.pilihan.length} pilihan tersusun` : "Memuat…"} />
-            <Pintasan href="/unduhan" ikon="download" judul="Dokumen" teks={hasil ? `${siap} dari ${daftarBerkas.length} berkas siap` : "Memuat…"} />
-            <div className="ortu-pintasan__kaki">
-              <details className="ortu-lipat">
-                <summary>Riwayat cek ({aktif.riwayat.length})</summary>
-                <ul className="riwayat-anak__daftar">
-                  {aktif.riwayat.map((r) => (
-                    <li key={r.token} className="riwayat-anak__baris">
-                      <Link href={`/hasil/${r.token}`} className="riwayat-anak__tautan">
-                        <span className="riwayat-anak__isi">
-                          <span className="riwayat-anak__judul">{JENJANG[r.jenjang]}</span>
-                          <span className="riwayat-anak__waktu">{tanggalCek(r.dibuatPada)}</span>
-                        </span>
-                        <Icon name="chevron-right" className="icon" />
-                        <span className="visually-hidden">Buka hasil</span>
-                      </Link>
-                      <HapusHasil token={r.token} nama={aktif.nama} dibuatPada={r.dibuatPada} ikon />
-                    </li>
-                  ))}
-                </ul>
-              </details>
-              <Button variant="ghost" sm iconLeft="trash" opens={dialog}>
-                Hapus data {aktif.nama}
-              </Button>
-            </div>
-          </nav>
         )}
-      </div>
 
-      {!terakhir && (
-        <div className="ortu-bagian">
-          <Button variant="ghost" sm iconLeft="trash" opens={dialog}>
-            Hapus data {aktif.nama}
-          </Button>
+        <div className="ortu-anak__isi">
+          <div className="ortu-anak__status">
+            <p className="ortu-meta">{r ? "Hasil cek terakhir" : "Data anak"}</p>
+            <p className="ortu-fokus__judul">{st ? st.judul : `Data ${aktif.nama} belum lengkap`}</p>
+            <p className="ortu-fokus__teks">{st ? st.teks : "Lengkapi data untuk melihat peluang di sekolah negeri."}</p>
+          </div>
+          <div className="ortu-anak__aksi">
+            {r && (
+              <div className="ortu-mini">
+                <span className="ortu-mini__angka ortu-mini__angka--aman">
+                  <b>{r.peluangBesar}</b>Peluang besar
+                </span>
+                <span className="ortu-mini__angka ortu-mini__angka--bersaing">
+                  <b>{r.masihMungkin}</b>Masih mungkin
+                </span>
+                <span className="ortu-mini__angka ortu-mini__angka--berisiko">
+                  <b>{r.peluangKecil}</b>Peluang kecil
+                </span>
+              </div>
+            )}
+            <Button variant="primary" lg block href={utama.href} icon="arrow-right">
+              {utama.label}
+            </Button>
+            {kedua && (
+              <Link className="link ortu-anak__kedua" href={kedua.href}>
+                {kedua.label}
+              </Link>
+            )}
+          </div>
         </div>
+      </article>
+
+      {riwayat && (
+        <section className="ortu-bagian" aria-labelledby="riwayat-judul">
+          <div className="ortu-alat">
+            <h2 className="ortu-bagian__judul" id="riwayat-judul">
+              Riwayat cek {aktif.nama}
+            </h2>
+            <Button variant="ghost" sm onClick={() => setRiwayat(false)}>
+              Tutup
+            </Button>
+          </div>
+          <ul className="riwayat-anak__daftar">
+            {aktif.riwayat.map((c) => (
+              <li key={c.token} className="riwayat-anak__baris">
+                <Link href={`/hasil/${c.token}`} className="riwayat-anak__tautan">
+                  <span className="riwayat-anak__isi">
+                    <span className="riwayat-anak__judul">
+                      {JENJANG[c.jenjang]}
+                      {c.kecamatan && `, KK ${c.kecamatan}`}
+                    </span>
+                    <span className="riwayat-anak__waktu">{tanggalCek(c.dibuatPada)}</span>
+                  </span>
+                  <Icon name="chevron-right" className="icon" />
+                  <span className="visually-hidden">Buka hasil</span>
+                </Link>
+                <HapusHasil token={c.token} nama={aktif.nama} dibuatPada={c.dibuatPada} ikon />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {lain.length > 0 && (
+        <section className="ortu-bagian" aria-labelledby="anak-lain">
+          <h2 className="ortu-bagian__judul" id="anak-lain">
+            Anak lain
+          </h2>
+          <ul className="ortu-anak-lain">
+            {lain.map((a) => (
+              <li key={a.id}>
+                <span>
+                  <strong>{a.nama}</strong>
+                  <small>{a.riwayat.length > 0 ? `cek ${tanggalCek(a.riwayat[0].dibuatPada)}` : "belum ada hasil"}</small>
+                </span>
+                <Button variant="secondary" sm onClick={() => pilihAnakAktif(a.id)}>
+                  Lihat
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {anak.length < BATAS_ANAK ? (
+        <p className="ortu-bagian">
+          <Link className="link ortu-saran__judul" href="/isi-data/1?baru=1">
+            + Tambah anak
+          </Link>
+        </p>
+      ) : (
+        <p className="ortu-meta ortu-bagian">Satu akun paling banyak {BATAS_ANAK} anak.</p>
       )}
 
       <Dialog
@@ -238,20 +272,5 @@ export function RingkasanAnak() {
 
       {kaki}
     </>
-  );
-}
-
-function Pintasan({ href, ikon, judul, teks }: { href: string; ikon: string; judul: string; teks: string }) {
-  return (
-    <Link className="ortu-pintasan__baris" href={href}>
-      <span className="ortu-pintasan__ikon">
-        <Icon name={ikon} className="icon" />
-      </span>
-      <span className="ortu-pintasan__teks">
-        <strong>{judul}</strong>
-        <span>{teks}</span>
-      </span>
-      <Icon name="chevron-right" className="icon ortu-pintasan__panah" />
-    </Link>
   );
 }

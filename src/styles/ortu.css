@@ -117,46 +117,149 @@
   font-weight: var(--weight-semibold);
 }
 
-/* ---------- Data Anak: pill anak, dua kolom seimbang ---------- */
-.ortu-anak-pil {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.ortu-anak-pil__item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 2.75rem;
-  padding: 0 var(--space-4);
-  border: 1.5px solid var(--color-border-subtle);
-  border-radius: var(--radius-full);
+/* ---------- Data Anak (usulan A): satu kartu, dua sisi seimbang ---------- */
+.ortu-anak {
+  overflow: hidden;
+  border-radius: var(--radius-card-lg);
   background: var(--color-surface);
-  color: var(--color-ink);
-  font: inherit;
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
-  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 
-.ortu-anak-pil__item[aria-pressed="true"] {
-  border-color: var(--color-ink);
-  background: var(--color-ink);
-  color: var(--color-surface);
+.ortu-anak__kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
 }
 
-.ortu-anak-pil__item--tambah {
-  border-style: dashed;
-  border-color: var(--color-border-control);
-  background: transparent;
+.ortu-anak__nama {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-heading);
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
 }
 
-.ortu-dua {
+.ortu-anak__peringatan {
+  padding: var(--space-4) var(--space-6) 0;
+}
+
+.ortu-anak__isi {
   display: grid;
-  gap: var(--space-5);
-  align-items: stretch;
 }
+
+/* Kiri: jawaban. Kanan: angka dan aksi. Bobot keduanya seimbang (sama lebar, isi di tengah secara vertikal). */
+.ortu-anak__status,
+.ortu-anak__aksi {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+}
+
+.ortu-anak__aksi {
+  border-top: var(--border-thin) solid var(--color-border-subtle);
+  background: var(--color-canvas);
+}
+
+.ortu-anak__kedua {
+  align-self: center;
+  font-weight: var(--weight-semibold);
+}
+
+.ortu-mini {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.ortu-mini__angka {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+}
+
+.ortu-mini__angka b {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.ortu-mini__angka--aman {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.ortu-mini__angka--bersaing {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.ortu-mini__angka--berisiko {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.ortu-anak-lain {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.ortu-anak-lain li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+}
+
+.ortu-anak-lain li:last-child {
+  border-bottom: 0;
+}
+
+.ortu-anak-lain span {
+  display: grid;
+}
+
+.ortu-anak-lain small {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+@media (min-width: 720px) {
+  .ortu-anak__isi {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .ortu-anak__status,
+  .ortu-anak__aksi {
+    padding: var(--space-8);
+  }
+
+  .ortu-anak__aksi {
+    border-top: 0;
+    border-left: var(--border-thin) solid var(--color-border-subtle);
+  }
+}
+
+
+
+
+
 
 .ortu-aksi {
   display: flex;
@@ -178,69 +281,14 @@
   font-weight: var(--weight-semibold);
 }
 
-.ortu-pintasan {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: var(--radius-card-lg);
-  background: var(--color-surface);
-}
 
-.ortu-pintasan__baris {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 4.5rem;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: var(--border-thin) solid var(--color-border-subtle);
-  color: var(--color-ink);
-  text-decoration: none;
-}
 
-.ortu-pintasan__baris:hover {
-  background: var(--color-canvas);
-}
 
-.ortu-pintasan__ikon {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-md);
-  background: var(--color-canvas);
-  color: var(--color-primary-text);
-}
 
-.ortu-pintasan__teks {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
 
-.ortu-pintasan__teks strong {
-  font-size: var(--text-body-lg);
-}
 
-.ortu-pintasan__teks span {
-  color: var(--color-text-secondary);
-  font-size: var(--text-body-sm);
-}
 
-.ortu-pintasan__panah {
-  margin-left: auto;
-  color: var(--color-text-secondary);
-}
 
-.ortu-pintasan__kaki {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: auto;
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-canvas);
-  font-size: var(--text-body-sm);
-}
 
 .ortu-lipat > summary {
   cursor: pointer;
@@ -529,11 +577,6 @@
   }
 }
 
-@media (min-width: 960px) {
-  .ortu-dua {
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  }
-}
 
 @media print {
   .ortu-judul .button,
