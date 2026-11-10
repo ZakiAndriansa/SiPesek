@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button, ButtonGroup, Choice, ChoiceGroup, Dialog, ExternalLink, Field, Form, HelpLink, PageHeader, Select } from "@/components";
+import { Alert, Button, ButtonGroup, Choice, ChoiceGroup, Dialog, ExternalLink, Field, Form, HelpLink, PageHeader, Select, Stepper } from "@/components";
 import { HomePicker } from "@/features/cek-cepat/HomePicker";
 import { setBaruDisimpan } from "@/features/cek-cepat/draft-store";
 import { ambil, pesanGagal } from "@/lib/ambil";
@@ -28,6 +28,7 @@ const LANGKAH = [
   { title: "Kondisi keluarga", desc: "Menentukan apakah Jalur Afirmasi dan Jalur Mutasi ikut dihitung." },
   { title: "Titik rumah", desc: "Untuk menghitung jarak ke sekolah. Titik ini dipakai untuk menghitung, lalu dibuang." },
 ] as const;
+const JUDUL_LANGKAH = LANGKAH.map((l) => l.title);
 
 const FORM = "isi-data-form";
 const href = (n: number) => `/isi-data/${n}`;
@@ -101,9 +102,13 @@ function Kerangka({
   children: ReactNode;
 }) {
   const terakhir = n === WIZARD_TOTAL_ORTU;
+  // Bar langkah: mundur bebas, maju sampai langkah terjauh yang sudah disimpan (anak baru: belum ada yang tersimpan).
+  const terbuka = anak ? Math.min((bacaIsian(anak.id)?.langkah ?? 0) + 1, WIZARD_TOTAL_ORTU) : 1;
   return (
     <>
-      <PageHeader art="profile" title={LANGKAH[n - 1].title} desc={LANGKAH[n - 1].desc} />
+      {/* Bar langkah di halaman, bukan di header; judul langkah polos tanpa kotak berilustrasi. */}
+      <Stepper step={n} total={WIZARD_TOTAL_ORTU} labels={JUDUL_LANGKAH} tampilLabel dasar="/isi-data/" terbuka={terbuka} />
+      <PageHeader title={LANGKAH[n - 1].title} desc={LANGKAH[n - 1].desc} />
       {anak && (
         <p className="text-secondary wizard-ortu__anak">
           Untuk <strong>{anak.nama}</strong> (NISN berakhiran {anak.nisnAkhir}).{" "}

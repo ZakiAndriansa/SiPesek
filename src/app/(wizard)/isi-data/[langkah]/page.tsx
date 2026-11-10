@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Alert, Button, ButtonGroup, PageHeader } from "@/components";
+import { Alert, Button, ButtonGroup, PageHeader, Stepper } from "@/components";
 import { pramuatDataOrtu } from "@/features/ortu/pramuat";
 import { getSession } from "@/lib/session";
 import { WizardForm } from "@/features/isi-data/WizardForm";
@@ -77,8 +77,16 @@ async function IsiLangkah({ params, searchParams }: Props) {
           Data dari Cek Cepat sudah terisi di langkah 1 sampai 4. Periksa langkah terakhir, lalu lanjutkan.
         </Alert>
       )}
-      <PageHeader
-        art="profile" title={step.title} desc={step.desc} />
+      {/* Bar langkah di halaman (bukan di header): mundur bebas, maju sampai langkah terjauh yang tersimpan di sesi. */}
+      <Stepper
+        step={n}
+        total={TOTAL}
+        labels={STEPS.map((s) => s.title)}
+        tampilLabel
+        dasar="/isi-data/"
+        terbuka={Math.min((session?.child?.steps ?? 0) + 1, TOTAL)}
+      />
+      <PageHeader title={step.title} desc={step.desc} />
 
       <div className="card wizard__card">
         <WizardForm step={n} next={next}>
