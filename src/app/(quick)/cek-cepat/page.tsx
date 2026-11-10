@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 export default async function CekCepatPage() {
   const session = await getSession();
   return (
-    <Container reading>
+    // Lebar penuh: langkah isian dibatasi selebar kolom baca di QuickCheck, hasil memakai lebar penuh.
+    <Container>
       <QuickCheck loggedIn={!!session} canSave={session?.role === "orang-tua"} parentName={session?.name} />
     </Container>
   );

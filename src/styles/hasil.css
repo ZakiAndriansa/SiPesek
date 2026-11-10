@@ -1,0 +1,364 @@
+/*
+ * Tampilan hasil bersama: Hasil Sekolah (akun Google), Cek Cepat (tamu), dan hasil lama dari riwayat.
+ * Dimuat global karena Cek Cepat berada di luar area orang tua. Nama kelas ortu-* dipertahankan agar
+ * halaman orang tua lain (Strategi, Dokumen, Data Anak) tetap memakai judul, catatan, dan aksi yang sama.
+ */
+
+/* ---------- Judul halaman polos (pengganti kotak judul berilustrasi) ---------- */
+.ortu-judul {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block: var(--space-6) var(--space-6);
+}
+
+.ortu-judul h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.ortu-judul__konteks {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-md);
+}
+
+.ortu-meta {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+/* ---------- Penutup halaman: satu baris catatan dan satu tautan lanjut ---------- */
+.ortu-lanjut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: var(--border-thin) solid var(--color-border-subtle);
+}
+
+.ortu-lanjut__catatan {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+.ortu-lanjut__tautan {
+  margin-left: auto;
+  font-weight: var(--weight-semibold);
+}
+
+.ortu-aksi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* ---------- Hasil Sekolah: tab tampilan, angka label, tabel berhalaman ---------- */
+.ortu-seg {
+  display: inline-flex;
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+}
+
+.ortu-seg button {
+  min-height: 2.5rem;
+  padding: 0 var(--space-5);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.ortu-seg button[aria-selected="true"] {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.ortu-angka {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.ortu-angka__tombol {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ortu-angka__tombol:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.ortu-angka__tombol[aria-pressed="true"] {
+  border-color: currentColor;
+}
+
+.ortu-angka__tombol b {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.ortu-angka__tombol span {
+  font-size: var(--text-body-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.ortu-angka__tombol--aman {
+  color: var(--color-success-text);
+}
+
+.ortu-angka__tombol--bersaing {
+  color: var(--color-warning-text);
+}
+
+.ortu-angka__tombol--berisiko {
+  color: var(--color-danger-text);
+}
+
+.ortu-angka__tombol--info {
+  color: var(--color-ink-soft);
+}
+
+/* Satu baris penuh: pesan di kiri, tautan di kanan (turun ke baris baru hanya di layar sempit). */
+.ortu-sorot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  max-width: none;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-tint);
+}
+
+.ortu-sorot__tautan {
+  white-space: nowrap;
+}
+
+.ortu-tabel {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.ortu-tabel__gulir {
+  overflow-x: auto;
+}
+
+.ortu-tabel table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+}
+
+.ortu-tabel th {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-align: left;
+}
+
+.ortu-tabel td {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--border-thin) solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+.ortu-tabel__nama {
+  display: grid;
+  gap: 2px;
+}
+
+.ortu-tabel__nama a {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.ortu-tabel__nama a:hover {
+  text-decoration: underline;
+}
+
+.ortu-tabel__nama span {
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+
+.ortu-tabel__kaki {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+.ortu-alat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.ortu-alat .field {
+  min-width: 12rem;
+}
+
+/* ---------- Tambahan satu tampilan hasil ---------- */
+
+/* Nama sekolah yang membuka rincian (tamu dan hasil lama, tanpa halaman detail). */
+.ortu-tabel__rinci {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ortu-tabel__rinci:hover {
+  text-decoration: underline;
+}
+
+/* Rekomendasi untuk tamu, menggantikan tombol Pilih. */
+.ortu-saran-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-tint);
+  color: var(--color-primary-text);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+/* Cadangan swasta saat sudah ada sekolah aman: satu baris tenang, tanpa warna peringatan. */
+.ortu-cadangan {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-sm);
+}
+
+.ortu-cadangan a {
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.hasil-rinci {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.hasil-rinci p {
+  margin: 0;
+}
+
+@media (min-width: 720px) {
+  .ortu-angka {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* HP: tabel menjadi daftar kartu (nama dan label di atas, jarak, batas, dan aksi di bawah). */
+@media (max-width: 599px) {
+  .ortu-tabel table {
+    min-width: 0;
+  }
+
+  .ortu-tabel thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .ortu-tabel tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: var(--border-thin) solid var(--color-border-subtle);
+  }
+
+  .ortu-tabel td {
+    padding: 0;
+    border: 0;
+  }
+
+  .ortu-tabel td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .ortu-tabel td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .ortu-tabel td:nth-child(2),
+  .ortu-tabel td:nth-child(3) {
+    display: inline;
+    grid-column: 1;
+    color: var(--color-text-secondary);
+    font-size: var(--text-caption);
+  }
+
+  .ortu-tabel td:nth-child(5) {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .ortu-tabel td:nth-child(5):empty {
+    display: none;
+  }
+}
+
+@media print {
+  .ortu-judul .button,
+  .ortu-lanjut {
+    display: none;
+  }
+}

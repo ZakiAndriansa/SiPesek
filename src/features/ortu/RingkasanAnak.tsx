@@ -102,7 +102,14 @@ export function RingkasanAnak() {
       : r.peluangBesar === 0
         ? { label: swasta > 0 ? `Lihat ${swasta} swasta terdekat` : "Lihat sekolah swasta terdekat", href: "/cadangan" }
         : { label: "Lihat hasil", href: "/peta-sekolah" };
-  const kedua = r && utama.href !== "/peta-sekolah" ? { label: "Lihat hasil semua sekolah", href: "/peta-sekolah" } : null;
+  // Tautan kedua: hasil semua sekolah bila aksi utama bukan ke sana; bila sudah aman, cadangan swasta tetap ditawarkan.
+  const kedua = !r
+    ? null
+    : utama.href !== "/peta-sekolah"
+      ? { label: "Lihat hasil semua sekolah", href: "/peta-sekolah" }
+      : swasta > 0
+        ? { label: `Cadangan: ${swasta} swasta terdekat`, href: "/cadangan" }
+        : null;
 
   return (
     <>

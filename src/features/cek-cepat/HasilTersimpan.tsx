@@ -1,38 +1,38 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button } from "@/components";
+import { Alert, Breadcrumb, Button } from "@/components";
+import { HapusHasil } from "@/features/ortu/HapusHasil";
+import { pilihAnakAktif, useOrtu } from "@/features/ortu/store";
+import { skorUtama, TampilanHasil } from "@/features/hasil/TampilanHasil";
 import { ambil } from "@/lib/ambil";
 import type { ResponsPeluang } from "@/lib/kontrak";
-import type { QuickCheckInput } from "@/lib/quick-check";
+import { angkaSkor } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
-import { HapusHasil } from "@/features/ortu/HapusHasil";
-import { CEK_LAGI_HREF } from "@/features/ortu/isian";
-import { pilihAnakAktif } from "@/features/ortu/store";
-import { ambilBaruDisimpan } from "./draft-store";
-import { HasilCepat } from "./HasilCepat";
 
 type Status = "memuat" | "ada" | "belum-masuk" | "tidak-ada" | "galat";
 
 const tanggal = (iso: string) => new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+const JENJANG_SEKOLAH = (r: ResponsPeluang) => {
+  const ada = new Set(r.hasil.map((h) => h.sekolah.jenjang));
+  return ada.size > 1 ? "SMA dan SMK" : ([...ada][0] ?? null);
+};
 
 /**
- * Hasil cek yang tersimpan di riwayat anak. Tepat setelah disimpan, hasilnya diambil dari memori tab
- * (lengkap dengan isian untuk laporan cetak). Bila dibuka lagi nanti, diambil dari GET /api/hasil/[token]
- * di klien agar cookie sesi ikut terkirim; hanya pemilik akun yang mendapat datanya.
+ * Satu hasil dari riwayat anak (dibuka dari Data Anak). Hasil terbaru anak itu langsung diarahkan ke Hasil Sekolah,
+ * agar hanya ada satu tempat untuk hasil terkini. Hasil lama memakai tampilan yang sama (mode lama): ada penanda
+ * bahwa ini bukan hasil terbaru, dan tanpa tombol Pilih agar rencana pilihan tidak tercampur.
+ * Diambil dari GET /api/hasil/[token] di klien agar cookie sesi ikut terkirim; hanya pemilik akun yang mendapat datanya.
  */
 export function HasilTersimpan({ token }: { token: string }) {
   const router = useRouter();
-  // Memori tab kosong saat render di server maupun setelah muat ulang, jadi nilai awal ini selalu sama di keduanya.
-  const [baru] = useState(() => ambilBaruDisimpan(token));
-  const [result, setResult] = useState<ResponsPeluang | null>(baru?.result ?? null);
-  const [input] = useState<QuickCheckInput | null>(baru?.input ?? null);
-  const [status, setStatus] = useState<Status>(baru ? "ada" : "memuat");
+  const ortu = useOrtu();
+  const [result, setResult] = useState<ResponsPeluang | null>(null);
+  const [status, setStatus] = useState<Status>("memuat");
   // Dinaikkan oleh tombol "Coba lagi" untuk mengulang pengambilan.
   const [percobaan, setPercobaan] = useState(0);
 
   useEffect(() => {
-    if (baru) return;
     let batal = false;
     ambil(`/api/hasil/${encodeURIComponent(token)}`)
       .then(async (res) => {
@@ -47,9 +47,26 @@ export function HasilTersimpan({ token }: { token: string }) {
     return () => {
       batal = true;
     };
-  }, [baru, token, percobaan]);
+  }, [token, percobaan]);
 
-  if (status === "memuat") {
+  const anakId = result?.anak?.id;
+  const anak = anakId !== undefined ? ortu.anak.find((a) => a.id === anakId) : undefined;
+  const terbaru = !!anak && anak.riwayat[0]?.token === token;
+
+  // Hasil terbaru: tampilkan di Hasil Sekolah (anak ini dijadikan anak aktif).
+  useEffect(() => {
+    if (terbaru && anakId !== undefined) {
+      pilihAnakAktif(anakId);
+      router.replace("/peta-sekolah");
+    }
+  }, [terbaru, anakId, router]);
+
+  function keTerbaru() {
+    if (anakId !== undefined) pilihAnakAktif(anakId);
+    router.push("/peta-sekolah");
+  }
+
+  if (status === "memuat" || (status === "ada" && (ortu.status === "memuat" || terbaru))) {
     return (
       <div className="card" aria-busy="true">
         <p className="text-secondary">Memuat hasil…</p>
@@ -107,45 +124,35 @@ export function HasilTersimpan({ token }: { token: string }) {
     );
   }
 
-  const nama = result.anak?.nama ?? "anak";
-  const anakId = result.anak?.id;
+  const nama = result.anak?.nama ?? "Anak";
+  const tgl = tanggal(result.dibuatPada);
+  const skor = skorUtama(result);
   return (
-    <div className="stack hasil-tersimpan">
-      {baru && (
-        <Alert kind="success" title="Hasil tersimpan">
-          {baru.pesan}
-        </Alert>
-      )}
-      <div className="block-head no-print">
-        <h1 className="text-heading-lg quick__title">Hasil {nama}</h1>
-        <p className="text-secondary">
-          Dicek {tanggal(result.dibuatPada)} dengan acuan SPMB {result.tahunAcuan}.
-        </p>
-      </div>
-      <HasilCepat result={result} input={input} date={tanggal(new Date().toISOString())}>
-        {anakId ? (
-          // Cek ulang anak ini lewat isi data (isian terakhir sudah terisi), bukan Cek Cepat yang meminta NISN lagi.
-          <Button
-            variant="ghost"
-            onClick={() => {
-              pilihAnakAktif(anakId);
-              router.push(CEK_LAGI_HREF);
-            }}
+    <TampilanHasil
+      hasil={result}
+      mode="lama"
+      judul="Hasil Sekolah"
+      konteks={[nama, JENJANG_SEKOLAH(result), skor !== null ? `skor rapor ${angkaSkor(skor)}` : null, `dari cek ${tgl}`]
+        .filter(Boolean)
+        .join(" · ")}
+      atas={
+        <div className="stack">
+          <Breadcrumb items={[["Data Anak", "/anak-saya"], [`Hasil ${tgl}`]]} />
+          <Alert
+            kind="info"
+            title={`Ini hasil lama dari ${tgl}`}
+            action={
+              <Button variant="secondary" icon="arrow-right" onClick={keTerbaru}>
+                Lihat hasil terbaru
+              </Button>
+            }
           >
-            Cek lagi
-          </Button>
-        ) : (
-          <Button variant="ghost" href="/cek-cepat">
-            Cek lagi
-          </Button>
-        )}
-        <Button variant="ghost" href="/anak-saya">
-          Semua riwayat
-        </Button>
-        {anakId && (
-          <HapusHasil token={token} nama={nama} dibuatPada={result.dibuatPada} setelahHapus={() => router.push("/anak-saya")} />
-        )}
-      </HasilCepat>
-    </div>
+            Pilihan sekolah, strategi, dan dokumen memakai hasil terbaru {nama}.
+          </Alert>
+        </div>
+      }
+      aksiKepala={anakId !== undefined && <HapusHasil token={token} nama={nama} dibuatPada={result.dibuatPada} setelahHapus={() => router.push("/anak-saya")} />}
+      tanggalCetak={tgl}
+    />
   );
 }

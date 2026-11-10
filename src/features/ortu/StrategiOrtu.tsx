@@ -69,6 +69,15 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
             </Button>
           </div>
         )}
+        {/* Cadangan selalu ditawarkan; saat pilihan sudah aman cukup satu baris tenang. */}
+        {nilai.aman && swasta > 0 && (
+          <p className="ortu-cadangan">
+            Mau punya cadangan?{" "}
+            <Link className="link" href="/cadangan">
+              Lihat {swasta} swasta terdekat →
+            </Link>
+          </p>
+        )}
       </section>
 
       <section className="ortu-bagian" aria-labelledby="s-pilihan">

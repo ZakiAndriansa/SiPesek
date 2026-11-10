@@ -7,7 +7,7 @@ import type { PermintaanSimpanCek, ResponsSimpanCek } from "@/lib/kontrak";
 import { toRequest, type QuickDraft } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
 import { simpanIsian } from "@/features/ortu/isian";
-import { simpanHasilBaru, tandaiUsang } from "@/features/ortu/store";
+import { simpanHasilBaru, tandaiUsang, tungguHasilBaru } from "@/features/ortu/store";
 import { WIZARD_TOTAL_ORTU } from "@/lib/accounts";
 import { clearDraft, getDraft, setBaruDisimpan } from "./draft-store";
 
@@ -87,7 +87,7 @@ export function SaveDraft() {
         // Navbar dan halaman tahap memuat ulang daftar anak, dengan anak ini sebagai anak aktif.
         simpanHasilBaru(hasil);
         if (hasil.anak) {
-          tandaiUsang(hasil.anak.id);
+          tungguHasilBaru(hasil.anak.id);
           // Isian Cek Cepat jadi isian anak ini, agar "Cek lagi" membuka isi data yang sudah terisi.
           // Titik rumah tidak ikut, sama seperti isian wizard.
           const { jenjang, nilai, tkaBin, tkaMtk, mapel, ketm, disabilitas, pindahTugas, kecamatan } = input;
@@ -95,9 +95,10 @@ export function SaveDraft() {
             jenjang, nilai, tkaBin, tkaMtk, mapel, ketm, disabilitas, pindahTugas, kecamatan,
             langkah: WIZARD_TOTAL_ORTU,
           });
-        }
+        } else tandaiUsang();
         clearDraft();
-        router.push(`/hasil/${hasil.token}`);
+        // Langsung ke Hasil Sekolah: satu tampilan hasil, dengan pesan sukses di atasnya.
+        router.push("/peta-sekolah");
         return;
       }
     } catch (e) {

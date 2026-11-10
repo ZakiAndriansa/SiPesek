@@ -3,31 +3,6 @@
  * Hierarki dibangun dari jarak dan judul, bukan kotak; hanya bagian fokus yang diberi permukaan putih.
  */
 
-/* ---------- Judul halaman polos (pengganti kotak judul berilustrasi) ---------- */
-.ortu-judul {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-block: var(--space-6) var(--space-6);
-}
-
-.ortu-judul h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(30px, 4vw, 40px);
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.ortu-judul__konteks {
-  margin: var(--space-2) 0 0;
-  color: var(--color-text-secondary);
-  font-size: var(--text-body-md);
-}
-
 /* ---------- Bagian fokus ---------- */
 .ortu-fokus {
   display: grid;
@@ -69,39 +44,10 @@
   line-height: 1.5;
 }
 
-.ortu-meta {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--text-body-sm);
-}
-
 .ortu-label {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-}
-
-/* ---------- Penutup halaman: satu baris catatan dan satu tautan lanjut ---------- */
-.ortu-lanjut {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-8);
-  padding-top: var(--space-5);
-  border-top: var(--border-thin) solid var(--color-border-subtle);
-}
-
-.ortu-lanjut__catatan {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--text-body-sm);
-}
-
-.ortu-lanjut__tautan {
-  margin-left: auto;
-  font-weight: var(--weight-semibold);
 }
 
 .ortu-bagian {
@@ -256,18 +202,6 @@
   }
 }
 
-
-
-
-
-
-.ortu-aksi {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  align-items: center;
-}
-
 .ortu-saran {
   display: grid;
   gap: var(--space-3);
@@ -281,15 +215,6 @@
   font-weight: var(--weight-semibold);
 }
 
-
-
-
-
-
-
-
-
-
 .ortu-lipat > summary {
   cursor: pointer;
   font-weight: var(--weight-semibold);
@@ -297,179 +222,6 @@
 
 .ortu-lipat[open] > summary {
   margin-bottom: var(--space-3);
-}
-
-/* ---------- Hasil Sekolah: tab tampilan, angka label, tabel berhalaman ---------- */
-.ortu-seg {
-  display: inline-flex;
-  padding: var(--space-1);
-  border-radius: var(--radius-full);
-  background: var(--color-surface-muted);
-}
-
-.ortu-seg button {
-  min-height: 2.5rem;
-  padding: 0 var(--space-5);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--color-ink-soft);
-  font: inherit;
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-}
-
-.ortu-seg button[aria-selected="true"] {
-  background: var(--color-surface);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-sm);
-}
-
-.ortu-angka {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-
-.ortu-angka__tombol {
-  display: grid;
-  justify-items: start;
-  gap: var(--space-1);
-  padding: var(--space-4) var(--space-5);
-  border: 1.5px solid transparent;
-  border-radius: var(--radius-xl);
-  background: var(--color-surface);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.ortu-angka__tombol:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.ortu-angka__tombol[aria-pressed="true"] {
-  border-color: currentColor;
-}
-
-.ortu-angka__tombol b {
-  font-family: var(--font-heading);
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.ortu-angka__tombol span {
-  font-size: var(--text-body-sm);
-  font-weight: var(--weight-semibold);
-}
-
-.ortu-angka__tombol--aman {
-  color: var(--color-success-text);
-}
-
-.ortu-angka__tombol--bersaing {
-  color: var(--color-warning-text);
-}
-
-.ortu-angka__tombol--berisiko {
-  color: var(--color-danger-text);
-}
-
-.ortu-angka__tombol--info {
-  color: var(--color-ink-soft);
-}
-
-/* Satu baris penuh: pesan di kiri, tautan di kanan (turun ke baris baru hanya di layar sempit). */
-.ortu-sorot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-5);
-  max-width: none;
-  margin: 0;
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-lg);
-  background: var(--color-primary-tint);
-}
-
-.ortu-sorot__tautan {
-  white-space: nowrap;
-}
-
-.ortu-tabel {
-  overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-}
-
-.ortu-tabel__gulir {
-  overflow-x: auto;
-}
-
-.ortu-tabel table {
-  width: 100%;
-  min-width: 40rem;
-  border-collapse: collapse;
-}
-
-.ortu-tabel th {
-  padding: var(--space-3) var(--space-5);
-  border-bottom: var(--border-thin) solid var(--color-border-subtle);
-  color: var(--color-text-secondary);
-  font-size: var(--text-caption);
-  font-weight: var(--weight-semibold);
-  text-align: left;
-}
-
-.ortu-tabel td {
-  padding: var(--space-3) var(--space-5);
-  border-bottom: var(--border-thin) solid var(--color-border-subtle);
-  vertical-align: middle;
-}
-
-.ortu-tabel__nama {
-  display: grid;
-  gap: 2px;
-}
-
-.ortu-tabel__nama a {
-  color: var(--color-ink);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
-}
-
-.ortu-tabel__nama a:hover {
-  text-decoration: underline;
-}
-
-.ortu-tabel__nama span {
-  color: var(--color-text-secondary);
-  font-size: var(--text-caption);
-}
-
-.ortu-tabel__kaki {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
-  color: var(--color-text-secondary);
-  font-size: var(--text-body-sm);
-}
-
-.ortu-alat {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.ortu-alat .field {
-  min-width: 12rem;
 }
 
 /* ---------- Strategi: baris pilihan ringkas ---------- */
@@ -579,19 +331,7 @@
 }
 
 @media (min-width: 720px) {
-  .ortu-angka {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .ortu-fokus {
     padding: var(--space-8);
-  }
-}
-
-
-@media print {
-  .ortu-judul .button,
-  .ortu-lanjut {
-    display: none;
   }
 }
