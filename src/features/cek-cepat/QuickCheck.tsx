@@ -6,6 +6,7 @@ import {
   Alert,
   Button,
   ButtonGroup,
+  CtaBand,
   Choice,
   ChoiceGroup,
   Dialog,
@@ -17,6 +18,7 @@ import {
 } from "@/components";
 import type { ResponsPeluang } from "@/lib/kontrak";
 import {
+  angkaSkor,
   isianUntukJalur,
   isValidNisn,
   JALUR_UTAMA,
@@ -33,7 +35,7 @@ import {
   type Titik,
 } from "@/lib/quick-check";
 import { useIsianBelumTersimpan } from "@/components/navbar/penjaga-keluar";
-import { HasilCepat } from "./HasilCepat";
+import { skorUtama, TampilanHasil } from "@/features/hasil/TampilanHasil";
 import { HomePicker } from "./HomePicker";
 import { setDraft } from "./draft-store";
 
@@ -66,6 +68,7 @@ const PILIHAN_JALUR: [JalurPilihan, string, string][] = [
   ["MUTASI", "Mutasi (orang tua pindah tugas)", "Untuk anak yang orang tuanya pindah tugas ke Depok, dengan surat penugasan."],
 ];
 const NAMA_JALUR = Object.fromEntries(JALUR_UTAMA) as Record<JalurPilihan, string>;
+const JENJANG_TEKS: Record<string, string> = { sma: "SMA", smk: "SMK" };
 /** Nama singkat tiap langkah untuk bar langkah (tooltip dan pembaca layar). */
 const NAMA_LANGKAH: Record<Phase, string> = { nisn: "NISN", jalur: "Jalur", isian: "Data anak", nilai: "Nilai rapor", hasil: "Hasil" };
 
@@ -462,8 +465,8 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const afirmasiAwal = input.ketm === "ya" ? "ketm" : input.disabilitas ? "disabilitas" : null;
 
   return (
-    <div className="quick">
-      <div className="no-print">
+    <div className={phase === "hasil" ? "quick quick--hasil" : "quick"}>
+      <div className="no-print quick__langkah">
         <Stepper
           step={indeksSekarang + 1}
           total={urutan.length}
@@ -472,9 +475,12 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
           onPilih={pindahKeLangkah}
         />
       </div>
-      <div ref={focusRef} tabIndex={-1} className="quick__focus">
-        <h1 className="text-heading-lg quick__title">{judul[phase]}</h1>
-      </div>
+      {/* Di langkah hasil, judulnya bagian dari tampilan hasil; fokus pindah ke awal tampilan itu. */}
+      {phase !== "hasil" && (
+        <div ref={focusRef} tabIndex={-1} className="quick__focus">
+          <h1 className="text-heading-lg quick__title">{judul[phase]}</h1>
+        </div>
+      )}
 
       {loggedIn && !canSave && (
         <Alert kind="info" title="Anda masuk sebagai petugas">
@@ -718,21 +724,84 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
       )}
 
       {phase === "hasil" && result && (
-        <HasilCepat
-          result={result}
-          input={isianEfektif}
-          loggedIn={loggedIn}
-          canSave={canSave}
-          onSave={save}
-          onEdit={() => {
-            setJenjang(input.jenjang);
-            setPhase("isian");
-          }}
-          onRestart={restart}
-          jalurDipilih={jalur}
-          onCekSemuaJalur={cekSemuaJalur}
-          date={dateText()}
-        />
+        <div ref={focusRef} tabIndex={-1} className="quick__focus">
+          <TampilanHasil
+            hasil={result}
+            mode="saran"
+            judul={judul.hasil}
+            konteks={
+              <>
+                {[
+                  JENJANG_TEKS[input.jenjang] ?? "SMA dan SMK",
+                  jalur ? NAMA_JALUR[jalur] : "semua jalur",
+                  skorUtama(result) !== null ? `skor rapor ${angkaSkor(skorUtama(result)!)}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                {" · "}
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => {
+                    setJenjang(input.jenjang);
+                    setPhase("isian");
+                  }}
+                >
+                  Ubah isian
+                </button>
+              </>
+            }
+            sebelumTabel={
+              // Hasil satu jalur: tetap tawarkan semua jalur, karena jalur lain bisa jadi lebih aman.
+              jalur && (
+                <Alert
+                  kind="info"
+                  title={`Hasil ini hanya untuk ${NAMA_JALUR[jalur]}`}
+                  action={
+                    <Button variant="secondary" icon="arrow-right" onClick={cekSemuaJalur}>
+                      Cek semua jalur
+                    </Button>
+                  }
+                >
+                  Ingin tahu peluang di jalur lain? Lengkapi isian kondisi anak, lalu SiPesek menilai semua jalur yang terbuka dan
+                  menyarankan yang paling aman.
+                </Alert>
+              )
+            }
+            bawah={
+              <div className="stack">
+                {canSave && (
+                  <CtaBand
+                    title="Mau menyimpan hasil ini?"
+                    text="Hasil ini masuk ke riwayat anak di akun Bapak/Ibu, lalu pilihan sekolah dan dokumen bisa disusun dari sini."
+                  >
+                    <Button variant="primary" lg icon="arrow-right" onClick={save}>
+                      Simpan hasil ini ke akun
+                    </Button>
+                  </CtaBand>
+                )}
+                {!loggedIn && (
+                  <CtaBand
+                    title="Simpan hasil ini untuk anak Anda"
+                    text="Masuk dengan Google untuk menyusun pilihan, menyiapkan dokumen, dan membuka hasil ini lagi nanti. Tanpa masuk, hasil tidak tersimpan."
+                  >
+                    <Button variant="primary" lg icon="arrow-right" onClick={save}>
+                      Masuk dan simpan
+                    </Button>
+                  </CtaBand>
+                )}
+                <ButtonGroup>
+                  <Button variant="ghost" onClick={restart}>
+                    Cek anak lain
+                  </Button>
+                </ButtonGroup>
+              </div>
+            }
+            input={isianEfektif}
+            jalurDipilih={jalur}
+            tanggalCetak={dateText()}
+          />
+        </div>
       )}
     </div>
   );

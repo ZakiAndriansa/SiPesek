@@ -8,6 +8,9 @@ import type { ResponsPeluang, RiwayatCek } from "@/lib/kontrak";
 import { lupakanSesi } from "@/lib/session-actions";
 import { pastikanHasil, segarkanOrtu, useHasilAktif, type AnakOrtu } from "./store";
 
+// Judul dan penutup dipakai juga oleh Cek Cepat, jadi tinggal di modul hasil bersama.
+export { catatanPerkiraan, JudulOrtu, LanjutOrtu } from "@/features/hasil/Judul";
+
 export type DataTahap = { aktif: AnakOrtu; terakhir: RiwayatCek; hasil: ResponsPeluang };
 
 export const tanggalCek = (iso: string) =>
@@ -88,22 +91,6 @@ export function SumberHasil({ terakhir, hasil }: { terakhir: RiwayatCek; hasil: 
 
 const JENJANG_CEK: Record<RiwayatCek["jenjang"], string> = { SMA: "SMA", SMK: "SMK", SEMUA: "SMA dan SMK" };
 
-/**
- * Judul halaman orang tua tanpa kotak dan ilustrasi: judul, satu baris konteks, dan aksi utama (opsional) di kanan.
- * Pengganti PageHeader berilustrasi agar layar pertama langsung berisi jawaban.
- */
-export function JudulOrtu({ judul, konteks, aksi }: { judul: string; konteks?: ReactNode; aksi?: ReactNode }) {
-  return (
-    <header className="ortu-judul">
-      <div>
-        <h1>{judul}</h1>
-        {konteks && <p className="ortu-judul__konteks">{konteks}</p>}
-      </div>
-      {aksi}
-    </header>
-  );
-}
-
 /** Baris konteks satu kalimat: anak, jenjang, tanggal cek, dan tautan memperbarui (pengganti SumberHasil yang panjang). */
 export function KonteksCek({ aktif, terakhir, tambahan }: { aktif: AnakOrtu; terakhir: RiwayatCek; tambahan?: string }) {
   return (
@@ -118,20 +105,6 @@ export function KonteksCek({ aktif, terakhir, tambahan }: { aktif: AnakOrtu; ter
     </>
   );
 }
-
-/** Penutup halaman: satu baris catatan (disclaimer) dan satu tautan ke halaman berikutnya. Pengganti pita oranye. */
-export function LanjutOrtu({ catatan, href, label }: { catatan?: ReactNode; href: string; label: string }) {
-  return (
-    <div className="ortu-lanjut">
-      {catatan && <p className="ortu-lanjut__catatan">{catatan}</p>}
-      <Link className="link ortu-lanjut__tautan" href={href}>
-        {label} →
-      </Link>
-    </div>
-  );
-}
-
-export const catatanPerkiraan = (tahun: number) => `Perkiraan dari hasil SPMB ${tahun}, bukan jaminan diterima.`;
 
 /** Sesi Google habis: hapus sesi lama lalu kembali ke halaman ini setelah masuk. */
 export function SesiBerakhir() {

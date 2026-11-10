@@ -19,7 +19,7 @@ import {
   type Titik,
 } from "@/lib/quick-check";
 import { bacaIsian, ISIAN_KOSONG, simpanIsian, type Isian } from "./isian";
-import { segarkanOrtu, simpanHasilBaru, tandaiUsang, useOrtu, type AnakOrtu } from "./store";
+import { segarkanOrtu, simpanHasilBaru, tandaiUsang, tungguHasilBaru, useOrtu, type AnakOrtu } from "./store";
 import { GagalMuat, Memuat, SesiBerakhir } from "./Wadah";
 
 const LANGKAH = [
@@ -338,8 +338,9 @@ function LangkahAnak({ n, anak }: { n: number; anak: AnakOrtu }) {
       simpanIsian(anak.id, { langkah: WIZARD_TOTAL_ORTU });
       setBaruDisimpan({ result: hasil, input, pesan: `Data ${anak.nama} lengkap, dan hasil ini tersimpan di riwayatnya.` });
       simpanHasilBaru(hasil);
-      tandaiUsang(anak.id);
-      router.push(`/hasil/${hasil.token}`);
+      tungguHasilBaru(anak.id);
+      // Langsung ke Hasil Sekolah: satu tampilan hasil, dengan pesan sukses di atasnya.
+      router.push("/peta-sekolah");
     } catch (e) {
       setGalat(pesanGagal(e));
       lepas();

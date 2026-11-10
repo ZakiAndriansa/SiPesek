@@ -144,6 +144,16 @@ export function tandaiUsang(aktifId?: number) {
 }
 
 /**
+ * Setelah menyimpan hasil baru lalu pindah ke Hasil Sekolah: halaman berikutnya menunggu daftar anak terbaru
+ * (status memuat), bukan menampilkan hasil sebelumnya sesaat. Tidak memberi tahu pendengar, agar halaman yang
+ * sedang ditinggalkan tidak berkedip.
+ */
+export function tungguHasilBaru(aktifId: number) {
+  tandaiUsang(aktifId);
+  keadaan = { ...keadaan, status: "memuat" };
+}
+
+/**
  * Hapus satu hasil dari riwayat (DELETE /api/hasil/[token]), lalu ambil ulang daftar anak. Halaman tahap
  * otomatis memakai hasil sebelumnya bila yang dihapus adalah hasil terakhir.
  */
