@@ -456,6 +456,30 @@
   animation: drop-in var(--duration-base) var(--ease-out) both;
 }
 
+/* Chip nama anak di header wizard: hanya di layar lebar, agar judul tetap muat di HP. */
+.navbar__chip-anak {
+  display: none;
+  align-items: center;
+  max-width: 12rem;
+  height: 1.75rem;
+  overflow: hidden;
+  padding: 0 var(--space-3);
+  border: var(--border-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-canvas);
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 600px) {
+  .navbar__chip-anak {
+    display: inline-flex;
+  }
+}
+
 /* Label chip dan tombol Keluar disembunyikan secara visual di HP, tetap terbaca pembaca layar. */
 .navbar__privasi-teks,
 .navbar__keluar-teks {

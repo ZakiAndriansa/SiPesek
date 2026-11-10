@@ -8,11 +8,9 @@ import {
   STAGES,
   stageStatus,
   WIZARD_TOTAL,
-  WIZARD_TOTAL_ORTU,
   type Session,
 } from "@/lib/accounts";
 import { MenuAnakOrtu } from "@/features/ortu/MenuAnakOrtu";
-import { STEPS } from "@/features/isi-data/steps";
 import { POLICY } from "@/lib/nav";
 import { getSession } from "@/lib/session";
 import { BottomNav } from "../bottom-nav/BottomNav";
@@ -106,18 +104,18 @@ export async function LandingChrome({ children }: { children: ReactNode }) {
   );
 }
 
-/** Judul langkah wizard akun Google, sama dengan LANGKAH di features/ortu/WizardOrtu.tsx. */
-const JUDUL_LANGKAH_ORTU = ["Data anak", "Nilai", "Kondisi keluarga", "Titik rumah"];
-
 /** Cangkang wizard (mode fokus): tanpa menu utama, footer, dan navigasi bawah. */
 const KELUAR_WIZARD = { href: "/anak-saya", label: "Simpan & keluar" };
 
-/** `step` berasal dari URL, jadi header progres dialirkan di balik Suspense; sisanya ikut App Shell. */
+/**
+ * Header wizard sama dengan Cek Cepat: "Isi Data Anak" di tengah dengan chip nama anak, tanpa bar langkah
+ * (bar langkah ada di halaman, di atas judul langkah). Nama anak bergantung pada sesi, jadi dialirkan di balik Suspense.
+ */
 export function FocusChrome({ step, children }: { step: Promise<number>; children: ReactNode }) {
   return (
     <>
       <SkipLink />
-      <Suspense fallback={<FocusBar title="Data anak" subtitle={`Dari ${WIZARD_TOTAL} langkah`} exit={KELUAR_WIZARD} />}>
+      <Suspense fallback={<FocusBar title="Isi Data Anak" exit={KELUAR_WIZARD} />}>
         <WizardBar step={step} />
       </Suspense>
       <main id="konten">{children}</main>
@@ -126,27 +124,12 @@ export function FocusChrome({ step, children }: { step: Promise<number>; childre
 }
 
 async function WizardBar({ step: langkah }: { step: Promise<number> }) {
-  const [step, session] = await Promise.all([langkah, getSession()]);
-  // Akun Google: nama anak ada di API (dibaca di klien), dan langkahnya 4.
+  // Langkah dari URL tetap ditunggu agar header muncul bersama isi langkah, walau tidak lagi menampilkan progres.
+  const [, session] = await Promise.all([langkah, getSession()]);
+  // Akun Google: nama anak ada di API (dibaca di klien oleh chip). Akun contoh: nama anak ada di sesi.
   const google = session?.account === "google";
-  const total = google ? WIZARD_TOTAL_ORTU : WIZARD_TOTAL;
-  const name = !google && session?.child ? firstName(session.child.name) : null;
-  return (
-    <FocusBar
-      title={google ? "Isi data anak" : name ? `Data ${name}` : "Data anak baru"}
-      subtitle={`Langkah ${Math.min(step, total)} dari ${total}`}
-      progress={{
-        step: Math.min(step, total),
-        total,
-        labels: google ? JUDUL_LANGKAH_ORTU : STEPS.map((s) => s.title),
-        dasar: "/isi-data/",
-        // Akun contoh: progres tersimpan di sesi. Akun Google: dibaca dari isian di perangkat (lihat BarLangkahOrtu).
-        terbuka: google ? undefined : Math.min((session?.child?.steps ?? 0) + 1, total),
-        dariIsianOrtu: google,
-      }}
-      exit={KELUAR_WIZARD}
-    />
-  );
+  const chip = google ? undefined : session?.child ? firstName(session.child.name) : "Anak baru";
+  return <FocusBar title="Isi Data Anak" chip={chip} chipAnakOrtu={google} exit={KELUAR_WIZARD} />;
 }
 
 /** Cangkang Cek Cepat (tamu): header fokus, tanpa menu akun, footer, atau navigasi bawah. */
