@@ -2,14 +2,14 @@
 
 .breadcrumb__list {
   display: inline-flex;
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-5);
   border-radius: var(--radius-full);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1);
-  padding: 0;
+  margin: 0;
   list-style: none;
   font-size: var(--text-body-md);
 }

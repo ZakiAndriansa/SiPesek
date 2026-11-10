@@ -976,6 +976,7 @@ body:has(.dash)::before {
 
 /* Keterangan sumber hasil (Hasil Sekolah, Strategi, Dokumen, Cadangan, Detail): berlatar agar tetap terbaca di atas ilustrasi */
 .sumber-hasil {
+  max-width: none;
   padding: var(--space-4) var(--space-5);
   border: var(--border-thin) solid var(--color-border-subtle);
   border-radius: var(--radius-card);
