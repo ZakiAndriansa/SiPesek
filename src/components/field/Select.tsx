@@ -18,6 +18,8 @@ type Props = {
   errorRequired?: string;
   /** Tampilkan kotak cari di daftar pilihan. Bawaan: hanya bila pilihannya banyak. */
   cari?: boolean;
+  /** Label hanya untuk pembaca layar (misalnya filter yang nilainya sudah menjelaskan diri, "Semua jalur"). */
+  labelTersembunyi?: boolean;
 };
 
 /** Kotak cari baru muncul bila pilihan sebanyak ini atau lebih; daftar pendek lebih cepat dipilih langsung. */
@@ -43,6 +45,7 @@ export function Select({
   required,
   errorRequired,
   cari,
+  labelTersembunyi,
 }: Props) {
   const message = useFieldError(id);
   const uid = useId();
@@ -164,7 +167,7 @@ export function Select({
 
   return (
     <div className={`field${message ? " field--error" : ""}`}>
-      <label className="field__label" id={labelId} htmlFor={id}>
+      <label className={`field__label${labelTersembunyi ? " visually-hidden" : ""}`} id={labelId} htmlFor={id}>
         {optional ? `${label} ` : label}
         {optional && (
           <span className="field__optional">(boleh dikosongkan)</span>

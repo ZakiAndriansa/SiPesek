@@ -380,11 +380,22 @@
   color: var(--color-ink-soft);
 }
 
+/* Satu baris penuh: pesan di kiri, tautan di kanan (turun ke baris baru hanya di layar sempit). */
 .ortu-sorot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  max-width: none;
   margin: 0;
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-lg);
   background: var(--color-primary-tint);
+}
+
+.ortu-sorot__tautan {
+  white-space: nowrap;
 }
 
 .ortu-tabel {

@@ -140,8 +140,8 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
 
         {!adaAman && swasta > 0 && (
           <p className="ortu-sorot">
-            Belum ada sekolah yang aman. Siapkan cadangan swasta.{" "}
-            <Link className="link" href="/cadangan">
+            <span>Belum ada sekolah yang aman. Siapkan cadangan swasta.</span>
+            <Link className="link ortu-sorot__tautan" href="/cadangan">
               Lihat {swasta} swasta terdekat →
             </Link>
           </p>
@@ -158,8 +158,8 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
             {" · "}Pilihan {pilihan.pilihan.length} dari {MAKS_PILIHAN}
           </p>
           <div className="ortu-aksi">
-            <Select id="f-jalur" label="Jalur" options={[SEMUA_JALUR, ...JALUR_UTAMA.map(([, n]) => n)]} selected={jalur} />
-            {jenjangAda.length > 1 && <Select id="f-jenjang" label="Jenjang" options={[SEMUA_JENJANG, ...jenjangAda]} selected={jenjang} />}
+            <Select id="f-jalur" label="Jalur" labelTersembunyi options={[SEMUA_JALUR, ...JALUR_UTAMA.map(([, n]) => n)]} selected={jalur} />
+            {jenjangAda.length > 1 && <Select id="f-jenjang" label="Jenjang" labelTersembunyi options={[SEMUA_JENJANG, ...jenjangAda]} selected={jenjang} />}
           </div>
         </div>
 
