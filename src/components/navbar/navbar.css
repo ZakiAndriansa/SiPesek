@@ -385,6 +385,108 @@
   }
 }
 
+/* Judul fokus tanpa subjudul (Cek Cepat): satu label yang jelas, bukan dua teks kecil yang berdempet. */
+.navbar__focus--baris {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: none;
+}
+
+.navbar__focus-title--tunggal {
+  font-family: var(--font-heading);
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+}
+
+/* Chip privasi: gembok saja di HP, gembok dan label di layar lebar. Diketuk: penjelasan singkat. */
+.navbar__privasi {
+  position: relative;
+  display: inline-flex;
+}
+
+.navbar__privasi-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 var(--space-2);
+  border: var(--border-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-canvas);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.navbar__privasi-chip[aria-expanded="true"] {
+  background: var(--color-primary-tint);
+}
+
+.navbar__privasi-chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.navbar__privasi-isi {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 50%;
+  z-index: var(--z-overlay);
+  display: grid;
+  gap: var(--space-1);
+  width: 16rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-inverse);
+  box-shadow: var(--shadow-overlay);
+  color: var(--color-surface);
+  font-size: var(--text-caption);
+  line-height: 1.45;
+  transform: translateX(-50%);
+  animation: drop-in var(--duration-base) var(--ease-out) both;
+}
+
+/* Label chip dan tombol Keluar disembunyikan secara visual di HP, tetap terbaca pembaca layar. */
+.navbar__privasi-teks,
+.navbar__keluar-teks {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.navbar__keluar {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+@media (min-width: 600px) {
+  .navbar__focus-title--tunggal {
+    font-size: 1.125rem;
+  }
+
+  .navbar__privasi-chip {
+    padding: 0 var(--space-3);
+  }
+
+  .navbar__privasi-teks,
+  .navbar__keluar-teks {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+}
+
 /* ---------- Dropdown (Menu.tsx) ---------- */
 .menu {
   position: relative;

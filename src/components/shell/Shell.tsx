@@ -17,6 +17,7 @@ import { getSession } from "@/lib/session";
 import { BottomNav } from "../bottom-nav/BottomNav";
 import { Footer } from "../footer/Footer";
 import { DashBar, FocusBar, Navbar, type NavbarProps } from "../navbar/Navbar";
+import { PenjagaKeluar } from "../navbar/penjaga-keluar";
 import { Sidebar, type DashMenu } from "../sidebar/Sidebar";
 
 const SkipLink = () => (
@@ -141,13 +142,26 @@ export function QuickChrome({ children }: { children: ReactNode }) {
   return (
     <>
       <SkipLink />
-      <FocusBar
-        title="Cek Cepat"
-        subtitle="Tidak disimpan otomatis"
-        brandHref="/"
-        exit={{ href: "/", label: "Selesai" }}
-      />
-      <main id="konten">{children}</main>
+      {/* Penjaga: halaman Cek Cepat menandai bila ada isian, agar tombol Keluar meminta konfirmasi dulu. */}
+      <PenjagaKeluar>
+        <FocusBar
+          title="Cek Cepat"
+          brandHref="/"
+          privasi={{
+            label: "Tidak disimpan",
+            isi: "NISN dan titik rumah hanya dipakai untuk menghitung, lalu dibuang. Hasil masuk ke akun hanya bila Bapak/Ibu memilih Simpan.",
+          }}
+          exit={{
+            href: "/",
+            label: "Keluar",
+            konfirmasi: {
+              judul: "Keluar dari Cek Cepat?",
+              isi: "Isian yang sudah diisi akan hilang, karena Cek Cepat tidak menyimpan apa pun.",
+            },
+          }}
+        />
+        <main id="konten">{children}</main>
+      </PenjagaKeluar>
     </>
   );
 }
