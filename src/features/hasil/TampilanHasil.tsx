@@ -15,10 +15,11 @@ import {
   faktaSekolah,
   jalurLain,
   JALUR_UTAMA,
+  jalurLengkap,
   jalurUtama,
   judulSkor,
   KIND,
-  namaJalur,
+  namaJalurUtama,
   namaLabel,
   posisiSkor,
   ringkasJalur,
@@ -70,8 +71,11 @@ function batas(j: HasilJalur): string {
   return p.min !== null ? `Skor terendah ${angkaSkor(p.min)}` : "-";
 }
 
-/** Skor akhir yang sudah dihitung, untuk baris konteks di bawah judul. */
-export const skorUtama = (r: ResponsPeluang) => r.skorAnak?.find((s) => s.nilai !== null)?.nilai ?? null;
+/** Ada baris untuk jalur utama ini di salah satu sekolah? */
+const adaJalur = (r: ResponsPeluang, kode: string) => r.hasil.some((h) => h.jalur.some((j) => jalurUtama(j.subJalurKode) === kode));
+
+/** Satu baris tabel: sekolah, jalur yang mewakilinya, dan (untuk tabel teratas) nomor dan perannya. */
+type Baris = { h: HasilSekolah; j: HasilJalur; no?: number; peran?: string };
 
 type Props = {
   hasil: ResponsPeluang;
@@ -117,7 +121,11 @@ export function TampilanHasil({
   tanggalCetak,
   lanjut,
 }: Props) {
-  const [jalur, setJalur] = useState(SEMUA_JALUR);
+  // Hasil akun Google (terbaru dan lama) dibuka di Jalur Prestasi. Cek Cepat satu jalur dibuka di jalur itu.
+  const [jalur, setJalur] = useState(() => {
+    const kode = jalurDipilih ?? (mode === "saran" ? null : "PRESTASI");
+    return kode && adaJalur(hasil, kode) ? namaJalurUtama(kode) : SEMUA_JALUR;
+  });
   const [jenjang, setJenjang] = useState(SEMUA_JENJANG);
   const [label, setLabel] = useState<LabelPeluang | null>(null);
   const [tampilan, setTampilan] = useState<"daftar" | "peta">("daftar");
@@ -141,9 +149,18 @@ export function TampilanHasil({
   const jumlah = (l: LabelPeluang) => dasar.filter(({ j }) => j.label === l).length;
   // Dimemo: identitas array ini dipakai peta (fitBounds) sebagai dependensi, jadi tidak boleh berubah tiap render.
   const daftar = useMemo(() => (label ? dasar.filter(({ j }) => j.label === label) : dasar), [dasar, label]);
-  const totalHalaman = Math.max(1, Math.ceil(daftar.length / PER_HALAMAN));
+  // 3 pilihan teratas dipisah dari daftar: susunan orang tua (mode pilih) atau rekomendasi strategi(). Barisnya memakai
+  // jalur yang dipakai rekomendasi itu, jadi tidak ikut filter; sisanya tampil di tabel kedua dan ikut filter.
+  const perId = new Map(hasil.hasil.map((h) => [h.sekolah.id, h]));
+  const teratas: Baris[] = pilihan.pilihan.flatMap((p, i) => {
+    const h = perId.get(p.sekolahId);
+    return h ? [{ h, j: h.jalur[0], no: i + 1, peran: p.role }] : [];
+  });
+  const idTeratas = new Set(teratas.map(({ h }) => h.sekolah.id));
+  const lainnya = daftar.filter(({ h }) => !idTeratas.has(h.sekolah.id));
+  const totalHalaman = Math.max(1, Math.ceil(lainnya.length / PER_HALAMAN));
   const hal = Math.min(halaman, totalHalaman - 1);
-  const tampil = daftar.slice(hal * PER_HALAMAN, (hal + 1) * PER_HALAMAN);
+  const tampil = lainnya.slice(hal * PER_HALAMAN, (hal + 1) * PER_HALAMAN);
   const titik = useMemo(
     () =>
       daftar.flatMap(({ h, j }) =>
@@ -156,8 +173,6 @@ export function TampilanHasil({
   const jenjangAda = [...new Set(hasil.hasil.map((h) => h.sekolah.jenjang))];
   const swasta = [...hasil.swasta.SMA, ...hasil.swasta.SMK].sort((a, b) => (a.jarakMeter ?? Infinity) - (b.jarakMeter ?? Infinity));
   const adaAman = hasil.hasil.some((h) => h.jalur.some((j) => j.label === "PELUANG_BESAR"));
-  const urutSaran = new Map(pilihan.pilihan.map((p, i) => [p.sekolahId, i + 1]));
-  const kolomAkhir = mode === "pilih" ? "Pilihan" : mode === "saran" ? "Saran" : null;
 
   function ubahFilter(e: ChangeEvent<HTMLDivElement>) {
     const t = e.target as unknown as HTMLSelectElement;
@@ -185,6 +200,96 @@ export function TampilanHasil({
       </a>
     );
 
+  const jumlahTampil = tampilan === "peta" ? daftar.length : lainnya.length;
+
+  // Satu bentuk tabel untuk pilihan teratas dan sekolah lainnya. Kolom terakhir hanya ada di mode pilih (tombol Pilih).
+  const tabel = (baris: Baris[], namaTabel: string) => (
+    <section className="ortu-tabel" aria-label={namaTabel}>
+      <div className="ortu-tabel__gulir">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Sekolah</th>
+              <th scope="col">Jarak</th>
+              <th scope="col">Batas {hasil.tahunAcuan}</th>
+              <th scope="col">Peluang</th>
+              {mode === "pilih" && <th scope="col">Pilihan</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {baris.map(({ h, j, no, peran }) => (
+              <tr key={h.sekolah.id}>
+                <td>
+                  <div className="ortu-tabel__urut">
+                    {no !== undefined && (
+                      <span className="ortu-tabel__no" aria-label={`Pilihan ${no}`}>
+                        {no}
+                      </span>
+                    )}
+                    <div className="ortu-tabel__nama">
+                      {mode === "pilih" ? (
+                        <Link href={`/detail-sekolah/${h.sekolah.id}`}>{h.sekolah.nama}</Link>
+                      ) : (
+                        <button
+                          type="button"
+                          className="ortu-tabel__rinci"
+                          aria-haspopup="dialog"
+                          onClick={(e) => {
+                            setRinci(h);
+                            openDialog(ID_RINCI, e.currentTarget);
+                          }}
+                        >
+                          {h.sekolah.nama}
+                        </button>
+                      )}
+                      {peran && <span className="ortu-tabel__jalur">{`${peran} · ${jalurLengkap(j)}`}</span>}
+                      <span>{peran ? h.sekolah.kecamatan : `${h.sekolah.kecamatan} · ${jalurLengkap(j)}`}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>{h.jarakMeter !== null ? formatJarak(h.jarakMeter) : "-"}</td>
+                <td>{batas(j)}</td>
+                <td>
+                  <Badge kind={KIND[j.label]}>{badgeText(j.label)}</Badge>
+                </td>
+                {mode === "pilih" && (
+                  <td>
+                    {pilihan.ada(h.sekolah.id) ? (
+                      <Button
+                        variant="secondary"
+                        sm
+                        iconLeft="check"
+                        onClick={() => pilihan.hapus(h.sekolah.id)}
+                        aria-label={`Hapus ${h.sekolah.nama} dari pilihan`}
+                      >
+                        Dipilih
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        sm
+                        iconLeft="plus"
+                        onClick={() => pilihan.tambah(h.sekolah.id)}
+                        aria-label={`Tambahkan ${h.sekolah.nama} ke pilihan`}
+                        toast={
+                          pilihan.penuh
+                            ? { message: `Pilihan sudah ${MAKS_PILIHAN}. Hapus satu dulu di sini atau di Strategi.`, variant: "info" }
+                            : { message: `${h.sekolah.nama} ditambahkan ke pilihan${namaAnak ? ` ${namaAnak}` : ""}.`, variant: "success" }
+                        }
+                      >
+                        Pilih
+                      </Button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+
   return (
     <>
       <div className="no-print">
@@ -211,6 +316,19 @@ export function TampilanHasil({
         />
 
         <div className="stack">
+          {/* Filter paling atas: skor, angka per label, dan daftar sekolah lainnya mengikuti jalur dan jenjang ini. */}
+          <div className="ortu-alat" onChange={ubahFilter}>
+            <p className="ortu-meta">Skor dan daftar sekolah mengikuti jalur yang dipilih.</p>
+            <div className="ortu-aksi">
+              <Select id="f-jalur" label="Jalur" labelTersembunyi options={[SEMUA_JALUR, ...JALUR_UTAMA.map(([, n]) => n)]} selected={jalur} />
+              {jenjangAda.length > 1 && (
+                <Select id="f-jenjang" label="Jenjang" labelTersembunyi options={[SEMUA_JENJANG, ...jenjangAda]} selected={jenjang} />
+              )}
+            </div>
+          </div>
+
+          <SkorJalur hasil={hasil} kodeJalur={kodeJalur} jenjang={jenjang} input={input} />
+
           <div className="ortu-angka" role="group" aria-label="Saring menurut label peluang">
             {LABEL.map((l) => {
               const n = jumlah(l);
@@ -248,134 +366,81 @@ export function TampilanHasil({
             </Alert>
           ))}
 
-          <div className="ortu-alat" onChange={ubahFilter}>
-            <p className="ortu-meta" aria-live="polite">
-              {label ? `${namaLabel(label)}: ${daftar.length} sekolah` : `${daftar.length} sekolah`}
-              {mode === "pilih" && ` · Pilihan ${pilihan.pilihan.length} dari ${MAKS_PILIHAN}`}
-            </p>
-            <div className="ortu-aksi">
-              <Select id="f-jalur" label="Jalur" labelTersembunyi options={[SEMUA_JALUR, ...JALUR_UTAMA.map(([, n]) => n)]} selected={jalur} />
-              {jenjangAda.length > 1 && (
-                <Select id="f-jenjang" label="Jenjang" labelTersembunyi options={[SEMUA_JENJANG, ...jenjangAda]} selected={jenjang} />
-              )}
-            </div>
-          </div>
-
-          {tampilan === "peta" ? (
-            <div className="stack">
-              <PetaHasil sekolah={titik} />
-              <MapLegend />
-              <p className="ortu-meta">Titik abu-abu belum dihitung. Titik rumah tidak disimpan, jadi tidak tampil di peta.</p>
-            </div>
-          ) : daftar.length === 0 ? (
-            <p className="text-secondary">
-              {hasil.hasil.length === 0
-                ? "Belum ada sekolah negeri yang bisa dihitung untuk isian ini."
-                : "Tidak ada sekolah yang cocok dengan pilihan ini."}
-            </p>
-          ) : (
-            <section className="ortu-tabel" aria-label="Daftar sekolah">
-              <div className="ortu-tabel__gulir">
-                <table>
-                  <thead>
-                    <tr>
-                      <th scope="col">Sekolah</th>
-                      <th scope="col">Jarak</th>
-                      <th scope="col">Batas {hasil.tahunAcuan}</th>
-                      <th scope="col">Peluang</th>
-                      {kolomAkhir && <th scope="col">{kolomAkhir}</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tampil.map(({ h, j }) => (
-                      <tr key={h.sekolah.id}>
-                        <td>
-                          <div className="ortu-tabel__nama">
-                            {mode === "pilih" ? (
-                              <Link href={`/detail-sekolah/${h.sekolah.id}`}>{h.sekolah.nama}</Link>
-                            ) : (
-                              <button
-                                type="button"
-                                className="ortu-tabel__rinci"
-                                aria-haspopup="dialog"
-                                onClick={(e) => {
-                                  setRinci(h);
-                                  openDialog(ID_RINCI, e.currentTarget);
-                                }}
-                              >
-                                {h.sekolah.nama}
-                              </button>
-                            )}
-                            <span>
-                              {h.sekolah.kecamatan} · {namaJalur(j)}
-                            </span>
-                          </div>
-                        </td>
-                        <td>{h.jarakMeter !== null ? formatJarak(h.jarakMeter) : "-"}</td>
-                        <td>{batas(j)}</td>
-                        <td>
-                          <Badge kind={KIND[j.label]}>{badgeText(j.label)}</Badge>
-                        </td>
-                        {mode === "pilih" && (
-                          <td>
-                            {pilihan.ada(h.sekolah.id) ? (
-                              <Button
-                                variant="secondary"
-                                sm
-                                iconLeft="check"
-                                onClick={() => pilihan.hapus(h.sekolah.id)}
-                                aria-label={`Hapus ${h.sekolah.nama} dari pilihan`}
-                              >
-                                Dipilih
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                sm
-                                iconLeft="plus"
-                                onClick={() => pilihan.tambah(h.sekolah.id)}
-                                aria-label={`Tambahkan ${h.sekolah.nama} ke pilihan`}
-                                toast={
-                                  pilihan.penuh
-                                    ? { message: `Pilihan sudah ${MAKS_PILIHAN}. Hapus satu dulu di sini atau di Strategi.`, variant: "info" }
-                                    : { message: `${h.sekolah.nama} ditambahkan ke pilihan${namaAnak ? ` ${namaAnak}` : ""}.`, variant: "success" }
-                                }
-                              >
-                                Pilih
-                              </Button>
-                            )}
-                          </td>
-                        )}
-                        {mode === "saran" && <td>{urutSaran.has(h.sekolah.id) && <SaranChip no={urutSaran.get(h.sekolah.id)!} label={h.labelTerbaik} />}</td>}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {totalHalaman > 1 && (
-                <div className="ortu-tabel__kaki">
-                  <span>
-                    {hal * PER_HALAMAN + 1} sampai {hal * PER_HALAMAN + tampil.length} dari {daftar.length} sekolah
-                  </span>
-                  <span className="ortu-aksi">
-                    <button type="button" className="button button--secondary button--sm" disabled={hal === 0} onClick={() => setHalaman(hal - 1)}>
-                      <Icon name="chevron-left" className="icon button__icon" />
-                      Sebelumnya
-                    </button>
-                    <button
-                      type="button"
-                      className="button button--secondary button--sm"
-                      disabled={hal >= totalHalaman - 1}
-                      onClick={() => setHalaman(hal + 1)}
-                    >
-                      Berikutnya
-                      <Icon name="chevron-right" className="icon button__icon" />
-                    </button>
-                  </span>
+          {(teratas.length > 0 || mode === "pilih") && (
+            <section className="hasil-bagian" aria-labelledby="h-teratas">
+              <div className="ortu-alat">
+                <div>
+                  <h2 className="hasil-bagian__judul" id="h-teratas">
+                    {mode === "pilih" ? `3 pilihan ${namaAnak ?? "anak"}` : "Rekomendasi 3 pilihan"}
+                  </h2>
+                  <p className="ortu-meta">
+                    {mode === "pilih" && pilihan.disusunSendiri
+                      ? "Disusun sendiri. Urutannya bisa diubah di Strategi."
+                      : "Satu ambisius dan dua aman, dari jalur terbaik tiap sekolah."}
+                  </p>
                 </div>
+                {mode === "pilih" && <p className="ortu-meta">{`Pilihan ${pilihan.pilihan.length} dari ${MAKS_PILIHAN}`}</p>}
+              </div>
+              {teratas.length === 0 ? (
+                <p className="text-secondary">Belum ada sekolah yang dipilih. Tekan Pilih di daftar sekolah lainnya.</p>
+              ) : (
+                tabel(teratas, "Pilihan teratas")
               )}
             </section>
           )}
+
+          <section className="hasil-bagian" aria-labelledby="h-lainnya">
+            <div className="ortu-alat">
+              <h2 className="hasil-bagian__judul" id="h-lainnya">
+                {tampilan === "peta" ? "Peta sekolah" : teratas.length > 0 ? "Sekolah lainnya" : "Semua sekolah negeri"}
+              </h2>
+              <p className="ortu-meta" aria-live="polite">
+                {label ? `${namaLabel(label)}: ${jumlahTampil} sekolah` : `${jumlahTampil} sekolah`}
+              </p>
+            </div>
+
+            {tampilan === "peta" ? (
+              <div className="stack">
+                <PetaHasil sekolah={titik} />
+                <MapLegend />
+                <p className="ortu-meta">Titik abu-abu belum dihitung. Titik rumah tidak disimpan, jadi tidak tampil di peta.</p>
+              </div>
+            ) : lainnya.length === 0 ? (
+              <p className="text-secondary">
+                {hasil.hasil.length === 0
+                  ? "Belum ada sekolah negeri yang bisa dihitung untuk isian ini."
+                  : daftar.length > 0
+                    ? "Semua sekolah yang cocok sudah ada di pilihan teratas."
+                    : "Tidak ada sekolah yang cocok dengan pilihan ini."}
+              </p>
+            ) : (
+              <>
+                {tabel(tampil, "Sekolah lainnya")}
+                {totalHalaman > 1 && (
+                  <div className="ortu-tabel__kaki">
+                    <span>
+                      {hal * PER_HALAMAN + 1} sampai {hal * PER_HALAMAN + tampil.length} dari {lainnya.length} sekolah
+                    </span>
+                    <span className="ortu-aksi">
+                      <button type="button" className="button button--secondary button--sm" disabled={hal === 0} onClick={() => setHalaman(hal - 1)}>
+                        <Icon name="chevron-left" className="icon button__icon" />
+                        Sebelumnya
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--secondary button--sm"
+                        disabled={hal >= totalHalaman - 1}
+                        onClick={() => setHalaman(hal + 1)}
+                      >
+                        Berikutnya
+                        <Icon name="chevron-right" className="icon button__icon" />
+                      </button>
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
 
           {/* Sudah ada sekolah aman: cadangan tetap ditawarkan, sebagai satu baris tenang. */}
           {adaAman && swasta.length > 0 && (
@@ -445,10 +510,81 @@ export function TampilanHasil({
   );
 }
 
-/** Rekomendasi untuk tamu: urutan pilihan dan perannya (ambisius atau aman). */
-function SaranChip({ no, label }: { no: number; label: LabelPeluang }) {
-  const peran = label === "PELUANG_BESAR" ? "aman" : label === "MASIH_MUNGKIN" ? "ambisius" : "cadangan";
-  return <span className="ortu-saran-chip">{`Pilihan ${no} · ${peran}`}</span>;
+/**
+ * Ukuran anak di jalur yang sedang dipilih. Jalur Prestasi (dan semua jalur): skor akhir rapor, atau rapor dan TKA,
+ * per jenjang. Jalur berbasis jarak (Domisili, Afirmasi, Mutasi): jarak rumah ke sekolah negeri terdekat di jalur itu.
+ */
+function SkorJalur({
+  hasil,
+  kodeJalur,
+  jenjang,
+  input,
+}: {
+  hasil: ResponsPeluang;
+  kodeJalur: string | null;
+  jenjang: string;
+  input: QuickCheckInput | null;
+}) {
+  const cocok = (j: string) => jenjang === SEMUA_JENJANG || j === jenjang;
+
+  if (kodeJalur && kodeJalur !== "PRESTASI") {
+    let terdekat: { meter: number; nama: string } | null = null;
+    for (const h of hasil.hasil) {
+      if (!cocok(h.sekolah.jenjang)) continue;
+      for (const j of h.jalur) {
+        if (jalurUtama(j.subJalurKode) !== kodeJalur || j.satuan !== "meter" || j.label === "TIDAK_DIHITUNG" || j.nilaiAnak === null) continue;
+        if (!terdekat || j.nilaiAnak < terdekat.meter) terdekat = { meter: j.nilaiAnak, nama: h.sekolah.nama };
+      }
+    }
+    const alasan = ringkasJalur(hasil.hasil, input).find((r) => r.kode === kodeJalur)?.teks;
+    return (
+      <div className="hasil-skor">
+        <div className="hasil-skor__kotak">
+          <span className="hasil-skor__judul">{`${namaJalurUtama(kodeJalur)} diukur dari jarak rumah`}</span>
+          <p className="hasil-skor__angka">
+            <b>{terdekat ? formatJarak(terdekat.meter) : "Belum dihitung"}</b>
+          </p>
+          <span className="hasil-skor__catatan">
+            {terdekat ? `Ke sekolah terdekat di jalur ini, ${terdekat.nama}. Jarak ke tiap sekolah ada di tabel.` : alasan}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Cek lama yang disimpan sebelum skor ikut disimpan: jelaskan di Jalur Prestasi alih-alih diam.
+  if (!hasil.skorAnak) {
+    return kodeJalur === "PRESTASI" ? <p className="ortu-meta">Skor akhir tidak tersimpan untuk hasil ini. Label tiap sekolah tetap sama seperti saat dicek.</p> : null;
+  }
+  // Semua jalur: hanya skor yang sudah terhitung. Jalur Prestasi: juga yang belum, beserta isian yang kurang.
+  const skor = hasil.skorAnak.filter((s) => cocok(s.jenjang) && (kodeJalur === "PRESTASI" || s.nilai !== null));
+  if (skor.length === 0) return null;
+  return (
+    <div className="hasil-skor">
+      {skor.map((s) => (
+        <div key={`${s.jenjang}-${s.subJalurKode}-${s.kelompok}`} className="hasil-skor__kotak">
+          <span className="hasil-skor__judul">{`Skor akhir ${judulSkor(s)}`}</span>
+          <p className="hasil-skor__angka">
+            {s.nilai !== null ? (
+              <>
+                <b>{angkaSkor(s.nilai)}</b>
+                <span>{` / ${angkaSkor(s.maks)}`}</span>
+              </>
+            ) : (
+              <b>Belum dihitung</b>
+            )}
+          </p>
+          <span className="hasil-skor__catatan">
+            {s.nilai === null
+              ? `Isi ${gabung(s.kurang)} untuk menghitungnya.`
+              : s.terendahDiterima
+                ? `Skor terendah yang diterima ${hasil.tahunAcuan} di ${s.jenjang} negeri: ${angkaSkor(s.terendahDiterima.dari)} sampai ${angkaSkor(s.terendahDiterima.sampai)}.`
+                : s.rumus}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /** Rincian satu sekolah (tamu dan hasil lama): jalur terbaik, fakta, alasan, dan jalur lain. */
@@ -461,7 +597,7 @@ function RinciSekolah({ h }: { h: HasilSekolah }) {
         {[`${h.sekolah.jenjang} Negeri`, h.sekolah.kecamatan, h.jarakMeter !== null ? formatJarak(h.jarakMeter) : null].filter(Boolean).join(" · ")}
       </p>
       <p>
-        <Badge kind={KIND[h.labelTerbaik]}>{badgeText(h.labelTerbaik)}</Badge> {namaJalur(h.jalur[0])}
+        <Badge kind={KIND[h.labelTerbaik]}>{badgeText(h.labelTerbaik)}</Badge> {jalurLengkap(h.jalur[0])}
       </p>
       {fakta.length > 0 && (
         <dl className="school-card__facts">

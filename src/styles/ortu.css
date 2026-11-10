@@ -272,6 +272,12 @@
   font-size: var(--text-body-sm);
 }
 
+/* Jalur yang dipakai tiap pilihan, satu baris sendiri agar langsung terbaca. */
+.ortu-pilihan__isi .ortu-pilihan__jalur {
+  color: var(--color-primary-text);
+  font-weight: var(--weight-semibold);
+}
+
 .ortu-pilihan__aksi {
   display: flex;
   align-items: center;

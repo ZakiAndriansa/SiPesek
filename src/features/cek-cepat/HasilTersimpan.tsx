@@ -4,10 +4,9 @@ import { useRouter } from "next/navigation";
 import { Alert, Breadcrumb, Button } from "@/components";
 import { HapusHasil } from "@/features/ortu/HapusHasil";
 import { pilihAnakAktif, useOrtu } from "@/features/ortu/store";
-import { skorUtama, TampilanHasil } from "@/features/hasil/TampilanHasil";
+import { TampilanHasil } from "@/features/hasil/TampilanHasil";
 import { ambil } from "@/lib/ambil";
 import type { ResponsPeluang } from "@/lib/kontrak";
-import { angkaSkor } from "@/lib/quick-check";
 import { lupakanSesi } from "@/lib/session-actions";
 
 type Status = "memuat" | "ada" | "belum-masuk" | "tidak-ada" | "galat";
@@ -126,13 +125,12 @@ export function HasilTersimpan({ token }: { token: string }) {
 
   const nama = result.anak?.nama ?? "Anak";
   const tgl = tanggal(result.dibuatPada);
-  const skor = skorUtama(result);
   return (
     <TampilanHasil
       hasil={result}
       mode="lama"
       judul="Hasil Sekolah"
-      konteks={[nama, JENJANG_SEKOLAH(result), skor !== null ? `skor rapor ${angkaSkor(skor)}` : null, `dari cek ${tgl}`]
+      konteks={[nama, JENJANG_SEKOLAH(result), `dari cek ${tgl}`]
         .filter(Boolean)
         .join(" · ")}
       atas={
