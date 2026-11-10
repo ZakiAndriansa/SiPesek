@@ -32,6 +32,7 @@ import {
   type QuickCheckInput,
   type Titik,
 } from "@/lib/quick-check";
+import { useIsianBelumTersimpan } from "@/components/navbar/penjaga-keluar";
 import { HasilCepat } from "./HasilCepat";
 import { HomePicker } from "./HomePicker";
 import { setDraft } from "./draft-store";
@@ -144,6 +145,9 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
   const isianEfektif = jalur ? isianUntukJalur(input, jalur) : input;
   const kunciDari = (isian: QuickCheckInput, titik: Titik | null, n: string, j: JalurPilihan | null) =>
     JSON.stringify([j ? isianUntukJalur(isian, j) : isian, j === "PRESTASI" ? null : titik, n, j]);
+
+  // Tombol Keluar di header meminta konfirmasi begitu ada isian yang akan hilang (NISN sudah diisi atau langkah lanjut).
+  useIsianBelumTersimpan(nisnAnak !== "" || phase !== "nisn");
 
   // Catat langkah terjauh yang pernah dibuka (disesuaikan saat render, pola yang dianjurkan React).
   const indeksSekarang = urutan.indexOf(phase);

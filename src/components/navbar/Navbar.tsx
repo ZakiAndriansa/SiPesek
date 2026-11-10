@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { openDialog } from "@/lib/dialog";
 import { stageOf } from "@/lib/accounts";
 import { HELP_URL, PUBLIC_NAV } from "@/lib/nav";
 import { lupakanDataOrtu } from "@/features/ortu/store";
 import { addChild, selectChild, signOut } from "@/lib/session-actions";
 import { Brand } from "../brand/Brand";
 import { Button } from "../button/Button";
+import { Dialog } from "../dialog/Dialog";
 import { Icon } from "../icon/Icon";
+import { usePerluKonfirmasiKeluar } from "./penjaga-keluar";
 import { Menu } from "./Menu";
 import { StageLink, type StageItem } from "./StageLink";
 
@@ -345,20 +348,113 @@ export function DashBar({
   );
 }
 
+type KeluarFokus = {
+  href: string;
+  label: string;
+  /** Bila diisi: tombol Keluar ber-ikon ✕, dan bila halaman menandai ada isian (useIsianBelumTersimpan), minta konfirmasi. */
+  konfirmasi?: { judul: string; isi: string };
+};
+
+/**
+ * Chip privasi di header fokus: ikon gembok dan label (label tersembunyi di layar sempit, tetap terbaca pembaca layar).
+ * Diketuk: penjelasan singkat muncul di bawahnya; tertutup dengan ketuk di luar atau Escape.
+ */
+function ChipPrivasi({ label, isi }: { label: string; isi: string }) {
+  const [buka, setBuka] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  const id = `${useId()}-privasi`;
+  useEffect(() => {
+    if (!buka) return;
+    const luar = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setBuka(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setBuka(false);
+    };
+    document.addEventListener("pointerdown", luar);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", luar);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [buka]);
+  return (
+    <span className="navbar__privasi" ref={ref}>
+      <button
+        type="button"
+        className="navbar__privasi-chip"
+        aria-expanded={buka}
+        aria-controls={id}
+        onClick={() => setBuka(!buka)}
+      >
+        <Icon name="lock" className="icon icon--sm" />
+        <span className="navbar__privasi-teks">{label}</span>
+      </button>
+      {buka && (
+        <span id={id} role="note" className="navbar__privasi-isi">
+          <strong>{label}</strong>
+          <span>{isi}</span>
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Tombol Keluar dengan konfirmasi bila keluar akan membuang isian. Label tersembunyi di layar sempit (ikon ✕ saja). */
+function TombolKeluar({ href, label, konfirmasi }: Required<KeluarFokus>) {
+  const router = useRouter();
+  const perlu = usePerluKonfirmasiKeluar();
+  const idDialog = "dlg-keluar-fokus";
+  return (
+    <>
+      <Button
+        variant="secondary"
+        sm
+        iconLeft="x"
+        className="navbar__keluar"
+        onClick={(e) => (perlu ? openDialog(idDialog, e.currentTarget) : router.push(href))}
+      >
+        <span className="navbar__keluar-teks">{label}</span>
+      </Button>
+      <Dialog
+        id={idDialog}
+        title={konfirmasi.judul}
+        footer={
+          <>
+            {/* Urutan DOM: footer dialog membalik urutan di HP, jadi tombol utama tampil paling atas. */}
+            <Button variant="secondary" closes onClick={() => router.push(href)}>
+              Keluar
+            </Button>
+            <Button variant="primary" closes>
+              Lanjutkan mengisi
+            </Button>
+          </>
+        }
+      >
+        <p>{konfirmasi.isi}</p>
+      </Dialog>
+    </>
+  );
+}
+
 /** Header mode fokus (wizard dan Cek Cepat): tanpa menu utama agar orang tua tidak keluar tanpa sengaja. */
 export function FocusBar({
   title,
   subtitle,
   progress,
   brandHref,
+  privasi,
   exit,
 }: {
   title: string;
-  subtitle: string;
+  /** Baris kecil di samping judul (wizard: "Langkah x dari y"). Tanpa subjudul, judul tampil lebih besar. */
+  subtitle?: string;
   progress?: { step: number; total: number };
   /** Bila diisi, logo menjadi tautan. Di wizard dibiarkan kosong agar tidak keluar tanpa sengaja. */
   brandHref?: string;
-  exit: { href: string; label: string };
+  /** Chip gembok di samping judul (Cek Cepat: "Tidak disimpan"). */
+  privasi?: { label: string; isi: string };
+  exit: KeluarFokus;
 }) {
   return (
     <header className="navbar navbar--focus">
@@ -372,11 +468,12 @@ export function FocusBar({
             <span className="navbar__focus-brand">SiPesek</span>
           </span>
         )}
-        <div className="navbar__focus">
-          <p className="navbar__focus-title">
+        <div className={`navbar__focus${privasi ? " navbar__focus--baris" : ""}`}>
+          <p className={`navbar__focus-title${subtitle ? "" : " navbar__focus-title--tunggal"}`}>
             <strong>{title}</strong>
-            <span>{subtitle}</span>
+            {subtitle && <span>{subtitle}</span>}
           </p>
+          {privasi && <ChipPrivasi label={privasi.label} isi={privasi.isi} />}
           {progress && (
             <ol className="stepper__bar" aria-hidden="true">
               {Array.from({ length: progress.total }, (_, i) => (
@@ -392,9 +489,13 @@ export function FocusBar({
           <Button variant="ghost" sm href={HELP_URL} newTab iconLeft="message" className="navbar__help">
             Bantuan
           </Button>
-          <Button variant="secondary" sm href={exit.href}>
-            {exit.label}
-          </Button>
+          {exit.konfirmasi ? (
+            <TombolKeluar href={exit.href} label={exit.label} konfirmasi={exit.konfirmasi} />
+          ) : (
+            <Button variant="secondary" sm href={exit.href}>
+              {exit.label}
+            </Button>
+          )}
         </div>
       </div>
     </header>
