@@ -149,7 +149,7 @@ export function faktaSekolah(h: HasilSekolah, j: HasilJalur = h.jalur[0]): [stri
 }
 
 /** Jalur lain di sekolah yang sama, misalnya "Nilai rapor: Masih mungkin". */
-export const jalurLain = (h: HasilSekolah) => h.jalur.slice(1).map((j) => `${namaJalur(j)}: ${NAMA_LABEL[j.label]}`);
+export const jalurLain = (h: HasilSekolah) => h.jalur.slice(1).map((j) => `${jalurLengkap(j)}: ${NAMA_LABEL[j.label]}`);
 
 export type RingkasJalur = { kode: string; nama: string; teks: string; terhitung: boolean };
 
@@ -164,6 +164,24 @@ const KE_JALUR = new Map<string, string>(SUB_JALUR.map((s) => [s.kode, s.jalurKo
 
 /** Kode jalur utama dari kode sub-jalur, mis. "PRESTASI_AKD_RAPOR" menjadi "PRESTASI". */
 export const jalurUtama = (subJalurKode: string) => KE_JALUR.get(subJalurKode) ?? null;
+
+const NAMA_UTAMA = new Map<string, string>([...JALUR_UTAMA, ["SELEKSI_UNGGULAN", "Seleksi Unggulan"]]);
+
+/** Nama jalur utama dari kodenya, mis. "PRESTASI" menjadi "Jalur Prestasi". */
+export const namaJalurUtama = (kode: string) => NAMA_UTAMA.get(kode) ?? kode;
+
+/**
+ * Nama jalur lengkap untuk orang tua: jalur utama lalu sub-jalurnya, mis. "Jalur Prestasi, nilai rapor" atau
+ * "Jalur Afirmasi, keluarga kurang mampu (KETM)". Domisili cukup "Jalur Domisili".
+ */
+export function jalurLengkap(j: HasilJalur): string {
+  const kode = jalurUtama(j.subJalurKode);
+  const jurusan = j.programKeahlian ? `, jurusan ${j.programKeahlian}` : "";
+  if (!kode) return namaJalur(j);
+  if (j.subJalurKode === "DOMISILI") return `${namaJalurUtama(kode)}${jurusan}`;
+  const sub = j.namaJalur.replace(/^Unggulan: /, "");
+  return `${namaJalurUtama(kode)}, ${sub.charAt(0).toLowerCase()}${sub.slice(1)}${jurusan}`;
+}
 
 // ---------- Jalur yang sudah dipilih orang tua ----------
 
@@ -304,7 +322,7 @@ export function keStrategi(h: HasilSekolah, role = PERAN[h.labelTerbaik]): Pilih
     sekolahId: h.sekolah.id,
     name: h.sekolah.nama,
     role,
-    jalur: namaJalur(h.jalur[0]),
+    jalur: jalurLengkap(h.jalur[0]),
     kind: KIND[h.labelTerbaik],
     label: h.labelTerbaik,
     jarakMeter: h.jarakMeter,

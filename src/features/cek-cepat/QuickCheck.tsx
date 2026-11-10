@@ -18,7 +18,6 @@ import {
 } from "@/components";
 import type { ResponsPeluang } from "@/lib/kontrak";
 import {
-  angkaSkor,
   isianUntukJalur,
   isValidNisn,
   JALUR_UTAMA,
@@ -35,7 +34,7 @@ import {
   type Titik,
 } from "@/lib/quick-check";
 import { useIsianBelumTersimpan } from "@/components/navbar/penjaga-keluar";
-import { skorUtama, TampilanHasil } from "@/features/hasil/TampilanHasil";
+import { TampilanHasil } from "@/features/hasil/TampilanHasil";
 import { HomePicker } from "./HomePicker";
 import { setDraft } from "./draft-store";
 
@@ -734,7 +733,6 @@ export function QuickCheck({ loggedIn, canSave, parentName }: Props) {
                 {[
                   JENJANG_TEKS[input.jenjang] ?? "SMA dan SMK",
                   jalur ? NAMA_JALUR[jalur] : "semua jalur",
-                  skorUtama(result) !== null ? `skor rapor ${angkaSkor(skorUtama(result)!)}` : null,
                 ]
                   .filter(Boolean)
                   .join(" · ")}

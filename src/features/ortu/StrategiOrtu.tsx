@@ -102,9 +102,8 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
                 </span>
                 <div className="ortu-pilihan__isi">
                   <strong>{s.name}</strong>
-                  <span>
-                    {[s.role, s.jalur, s.jarakMeter !== null ? formatJarak(s.jarakMeter) : null].filter(Boolean).join(" · ")}
-                  </span>
+                  <span className="ortu-pilihan__jalur">{s.jalur}</span>
+                  <span>{[s.role, s.jarakMeter !== null ? formatJarak(s.jarakMeter) : null].filter(Boolean).join(" · ")}</span>
                   <span>
                     <Badge kind={s.kind}>{namaLabel(s.label)}</Badge>
                   </span>

@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Button } from "@/components";
 import { ambilBaruDisimpan, lupakanBaruDisimpan } from "@/features/cek-cepat/draft-store";
-import { skorUtama, TampilanHasil } from "@/features/hasil/TampilanHasil";
-import { angkaSkor } from "@/lib/quick-check";
+import { TampilanHasil } from "@/features/hasil/TampilanHasil";
 import { DenganHasil, KonteksCek, tanggalCek, type DataTahap } from "./Wadah";
 
 /** Hasil Sekolah untuk akun Google: semua sekolah negeri dari hasil cek terakhir anak aktif. */
@@ -23,13 +22,12 @@ function Isi({ aktif, terakhir, hasil }: DataTahap) {
     if (baru) lupakanBaruDisimpan();
   }, [baru]);
 
-  const skor = skorUtama(hasil);
   return (
     <TampilanHasil
       hasil={hasil}
       mode="pilih"
       judul="Hasil Sekolah"
-      konteks={<KonteksCek aktif={aktif} terakhir={terakhir} tambahan={skor !== null ? `skor rapor ${angkaSkor(skor)}` : undefined} />}
+      konteks={<KonteksCek aktif={aktif} terakhir={terakhir} />}
       namaAnak={aktif.nama.split(" ")[0]}
       atas={
         baru &&
