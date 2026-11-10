@@ -300,9 +300,12 @@
   transition: width var(--duration-base) var(--ease-out);
 }
 
+/* Daftar berkas dalam satu kartu putih, baris dipisah garis tipis. */
 .ortu-cek {
   margin: 0;
-  padding: 0;
+  padding: var(--space-1) var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
   list-style: none;
 }
 
