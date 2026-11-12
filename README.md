@@ -2,18 +2,30 @@
 
 Perkiraan peluang anak masuk SMA/SMK negeri di Kota Depok per jalur SPMB, alternatif sekolah swasta terdekat, dan dashboard publik untuk melihat sekolah yang kebanjiran pendaftar serta kecamatan yang kekurangan kursi. Subtema: Data-Driven Decision Support (MIA 2026).
 
-Stack: Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma 7, Vitest.
+Aplikasi produksi: https://si-pesek.vercel.app
+
+## Tech stack
+
+| Bagian | Teknologi |
+|---|---|
+| Framework | Next.js 16.4 (App Router, Cache Components), React 19.3, TypeScript 5 |
+| Tampilan | Tailwind CSS 4 dan design token CSS, Motion untuk animasi, Number Flow untuk angka |
+| Peta | Leaflet dan React Leaflet |
+| Grafik dashboard | Recharts |
+| Database | PostgreSQL, Prisma 7 dengan driver adapter `pg` |
+| Validasi | Zod 4 |
+| Autentikasi | Orang tua: Google Identity Services (ID token diverifikasi dengan `jose`). Admin: email dan kata sandi (`bcryptjs`). Keduanya memakai sesi JWT di cookie httpOnly |
+| Pengolahan data | Papa Parse (CSV klasemen, diproses di browser admin), Cheerio (crawler data sekolah), tsx (skrip) |
+| Tes dan kualitas kode | Vitest 5, ESLint 9, `tsc --noEmit` |
+| Hosting | Vercel region Singapura (halaman dan API, dengan Speed Insights), Neon Postgres Singapura lewat Vercel Marketplace, GitHub Actions untuk pinger database |
 
 ## Menjalankan di komputer sendiri
 
-Prasyarat: Node 24. Untuk data, ada dua pilihan:
-
-1. **Pakai backend di homeserver (paling mudah, tanpa Docker dan tanpa database):** minta `BACKEND_URL` (alamat backend di homeserver) ke Zaki, isi di `.env`, lalu cukup `npm install` dan `npm run dev`. Data diambil dari homeserver.
-2. **Database lokal sendiri:** butuh Docker Desktop, lalu jalankan semua langkah di bawah.
+Prasyarat: Node 24 dan Docker Desktop (untuk Postgres lokal).
 
 ```bash
 npm install                 # juga menjalankan prisma generate
-cp .env.example .env        # lalu isi JWT_SECRET dan ADMIN_PASSWORD
+cp .env.example .env        # lalu isi JWT_SECRET, ADMIN_PASSWORD, NISN_PEPPER, dan Client ID Google
 npm run db:up               # Postgres lokal lewat docker compose
 npm run db:migrate          # membuat tabel
 npm run db:seed             # jalur, rayon, sekolah, aturan 2026, statistik SPMB 2026, akun admin
@@ -32,7 +44,7 @@ Statistik SPMB 2026 sudah ada di repo dalam bentuk agregat (`data/statistik-2026
 | `src/lib/peluang/` | Mesin peluang (fungsi murni) dan rumus skor juknis. |
 | `src/lib/etl/agregasi.ts` | CSV klasemen menjadi statistik agregat tanpa data pribadi. Dipakai juga di browser admin. |
 | `src/lib/jalur.ts` | Daftar jalur, sub jalur, dan aturan SPMB 2026. |
-| `src/proxy.ts` | Penjaga halaman `/admin` (Next 16 mengganti `middleware.ts` menjadi `proxy.ts`). |
+| `src/proxy.ts` | Penjaga halaman admin dan halaman orang tua (Next 16 mengganti `middleware.ts` menjadi `proxy.ts`). API tetap memeriksa sesi sendiri. |
 | `data/` | Data publik: sekolah, rayon, program keahlian, biaya. Lihat `data/README.md`. |
 | `scripts/` | Crawler sekolah dan impor klasemen. |
 
@@ -63,7 +75,7 @@ Bentuk request dan response ada di `src/lib/kontrak.ts`.
 
 ## Pembagian tugas dan alur branch
 
-Lihat [PEMBAGIAN-TUGAS.md](PEMBAGIAN-TUGAS.md) untuk siapa mengerjakan apa, jadwal sampai 1 November, dan cara menyiapkan proyek tanpa Docker. Daftar branch backend dan frontend beserta alur kerjanya ada di [PANDUAN-BRANCH.md](PANDUAN-BRANCH.md).
+Lihat [PEMBAGIAN-TUGAS.md](PEMBAGIAN-TUGAS.md) untuk siapa mengerjakan apa, serta pengaturan deploy di Vercel dan Neon. Daftar branch backend dan frontend beserta alur kerjanya ada di [PANDUAN-BRANCH.md](PANDUAN-BRANCH.md).
 
 ## Privasi
 
